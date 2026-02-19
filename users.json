@@ -1,0 +1,12 @@
+{
+  "admin": {
+    "password_hash": "$2b$12$ZFHLGJl6.3eUsAN3APQNHOYpOPglj4ueFkB4hY9nwfwR2SlSXR5bC",
+    "role": "admin",
+    "name": "Admin Aurora"
+  },
+  "carolina123": {
+    "password_hash": "$2b$12$x8HfIvOAh4GndOkj2OmDiOpsqkgdz8i/y3e/FF4ZkYAu13gtlONy6",
+    "role": "trusted",
+    "name": "CAROLINA"
+  }
+}

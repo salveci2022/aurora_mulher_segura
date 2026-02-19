@@ -1,0 +1,98 @@
+{"id": 1, "ts": "2026-02-18 22:44:53", "name": "DIEUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 2, "ts": "2026-02-18 22:45:04", "name": "DIEUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 3, "ts": "2026-02-18 23:15:54", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 4, "ts": "2026-02-18 23:17:26", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 5, "ts": "2026-02-18 23:17:58", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 6, "ts": "2026-02-18 23:18:28", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 7, "ts": "2026-02-18 23:36:15", "name": "SALVECI", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 8, "ts": "2026-02-18 23:36:30", "name": "SALVECI", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.019970438312143, "lon": -48.02074160580878, "accuracy_m": 100, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-18 23:36:30"}, "consent_location": true}
+{"id": 9, "ts": "2026-02-18 23:49:53", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 10, "ts": "2026-02-18 23:50:01", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 11, "ts": "2026-02-18 23:50:13", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 12, "ts": "2026-02-18 23:50:28", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 13, "ts": "2026-02-18 23:50:48", "name": "DEIUZA", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 14, "ts": "2026-02-18 23:50:54", "name": "DEIUZA", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 15, "ts": "2026-02-18 23:54:57", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 16, "ts": "2026-02-18 23:55:03", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 17, "ts": "2026-02-18 23:55:10", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 18, "ts": "2026-02-18 23:55:22", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 19, "ts": "2026-02-18 23:55:29", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 20, "ts": "2026-02-18 23:55:42", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 21, "ts": "2026-02-18 23:55:47", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 22, "ts": "2026-02-18 23:55:53", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 23, "ts": "2026-02-18 23:56:57", "name": "SALVECI", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 24, "ts": "2026-02-18 23:57:20", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 25, "ts": "2026-02-18 23:57:26", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 26, "ts": "2026-02-19 00:08:11", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 27, "ts": "2026-02-19 00:08:18", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 28, "ts": "2026-02-19 00:08:31", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 29, "ts": "2026-02-19 00:08:37", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 30, "ts": "2026-02-19 00:14:51", "name": "SALVECI", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 31, "ts": "2026-02-19 00:14:58", "name": "SALVECI", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 32, "ts": "2026-02-19 00:15:14", "name": "SALVECI", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 33, "ts": "2026-02-19 00:15:24", "name": "SALVECI", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 34, "ts": "2026-02-19 00:15:42", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 35, "ts": "2026-02-19 00:15:48", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 36, "ts": "2026-02-19 00:15:58", "name": "DIEUZA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 37, "ts": "2026-02-19 16:13:38", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 38, "ts": "2026-02-19 16:13:44", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 39, "ts": "2026-02-19 16:14:15", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 40, "ts": "2026-02-19 16:14:23", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 41, "ts": "2026-02-19 16:14:48", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 42, "ts": "2026-02-19 16:21:20", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 43, "ts": "2026-02-19 16:21:54", "name": "DEIUZA", "situation": "Situação de risco", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": 0, "heading": null, "speed": null, "timestamp": "2026-02-19 16:21:54"}, "consent_location": true}
+{"id": 44, "ts": "2026-02-19 16:22:07", "name": "DEIUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 45, "ts": "2026-02-19 16:22:20", "name": "DEIUZA", "situation": "Situação de risco", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": 0, "heading": null, "speed": null, "timestamp": "2026-02-19 16:22:20"}, "consent_location": true}
+{"id": 46, "ts": "2026-02-19 16:22:32", "name": "DEIUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 47, "ts": "2026-02-19 16:25:26", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 48, "ts": "2026-02-19 16:25:34", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 49, "ts": "2026-02-19 16:25:46", "name": "DIEUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 50, "ts": "2026-02-19 16:26:02", "name": "DIEUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 51, "ts": "2026-02-19 16:26:17", "name": "DIEUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 52, "ts": "2026-02-19 16:27:13", "name": "DIEUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 53, "ts": "2026-02-19 16:27:21", "name": "DIEUZA", "situation": "Situação de risco", "message": "", "location": null, "consent_location": false}
+{"id": 54, "ts": "2026-02-19 16:43:50", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 55, "ts": "2026-02-19 16:44:00", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 56, "ts": "2026-02-19 16:48:37", "name": "SALVECI", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 57, "ts": "2026-02-19 16:48:47", "name": "SALVECI", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 58, "ts": "2026-02-19 16:48:59", "name": "SALVECI", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 59, "ts": "2026-02-19 16:49:09", "name": "SALVECI", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 60, "ts": "2026-02-19 16:54:54", "name": "Não informado", "situation": "Violência física", "message": "", "location": {"lat": -16.02005164613734, "lon": -48.02079622757511, "accuracy_m": 98, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 16:54:54"}, "consent_location": true}
+{"id": 61, "ts": "2026-02-19 16:55:00", "name": "Não informado", "situation": "Violência física", "message": "", "location": {"lat": -16.02005164613734, "lon": -48.02079622757511, "accuracy_m": 98, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 16:55:00"}, "consent_location": true}
+{"id": 62, "ts": "2026-02-19 16:55:31", "name": "Não informado", "situation": "Violência física", "message": "", "location": {"lat": -16.020068204856788, "lon": -48.02078473394413, "accuracy_m": 95, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 16:55:31"}, "consent_location": true}
+{"id": 63, "ts": "2026-02-19 16:55:36", "name": "Não informado", "situation": "Violência física", "message": "", "location": {"lat": -16.020068204856788, "lon": -48.02078473394413, "accuracy_m": 95, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 16:55:36"}, "consent_location": true}
+{"id": 64, "ts": "2026-02-19 16:55:48", "name": "Não informado", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 16:55:48"}, "consent_location": true}
+{"id": 65, "ts": "2026-02-19 16:55:57", "name": "Não informado", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 16:55:57"}, "consent_location": true}
+{"id": 66, "ts": "2026-02-19 16:56:56", "name": "Não informado", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 16:56:56"}, "consent_location": true}
+{"id": 67, "ts": "2026-02-19 17:02:01", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 68, "ts": "2026-02-19 17:02:15", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 69, "ts": "2026-02-19 17:02:29", "name": "SALVECI DOS SANTOS", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 70, "ts": "2026-02-19 17:08:10", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 71, "ts": "2026-02-19 17:09:02", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 72, "ts": "2026-02-19 17:09:08", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 73, "ts": "2026-02-19 17:09:25", "name": "DIEUZA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 74, "ts": "2026-02-19 17:14:21", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 75, "ts": "2026-02-19 17:14:44", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 76, "ts": "2026-02-19 17:15:59", "name": "Marcos", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 77, "ts": "2026-02-19 17:16:11", "name": "Marcos", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 78, "ts": "2026-02-19 17:18:06", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 79, "ts": "2026-02-19 17:18:17", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"id": 80, "ts": "2026-02-19 17:21:47", "name": "Não informado", "situation": "Violência física", "message": "", "location": null, "consent_location": false}
+{"id": 81, "ts": "2026-02-19 17:23:45", "name": "MARISA", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:23:45"}, "consent_location": true}
+{"id": 82, "ts": "2026-02-19 17:26:16", "name": "Não informado", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020068204856788, "lon": -48.02078473394413, "accuracy_m": 95, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:26:16"}, "consent_location": true}
+{"id": 83, "ts": "2026-02-19 17:26:24", "name": "Não informado", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020068204856788, "lon": -48.02078473394413, "accuracy_m": 95, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:26:24"}, "consent_location": true}
+{"id": 84, "ts": "2026-02-19 17:26:39", "name": "Não informado", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:26:39"}, "consent_location": true}
+{"id": 85, "ts": "2026-02-19 17:28:27", "name": "SAMARA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 86, "ts": "2026-02-19 17:28:35", "name": "SAMARA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 87, "ts": "2026-02-19 17:28:47", "name": "SAMARA", "situation": "Perseguição / Stalking", "message": "", "location": null, "consent_location": false}
+{"id": 88, "ts": "2026-02-19 17:33:00", "name": "samara", "situation": "Violência física", "message": "", "location": {"lat": -16.020068178301663, "lon": -48.0207844535309, "accuracy_m": 108, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:33:00"}, "consent_location": true}
+{"id": 89, "ts": "2026-02-19 17:33:12", "name": "samara", "situation": "Violência física", "message": "", "location": {"lat": -16.020068178301663, "lon": -48.0207844535309, "accuracy_m": 108, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:33:12"}, "consent_location": true}
+{"id": 90, "ts": "2026-02-19 17:33:25", "name": "samara", "situation": "Violência física", "message": "", "location": {"lat": -16.020068178301663, "lon": -48.0207844535309, "accuracy_m": 108, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:33:25"}, "consent_location": true}
+{"id": 91, "ts": "2026-02-19 17:39:27", "name": "SALVELIMA", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020071542393918, "lon": -48.020778979001584, "accuracy_m": 103, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:39:27"}, "consent_location": true}
+{"id": 92, "ts": "2026-02-19 17:41:04", "name": "SALVELIMA", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020052589384264, "lon": -48.02079773145029, "accuracy_m": 103, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:41:04"}, "consent_location": true}
+{"id": 93, "ts": "2026-02-19 17:41:27", "name": "SALVELIMA", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020052589384264, "lon": -48.02079773145029, "accuracy_m": 103, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:41:27"}, "consent_location": true}
+{"id": 94, "ts": "2026-02-19 17:41:52", "name": "SALVELIMA", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:41:52"}, "consent_location": true}
+{"id": 95, "ts": "2026-02-19 17:42:10", "name": "SALVELIMA", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:42:10"}, "consent_location": true}
+{"id": 96, "ts": "2026-02-19 17:42:46", "name": "SALVELIMA", "situation": "Agressão verbal / ameaças", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:42:46"}, "consent_location": true}
+{"id": 97, "ts": "2026-02-19 17:45:39", "name": "SALVELIMA", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:45:39"}, "consent_location": true}
+{"id": 98, "ts": "2026-02-19 17:45:46", "name": "SALVELIMA", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "altitude": null, "heading": null, "speed": null, "timestamp": "2026-02-19 17:45:45"}, "consent_location": true}

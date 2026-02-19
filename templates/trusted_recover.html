@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Confiança · Recuperar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="aurora-bg">
+  <main class="center-wrap">
+    <section class="aurora-card">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-dot">♀</div>
+          <div>
+            <div class="brand-title">AURORA_MULHER_SEGURA</div>
+            <div class="brand-sub">Recuperar senha</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <a class="pill" href="/trusted/login">Login</a>
+        </div>
+      </div>
+
+      <div class="content">
+        <h1 class="h1">RECUPERAR SENHA</h1>
+        <p class="center muted small">Informe usuário e defina nova senha.</p>
+
+        {% if msg %}<div class="alert alert-ok">{{ msg }}</div>{% endif %}
+        {% if err %}<div class="alert alert-danger">{{ err }}</div>{% endif %}
+
+        <form method="post">
+          <label class="label">Usuário</label>
+          <input class="input" name="user" required>
+          <label class="label">Nova senha</label>
+          <input class="input" type="password" name="new_password" required>
+          <button class="btn btn-primary" type="submit">Redefinir</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

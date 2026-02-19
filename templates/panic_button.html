@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aurora Mulher Segura - SOS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="aurora-bg">
+  <main class="center-wrap">
+    <section class="aurora-card">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-dot">♀</div>
+          <div>
+            <div class="brand-title">AURORA_MULHER_SEGURA</div>
+            <div class="brand-sub">Spy Life · Proteção Feminina 24h</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <h1 class="h1">BOTÃO DE PÂNICO</h1>
+        <p class="center muted small">Versão demonstrativa — treine o fluxo de emergência.</p>
+
+        <div class="top-actions">
+          <button class="pill" id="btnReset" type="button">Reiniciar</button>
+          <button class="pill" id="btnClear" type="button">Limpar</button>
+          <button class="pill" id="btnExit" type="button">Sair</button>
+        </div>
+
+        {% if trusted and trusted|length > 0 %}
+        <div class="alert" style="margin-top:10px">
+          <div class="small"><strong>Pessoas de confiança cadastradas:</strong></div>
+          <div class="chips" style="margin-top:8px">
+            {% for n in trusted %}
+              <div class="chip active" style="cursor:default">{{ n }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <label class="label">Seu nome</label>
+        <input id="name" class="input" placeholder="Ex: Ana, Maria..." />
+
+        <label class="label">Tipo de situação</label>
+        <div class="chips">
+          <div class="chip" data-situation="Violência física">Violência física</div>
+          <div class="chip" data-situation="Agressão verbal / ameaças">Agressão verbal / ameaças</div>
+          <div class="chip" data-situation="Perseguição / Stalking">Perseguição / Stalking</div>
+          <div class="chip" data-situation="Situação de risco">Situação de risco</div>
+        </div>
+
+        <label class="label">Mensagem (simulação)</label>
+        <textarea id="message" class="textarea" placeholder="Descreva rapidamente o que está acontecendo (opcional)."></textarea>
+
+        <div class="alert" style="margin-top:10px">
+          <label class="small" style="display:flex;gap:10px;align-items:center;justify-content:center">
+            <input id="shareLocation" type="checkbox" style="transform:scale(1.15)">
+            <span><strong>Compartilhar localização</strong> (só será pedida se marcar)</span>
+          </label>
+          <div class="center small muted" style="margin-top:6px">
+            Se não marcar, o SOS vai sem localização.
+          </div>
+        </div>
+
+        <div class="sos-wrap">
+          <div id="sosBtn" class="sos" role="button" aria-label="SOS (toque e segure)">
+            <div>
+              <div class="sos-text">SOS</div>
+              <div class="sos-sub">TOQUE E SEGURE</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="status" class="center small muted" style="min-height:18px"></div>
+
+        <div class="center small muted" style="margin-top:10px">
+          <a class="link" href="/trusted/login">Pessoa de confiança</a> ·
+          <a class="link" href="/panel/login">Admin</a> ·
+          <a class="link" href="/health">Diagnóstico</a> · <a class="link" href="/legal">Termos</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/panic.js') }}"></script>
+</body>
+</html>

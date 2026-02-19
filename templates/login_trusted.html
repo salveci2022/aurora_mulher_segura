@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Confiança · Aurora</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Ajustes adicionais sem modificar o design original */
+    .alert-danger {
+      background: rgba(255, 80, 130, 0.15);
+      border: 1px solid rgba(255, 80, 130, 0.45);
+      color: #ffb0c0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      text-align: center;
+    }
+    .info-box {
+      background: rgba(255, 79, 200, 0.1);
+      border: 1px solid rgba(255, 79, 200, 0.3);
+      border-radius: 14px;
+      padding: 10px;
+      margin-top: 15px;
+      font-size: 12px;
+    }
+    .credentials-hint {
+      color: #cdb7e6;
+      font-size: 11px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body class="aurora-bg">
+  <main class="center-wrap">
+    <section class="aurora-card">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-dot">♀</div>
+          <div>
+            <div class="brand-title">AURORA_MULHER_SEGURA</div>
+            <div class="brand-sub">Pessoa de Confiança</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <a class="pill" href="/panic">Painel da mulher</a>
+        </div>
+      </div>
+
+      <div class="content">
+        <h1 class="h1">🔐 LOGIN</h1>
+        <p class="center muted small">Acesse o painel para acompanhar alertas em tempo real</p>
+
+        {% if error %}
+        <div class="alert alert-danger">
+          {% if error_msg %}
+            {{ error_msg }}
+          {% else %}
+            ❌ Usuário ou senha inválidos. Tente novamente.
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-ok">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="post" id="loginForm">
+          <label class="label">👤 Usuário</label>
+          <input class="input" type="text" name="user" placeholder="ex: kalino, maeana" required autofocus>
+          
+          <label class="label">🔑 Senha</label>
+          <input class="input" type="password" name="password" placeholder="••••••••" required>
+          
+          <div class="center small muted" style="margin: 8px 0;">
+            <a class="link" href="/trusted/recover">Esqueci minha senha</a>
+          </div>
+          
+          <button class="btn btn-primary" type="submit">Entrar no Painel</button>
+        </form>
+
+        <div class="info-box">
+          <div style="text-align: center; margin-bottom: 8px;">
+            <span style="color: #ffd0f0;">ℹ️ Informações importantes</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; color: #cdb7e6;">
+            <li>O painel mostra alertas em tempo real</li>
+            <li>Clique em "Ativar som" para ouvir a sirene</li>
+            <li>Localização precisa aparece no mapa</li>
+            <li>Use os botões para Google Maps ou Waze</li>
+          </ul>
+        </div>
+
+        <div class="center" style="margin-top: 15px;">
+          <span class="badge">🟢 Sistema Online</span>
+          <span class="badge">📍 GPS Ativo</span>
+        </div>
+
+        <div class="center small muted" style="margin-top: 15px;">
+          <a class="link" href="/panel/login">Admin</a> · 
+          <a class="link" href="/health">Diagnóstico</a> · 
+          <a class="link" href="/legal">Termos</a>
+        </div>
+
+        <div class="credentials-hint center">
+          <span>⚡ Precisa de ajuda? Fale com o administrador</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Pequeno script para melhorar a experiência do usuário
+    (function() {
+      console.log("🔐 Página de login da Pessoa de Confiança carregada");
+      
+      const form = document.getElementById('loginForm');
+      const userInput = document.querySelector('input[name="user"]');
+      const passwordInput = document.querySelector('input[name="password"]');
+      
+      // Auto-capitalizar primeira letra do usuário?
+      if (userInput) {
+        userInput.addEventListener('blur', function() {
+          // Mantém minúsculas para evitar problemas de case-sensitive
+          this.value = this.value.toLowerCase().trim();
+        });
+      }
+      
+      // Prevenir envio acidental com campos vazios
+      form.addEventListener('submit', function(e) {
+        if (!userInput.value.trim() || !passwordInput.value.trim()) {
+          e.preventDefault();
+          alert('Por favor, preencha usuário e senha');
+        }
+      });
+      
+      // Mostrar instruções no console para debug
+      console.log("📋 Credenciais padrão (apenas para teste):");
+      console.log("   Usuário: [nome cadastrado pelo admin]");
+      console.log("   Senha: [definida pelo admin]");
+    })();
+  </script>
+</body>
+</html>

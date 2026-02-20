@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora - Modo Offline</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .offline-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .offline-card {
+            background: linear-gradient(180deg, rgba(24,0,36,.95), rgba(10,0,20,.95));
+            border-radius: 30px;
+            padding: 30px 25px;
+            max-width: 400px;
+            width: 100%;
+            border: 2px solid #ff4fc8;
+            box-shadow: 0 0 50px rgba(255,79,200,0.3);
+        }
+        .emergency-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .emergency-icon {
+            font-size: 60px;
+            color: #ff4fc8;
+            animation: pulse 2s infinite;
+        }
+        .emergency-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ff4fc8;
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+        .offline-badge {
+            background: rgba(255,79,200,0.2);
+            border: 1px solid #ff4fc8;
+            padding: 8px 15px;
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .instructions-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+        }
+        .instruction-number {
+            width: 30px;
+            height: 30px;
+            background: #ff4fc8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #0a0014;
+        }
+        .emergency-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .emergency-number {
+            flex: 1;
+            min-width: 100px;
+            background: rgba(255,0,0,0.2);
+            border: 1px solid #ff4fc8;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        .emergency-number .number {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ff4fc8;
+        }
+        .status-bar {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,255,0,0.1);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+            border: 1px solid #00ff00;
+        }
+        .pending-alerts {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #cdb7e6;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="aurora-bg">
+    <div class="offline-container">
+        <div class="offline-card">
+            <div class="emergency-header">
+                <div class="emergency-icon">📴</div>
+                <div class="emergency-title">MODO OFFLINE</div>
+                <div class="offline-badge">SEM CONEXÃO COM INTERNET</div>
+            </div>
+
+            <div class="instructions-box">
+                <div class="instruction-item">
+                    <div class="instruction-number">1</div>
+                    <div><strong>SEU ALERTA ESTÁ SALVO</strong><br>No armazenamento do celular</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-number">2</div>
+                    <div><strong>SERÁ ENVIADO AUTOMATICAMENTE</strong><br>Quando a internet voltar</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-number">3</div>
+                    <div><strong>EM CASO DE EMERGÊNCIA</strong><br>Ligue imediatamente</div>
+                </div>
+            </div>
+
+            <div class="emergency-numbers">
+                <div class="emergency-number">
+                    <div class="number">190</div>
+                    <div>Polícia</div>
+                </div>
+                <div class="emergency-number">
+                    <div class="number">180</div>
+                    <div>Central da Mulher</div>
+                </div>
+                <div class="emergency-number">
+                    <div class="number">192</div>
+                    <div>SAMU</div>
+                </div>
+            </div>
+
+            <div class="status-bar" id="statusBar">
+                <span id="pendingCount">📱 Alertas pendentes: 1</span>
+            </div>
+
+            <div class="pending-alerts" id="pendingList">
+                ⏳ Aguardando conexão...
+            </div>
+
+            <button class="btn btn-primary" style="margin-top: 20px;" onclick="window.location.href='/'">
+                🔄 Tentar reconectar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar quantos alertas estão pendentes
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.ready.then(registration => {
+                // Receber mensagens do Service Worker
+                navigator.serviceWorker.addEventListener('message', event => {
+                    if (event.data.type === 'SYNC_ALERTS') {
+                        updatePendingAlerts();
+                    }
+                });
+            });
+        }
+
+        function updatePendingAlerts() {
+            // Verificar IndexedDB para alertas pendentes
+            if (window.indexedDB) {
+                const request = indexedDB.open('AuroraDB', 1);
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    const transaction = db.transaction(['alerts'], 'readonly');
+                    const store = transaction.objectStore('alerts');
+                    const index = store.index('sent');
+                    const countRequest = index.count(IDBKeyRange.only(false));
+                    
+                    countRequest.onsuccess = () => {
+                        const count = countRequest.result;
+                        document.getElementById('pendingCount').innerHTML = 
+                            `📱 Alertas pendentes: ${count}`;
+                        
+                        if (count > 0) {
+                            document.getElementById('pendingList').innerHTML = 
+                                `⏳ ${count} alerta(s) aguardando sincronização...`;
+                        }
+                    };
+                };
+            }
+        }
+
+        // Atualizar a cada 5 segundos
+        setInterval(updatePendingAlerts, 5000);
+        updatePendingAlerts();
+    </script>
+</body>
+</html>

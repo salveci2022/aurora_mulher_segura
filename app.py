@@ -5,8 +5,19 @@ import json
 import time
 import bcrypt
 import os
+import threading
+import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
+
+# Carrega variáveis do arquivo .env (apenas em desenvolvimento)
+load_dotenv()
+
+# ============================================
+# REDUNDÂNCIA DE INFRAESTRUTURA
+# ============================================
+from multi_cloud import cloud_manager, get_active_backend, get_active_url
 
 # Windows pode não ter base de fusos (tzdata). Tentamos carregar e, se faltar,
 # usamos horário local do sistema.
@@ -23,8 +34,20 @@ STATE_FILE = BASE_DIR / "state.json"
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "aurora_v21_ultra_estavel")
 
+# Configurações de ambiente
+ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
+
 # Rate limit simples (anti-spam)
 _RATE = {"window_sec": 5, "last_by_ip": {}}
+
+# Iniciar monitoramento em background
+monitor_thread = threading.Thread(target=cloud_manager.monitor_loop, daemon=True)
+monitor_thread.start()
+print("✅ Thread de monitoramento iniciada")
 
 def hash_password(raw: str) -> str:
     """Gera hash da senha usando bcrypt"""
@@ -140,6 +163,25 @@ def read_last_alert():
         print(f"Erro ao ler último alerta: {e}")
         return None
 
+def replicate_alert(payload):
+    """Replica alerta para backend secundário"""
+    try:
+        flyio_url = os.environ.get("FLYIO_URL", "https://aurora-backup.fly.dev")
+        response = requests.post(
+            f"{flyio_url}/api/replicate-alert",
+            json=payload,
+            timeout=2,
+            headers={"X-Replication-Key": os.environ.get("REPLICATION_KEY", "aurora-secret")}
+        )
+        if response.status_code == 200:
+            print("✅ Alerta replicado para Fly.io")
+        else:
+            print(f"⚠️ Falha na replicação: {response.status_code}")
+    except Exception as e:
+        print(f"⚠️ Erro na replicação: {e}")
+
+# ===== ENDPOINTS =====
+
 @app.get("/health")
 def health():
     users = load_users()
@@ -149,7 +191,7 @@ def health():
         admin_hash = users["admin"].get("password_hash", "")
         admin_login_ok = verify_password("admin123", admin_hash)
     
-    return jsonify({
+    response = {
         "ok": True,
         "server_time_br": now_br_str(),
         "tz": "America/Sao_Paulo" if TZ is not None else "LOCAL_SYSTEM_TIME",
@@ -162,7 +204,29 @@ def health():
         "template_trusted_ok": (BASE_DIR / "templates" / "panel_trusted.html").exists(),
         "users_json_ok": USERS_FILE.exists(),
         "alerts_log_ok": ALERTS_FILE.exists(),
-    })
+        "env_vars_configured": {
+            "secret_key": bool(app.secret_key),
+            "encryption_key": bool(ENCRYPTION_KEY),
+            "stripe_key": bool(STRIPE_SECRET_KEY),
+            "database_url": bool(DATABASE_URL),
+            "admin_email": bool(ADMIN_EMAIL)
+        },
+        # Adiciona info de redundância
+        "redundancy": {
+            "active_backend": cloud_manager.get_active_backend()["name"],
+            "backends": [
+                {
+                    "name": b["name"],
+                    "healthy": b["healthy"],
+                    "failures": b["failures"]
+                }
+                for b in cloud_manager.backends
+            ],
+            "total_switches": cloud_manager.stats["total_switches"]
+        }
+    }
+    
+    return jsonify(response)
 
 @app.get("/legal")
 def legal():
@@ -212,9 +276,19 @@ def send_alert():
         "message": (data.get("message") or ""),
         "location": location_data,
         "consent_location": True if location_data else False,
+        "processed_by": cloud_manager.get_active_backend()["name"]  # Qual backend processou
     }
     
     log_alert(payload)
+    
+    # Se estamos no Render, tenta replicar para o Fly.io (opcional)
+    try:
+        if cloud_manager.get_active_backend()["name"] == "render":
+            # Envia cópia para o Fly.io em background
+            threading.Thread(target=replicate_alert, args=(payload,)).start()
+    except:
+        pass
+    
     return jsonify({"ok": True, "id": payload["id"]})
 
 @app.get("/api/last_alert")
@@ -237,6 +311,42 @@ def get_alerts():
         except:
             pass
     return jsonify({"ok": True, "alerts": alerts})
+
+# ===== ENDPOINTS DE REDUNDÂNCIA =====
+
+@app.get("/api/redundancy-status")
+def redundancy_status():
+    """Mostra status dos backends e qual está ativo"""
+    return jsonify(cloud_manager.get_status())
+
+@app.post("/api/test-failover")
+def test_failover():
+    """Simula falha no backend atual para testar failover"""
+    backend = cloud_manager.get_active_backend()
+    cloud_manager.report_failure(backend["name"])
+    
+    # Forçar 3 falhas para causar troca
+    for _ in range(3):
+        cloud_manager.report_failure(backend["name"])
+    
+    return jsonify({
+        "ok": True,
+        "message": f"Failover testado. Novo backend: {cloud_manager.get_active_backend()['name']}",
+        "status": cloud_manager.get_status()
+    })
+
+@app.post("/api/replicate-alert")
+def replicate_alert_endpoint():
+    """Recebe replicação de alerta do backend principal"""
+    key = request.headers.get("X-Replication-Key")
+    if key != os.environ.get("REPLICATION_KEY", "aurora-secret"):
+        return jsonify({"ok": False}), 403
+    
+    data = request.get_json()
+    if data:
+        log_alert(data)
+        return jsonify({"ok": True})
+    return jsonify({"ok": False}), 400
 
 # ===== ADMIN =====
 @app.route("/panel/login", methods=["GET", "POST"])
@@ -407,7 +517,19 @@ if __name__ == "__main__":
     print("🚀 Iniciando Aurora Mulher Segura")
     print("=" * 60)
     
+    # Mostra status das variáveis de ambiente
+    print("\n📋 Status das configurações:")
+    print(f"   SECRET_KEY: {'✅' if app.secret_key else '❌'}")
+    print(f"   ENCRYPTION_KEY: {'✅' if ENCRYPTION_KEY else '❌'}")
+    print(f"   STRIPE_SECRET_KEY: {'✅' if STRIPE_SECRET_KEY else '❌'}")
+    print(f"   DATABASE_URL: {'✅' if DATABASE_URL else '❌'}")
+    print(f"   ADMIN_EMAIL: {'✅' if ADMIN_EMAIL else '❌'}")
+    print("=" * 60)
+    
     ensure_files()
     
     port = int(os.environ.get("PORT", 5000))
+    print(f"\n🌐 Servidor rodando em: http://localhost:{port}")
+    print("=" * 60)
+    
     app.run(host="0.0.0.0", port=port, debug=False)

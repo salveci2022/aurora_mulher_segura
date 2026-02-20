@@ -5,11 +5,21 @@ import json
 import time
 import bcrypt
 import os
+import sys
 import threading
 import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
+
+# ===== DEBUG =====
+print("=" * 60)
+print("🚀 INICIANDO AURORA MULHER SEGURA")
+print("=" * 60)
+print(f"🐍 Python version: {sys.version}")
+print(f"📂 Diretório atual: {os.getcwd()}")
+print(f"📋 Arquivos no diretório: {os.listdir()}")
+print("=" * 60)
 
 # Carrega variáveis do arquivo .env (apenas em desenvolvimento)
 load_dotenv()
@@ -17,14 +27,34 @@ load_dotenv()
 # ============================================
 # REDUNDÂNCIA DE INFRAESTRUTURA
 # ============================================
-from multi_cloud import cloud_manager, get_active_backend, get_active_url
+try:
+    from multi_cloud import cloud_manager, get_active_backend, get_active_url
+    print("✅ Módulo multi_cloud importado com sucesso")
+except Exception as e:
+    print(f"❌ Erro ao importar multi_cloud: {e}")
+    # Versão fallback caso o módulo falhe
+    class FallbackCloudManager:
+        def __init__(self):
+            self.backends = [{"name": "render", "url": "https://aurora-mulher-segura.onrender.com", "healthy": True, "failures": 0, "active": True}]
+            self.current_backend = 0
+            self.stats = {"total_switches": 0, "total_requests": 0, "failed_requests": 0}
+        def get_active_backend(self): return self.backends[0]
+        def get_active_url(self): return self.backends[0]["url"]
+        def report_failure(self, *args): pass
+        def get_status(self): return {"current": "render", "backends": [], "stats": self.stats}
+    cloud_manager = FallbackCloudManager()
+    get_active_backend = cloud_manager.get_active_backend
+    get_active_url = cloud_manager.get_active_url
+    print("⚠️ Usando fallback do cloud_manager")
 
 # Windows pode não ter base de fusos (tzdata). Tentamos carregar e, se faltar,
 # usamos horário local do sistema.
 try:
     TZ = ZoneInfo("America/Sao_Paulo")
-except Exception:
+    print("✅ Fuso horário configurado: America/Sao_Paulo")
+except Exception as e:
     TZ = None
+    print(f"⚠️ Erro ao configurar fuso: {e}")
 
 BASE_DIR = Path(__file__).resolve().parent
 USERS_FILE = BASE_DIR / "users.json"
@@ -45,9 +75,12 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
 _RATE = {"window_sec": 5, "last_by_ip": {}}
 
 # Iniciar monitoramento em background
-monitor_thread = threading.Thread(target=cloud_manager.monitor_loop, daemon=True)
-monitor_thread.start()
-print("✅ Thread de monitoramento iniciada")
+try:
+    monitor_thread = threading.Thread(target=cloud_manager.monitor_loop, daemon=True)
+    monitor_thread.start()
+    print("✅ Thread de monitoramento iniciada")
+except Exception as e:
+    print(f"⚠️ Erro ao iniciar monitoramento: {e}")
 
 def hash_password(raw: str) -> str:
     """Gera hash da senha usando bcrypt"""
@@ -74,6 +107,7 @@ def now_br_str() -> str:
 
 def ensure_files():
     """Garante que os arquivos necessários existam"""
+    print("📁 Verificando arquivos necessários...")
     if not USERS_FILE.exists():
         admin_hash = hash_password("admin123")
         users_data = {

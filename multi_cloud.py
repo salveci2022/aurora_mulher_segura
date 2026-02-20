@@ -1,6 +1,5 @@
-# multi_cloud.py
+# multi_cloud.py - Versão simplificada
 import os
-import time
 from datetime import datetime
 
 class MultiCloudManager:
@@ -53,6 +52,7 @@ class MultiCloudManager:
             "stats": self.stats
         }
 
+# Instância global
 cloud_manager = MultiCloudManager()
 
 def get_active_backend():

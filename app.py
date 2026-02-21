@@ -3,7 +3,6 @@
 import os
 import json
 import bcrypt
-import tempfile
 from pathlib import Path
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session, jsonify
@@ -12,7 +11,7 @@ from flask import Flask, render_template, request, redirect, session, jsonify
 # CONFIG
 # =========================
 
-BASE_DIR = Path(tempfile.gettempdir())
+BASE_DIR = Path(__file__).resolve().parent
 
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
@@ -34,7 +33,7 @@ def ensure_files():
                 "name": "Admin Aurora"
             }
         }
-        USERS_FILE.write_text(json.dumps(data))
+        USERS_FILE.write_text(json.dumps(data, indent=2))
 
     if not ALERTS_FILE.exists():
         ALERTS_FILE.write_text("")
@@ -43,7 +42,7 @@ def load_users():
     return json.loads(USERS_FILE.read_text())
 
 def save_users(data):
-    USERS_FILE.write_text(json.dumps(data))
+    USERS_FILE.write_text(json.dumps(data, indent=2))
 
 def hash_password(password):
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -52,12 +51,20 @@ def verify_password(password, hashed):
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 # =========================
-# ROUTES
+# AUTO INIT (IMPORTANTE)
+# =========================
+
+ensure_files()
+
+# =========================
+# ROTAS
 # =========================
 
 @app.route("/")
 def home():
     return redirect("/panic")
+
+# -------------------------
 
 @app.route("/panic")
 def panic():
@@ -69,16 +76,23 @@ def panic():
     ]
     return render_template("panic_button.html", trusted=trusted)
 
+# -------------------------
+
 @app.route("/api/send_alert", methods=["POST"])
 def send_alert():
     data = request.json
+
     alert = {
         "timestamp": datetime.now().isoformat(),
         "data": data
     }
-    with open(ALERTS_FILE, "a") as f:
+
+    with open(ALERTS_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(alert) + "\n")
+
     return jsonify({"status": "ok"})
+
+# -------------------------
 
 @app.route("/api/last_alert")
 def last_alert():
@@ -86,18 +100,20 @@ def last_alert():
         return jsonify({"last": None})
 
     lines = ALERTS_FILE.read_text().splitlines()
+
     if not lines:
         return jsonify({"last": None})
 
     return jsonify({"last": json.loads(lines[-1])})
 
 # =========================
-# ADMIN LOGIN
+# ADMIN
 # =========================
 
 @app.route("/panel/login", methods=["GET", "POST"])
 def login_admin():
     error = False
+
     if request.method == "POST":
         user = request.form.get("user")
         password = request.form.get("password")
@@ -113,6 +129,8 @@ def login_admin():
 
     return render_template("login_admin.html", error=error)
 
+# -------------------------
+
 @app.route("/panel")
 def panel_admin():
     if "admin" not in session:
@@ -122,6 +140,8 @@ def panel_admin():
     trusted = {u:info for u,info in users.items() if info.get("role") == "trusted"}
 
     return render_template("panel_admin.html", trusted=trusted)
+
+# -------------------------
 
 @app.route("/panel/add_trusted", methods=["POST"])
 def add_trusted():
@@ -146,6 +166,8 @@ def add_trusted():
     save_users(users)
     return redirect("/panel")
 
+# -------------------------
+
 @app.route("/panel/delete_trusted", methods=["POST"])
 def delete_trusted():
     if "admin" not in session:
@@ -160,18 +182,21 @@ def delete_trusted():
 
     return redirect("/panel")
 
+# -------------------------
+
 @app.route("/logout_admin")
 def logout_admin():
     session.clear()
     return redirect("/panel/login")
 
 # =========================
-# TRUSTED LOGIN
+# TRUSTED
 # =========================
 
 @app.route("/trusted/login", methods=["GET", "POST"])
 def login_trusted():
     error = False
+
     if request.method == "POST":
         user = request.form.get("user")
         password = request.form.get("password")
@@ -187,6 +212,8 @@ def login_trusted():
 
     return render_template("login_trusted.html", error=error)
 
+# -------------------------
+
 @app.route("/trusted")
 def panel_trusted():
     if "trusted" not in session:
@@ -198,15 +225,16 @@ def panel_trusted():
 
     return render_template("panel_trusted.html", display_name=display_name)
 
+# -------------------------
+
 @app.route("/logout_trusted")
 def logout_trusted():
     session.clear()
     return redirect("/trusted/login")
 
 # =========================
-# START
+# START LOCAL
 # =========================
 
 if __name__ == "__main__":
-    ensure_files()
     app.run(host="0.0.0.0", port=5000)

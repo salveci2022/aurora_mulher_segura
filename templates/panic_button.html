@@ -1,69 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Aurora Mulher Segura</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Aurora Mulher Segura · Botão de Pânico</title>
 
-<!-- ✅ PWA -->
-<link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#7a00ff">
-<link rel="icon" href="/static/icon-192.png">
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#7a00ff">
+  <link rel="icon" href="/static/icon-192.png">
 
-<style>
-body{
- background:radial-gradient(circle at top,#3a0057,#0a0015);
- font-family:Arial;
- color:white;
- text-align:center;
-}
-.container{
- max-width:420px;
- margin:auto;
- padding:30px;
-}
-h1{color:#ff2fd4;}
-button{
- width:100%;
- padding:22px;
- border:none;
- border-radius:14px;
- background:linear-gradient(45deg,#7a00ff,#ff2fd4);
- color:white;
- font-size:20px;
- cursor:pointer;
-}
-select,input{
- width:100%;
- padding:12px;
- margin-top:8px;
- border-radius:8px;
- border:none;
-}
-.small{opacity:.8;font-size:12px;margin-top:10px}
-</style>
+  <!-- Seu CSS atual (não muda aparência do resto do sistema) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
-  <div class="container">
-    <h1>Aurora Mulher Segura</h1>
+<body class="aurora-bg">
+  <main class="center-wrap">
+    <section class="aurora-card">
 
-    <input id="name" placeholder="Seu nome (opcional)">
-    <select id="situation" style="margin-top:10px">
-      <option value="">Selecione a situação</option>
-      <option>Estou em perigo</option>
-      <option>Estou sendo seguida</option>
-      <option>Carro de aplicativo suspeito</option>
-      <option>Preciso de ajuda agora</option>
-    </select>
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-dot">♀</div>
+          <div>
+            <div class="brand-title">AURORA_MULHER_SEGURA</div>
+            <div class="brand-sub">Proteção Feminina 24h</div>
+          </div>
+        </div>
 
-    <input id="message" placeholder="Mensagem (opcional)" style="margin-top:10px">
+        <div class="top-actions">
+          <a class="pill" href="/trusted/login">Pessoa de Confiança</a>
+          <a class="pill" href="/panel/login">Admin</a>
+        </div>
+      </div>
 
-    <button onclick="panic()">🚨 ENVIAR ALERTA</button>
+      <div class="content">
+        <h1 class="h1">BOTÃO DE PÂNICO</h1>
+        <p class="center muted small">Versão demonstrativa — treine o fluxo de emergência.</p>
 
-    <div class="small">Se não aparecer a localização, permita o GPS do navegador.</div>
-  </div>
+        <label class="label">Seu nome</label>
+        <input class="input" id="name" placeholder="(opcional)" autocomplete="name">
 
-<script src="/static/panic.js"></script>
+        <label class="label" style="margin-top:10px">Tipo de situação</label>
+        <div class="chips" id="chips">
+          <button type="button" class="chip active" data-value="Violência física">Violência física</button>
+          <button type="button" class="chip" data-value="Agressão verbal / ameaças">Agressão verbal / ameaças</button>
+          <button type="button" class="chip" data-value="Perseguição / Stalking">Perseguição / Stalking</button>
+          <button type="button" class="chip" data-value="Situação de risco">Situação de risco</button>
+        </div>
+
+        <label class="label" style="margin-top:10px">Mensagem (opcional)</label>
+        <textarea class="textarea" id="message" rows="3" placeholder="Descreva rapidamente o que está acontecendo..."></textarea>
+
+        <div class="row" style="margin-top:10px">
+          <label class="check">
+            <input type="checkbox" id="share_location" checked>
+            <span>Compartilhar localização</span>
+          </label>
+        </div>
+
+        <!-- Botão SOS -->
+        <div class="sos-wrap">
+          <button id="sosBtn" class="sos-btn" type="button" aria-label="Enviar Alerta">
+            <span class="sos-big">SOS</span>
+            <span class="sos-sub">TOQUE PARA ENVIAR</span>
+          </button>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div class="center small muted" style="margin-top:8px">
+          Se não aparecer a localização, permita o GPS do navegador.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/panic.js"></script>
 </body>
 </html>

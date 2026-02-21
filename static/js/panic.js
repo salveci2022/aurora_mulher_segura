@@ -1,101 +1,113 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<title>Aurora Mulher Segura</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+const statusEl = document.getElementById("status");
+const chipsEl = document.getElementById("chips");
+const sosBtn = document.getElementById("sosBtn");
 
-<link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#7a00ff">
-<link rel="icon" href="/static/icon-192.png">
-<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-
-<style>
-body{
- background:radial-gradient(circle at top,#3a0057,#0a0015);
- font-family:Arial;
- color:white;
- text-align:center;
+function setStatus(msg, type = "ok") {
+  if (!statusEl) return;
+  statusEl.textContent = msg || "";
+  statusEl.className = "status " + (type === "err" ? "status-err" : "status-ok");
 }
-.container{
- max-width:420px;
- margin:auto;
- padding:30px;
+
+function getSelectedSituation() {
+  const active = document.querySelector(".chip.active");
+  return active ? active.dataset.value : "";
 }
-h1{color:#ff2fd4;}
-button{
- width:100%;
- padding:22px;
- border:none;
- border-radius:14px;
- background:linear-gradient(45deg,#7a00ff,#ff2fd4);
- color:white;
- font-size:20px;
+
+function selectChip(btn) {
+  document.querySelectorAll(".chip").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
 }
-select,input{
- width:100%;
- padding:12px;
- margin-top:8px;
- border-radius:8px;
- border:none;
+
+if (chipsEl) {
+  chipsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chip");
+    if (!btn) return;
+    selectChip(btn);
+  });
 }
-</style>
-</head>
 
-<body>
-<div class="container">
-  <h1>Aurora Mulher Segura</h1>
+function getLocationOnce(timeoutMs = 9000) {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error("Geolocalização não suportada."));
+    let done = false;
 
-  <select id="trusted">
-    {% for name in trusted %}
-      <option>{{name}}</option>
-    {% endfor %}
-  </select>
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      reject(new Error("Tempo limite para obter localização."));
+    }, timeoutMs);
 
-  <input id="name" placeholder="Seu nome">
-  <input id="situation" placeholder="Situação">
-  <input id="message" placeholder="Mensagem opcional">
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        });
+      },
+      (err) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        reject(err);
+      },
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 }
+    );
+  });
+}
 
-  <button onclick="send()">ATIVAR PÂNICO</button>
-</div>
+async function sendAlert(payload) {
+  const res = await fetch("/api/send_alert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 
-<script>
-async function send(){
-  if(!navigator.geolocation){
-    alert("Seu celular/navegador não tem GPS disponível.");
-    return;
-  }
+  if (!res.ok) throw new Error("Falha ao enviar alerta (HTTP " + res.status + ")");
+  return res.json().catch(() => ({}));
+}
 
-  navigator.geolocation.getCurrentPosition(async (pos)=>{
-    try{
-      await fetch("/api/send_alert",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          name:document.getElementById("name").value,
-          situation:document.getElementById("situation").value,
-          message:document.getElementById("message").value,
-          location:{
-            lat:pos.coords.latitude,
-            lon:pos.coords.longitude,
-            accuracy_m:pos.coords.accuracy
-          }
-        })
-      });
-      alert("Alerta enviado!");
-    }catch(e){
-      alert("Falha ao enviar. Verifique a internet.");
+async function handleSOS() {
+  try {
+    sosBtn.disabled = true;
+    setStatus("Enviando alerta...", "ok");
+
+    const name = (document.getElementById("name")?.value || "").trim();
+    const message = (document.getElementById("message")?.value || "").trim();
+    const situation = getSelectedSituation();
+    const share = document.getElementById("share_location")?.checked;
+
+    let loc = null;
+    if (share) {
+      try {
+        loc = await getLocationOnce();
+      } catch (e) {
+        // Se não pegar GPS, ainda assim envia sem localização
+        loc = null;
+      }
     }
-  }, ()=>{
-    alert("Permita o acesso à localização para enviar o alerta.");
-  }, { enableHighAccuracy:true, timeout:15000 });
+
+    const payload = {
+      name,
+      situation,
+      message,
+      lat: loc ? loc.lat : null,
+      lng: loc ? loc.lng : null,
+      accuracy: loc ? loc.accuracy : null
+    };
+
+    await sendAlert(payload);
+    setStatus("✅ Alerta enviado com sucesso!", "ok");
+  } catch (e) {
+    setStatus("❌ Erro: " + (e?.message || "falha ao enviar"), "err");
+  } finally {
+    sosBtn.disabled = false;
+  }
 }
 
-// registra service worker (PWA)
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/static/sw.js").catch(()=>{});
+if (sosBtn) {
+  sosBtn.addEventListener("click", handleSOS);
 }
-</script>
-
-</body>
-</html>

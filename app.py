@@ -1,295 +1,413 @@
-# -*- coding: utf-8 -*-
-import os
-import json
+from __future__ import annotations
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from pathlib import Path
-from datetime import datetime
-
+import json
+import time
 import bcrypt
-from flask import (
-    Flask,
-    render_template,
-    render_template_string,
-    request,
-    redirect,
-    session,
-    jsonify,
-)
+import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
-# =========================
-# CONFIG
-# =========================
+# Windows pode não ter base de fusos (tzdata). Tentamos carregar e, se faltar,
+# usamos horário local do sistema.
+try:
+    TZ = ZoneInfo("America/Sao_Paulo")
+except Exception:
+    TZ = None
+
 BASE_DIR = Path(__file__).resolve().parent
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
+STATE_FILE = BASE_DIR / "state.json"
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
-app.secret_key = os.environ.get("SECRET_KEY", "aurora_secret_key_2026")
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "aurora_v21_ultra_estavel")
 
+# Rate limit simples (anti-spam)
+_RATE = {"window_sec": 5, "last_by_ip": {}}
 
-# =========================
-# HELPERS
-# =========================
 def hash_password(raw: str) -> str:
-    raw = (raw or "").encode("utf-8")
-    return bcrypt.hashpw(raw, bcrypt.gensalt()).decode("utf-8")
-
+    """Gera hash da senha usando bcrypt"""
+    if not raw:
+        return ""
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(raw.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 def verify_password(raw: str, hashed: str) -> bool:
+    """Verifica se a senha corresponde ao hash"""
     try:
-        return bcrypt.checkpw((raw or "").encode("utf-8"), (hashed or "").encode("utf-8"))
-    except Exception:
+        if not raw or not hashed:
+            return False
+        return bcrypt.checkpw(raw.encode('utf-8'), hashed.encode('utf-8'))
+    except Exception as e:
+        print(f"Erro na verificação de senha: {e}")
         return False
 
+def now_br_str() -> str:
+    if TZ is None:
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 def ensure_files():
-    if not ALERTS_FILE.exists():
-        ALERTS_FILE.write_text("", encoding="utf-8")
-
+    """Garante que os arquivos necessários existam"""
     if not USERS_FILE.exists():
         admin_hash = hash_password("admin123")
-        data = {
-            "admin": {"password_hash": admin_hash, "role": "admin", "name": "Admin Aurora"}
+        users_data = {
+            "admin": {
+                "password_hash": admin_hash,
+                "role": "admin",
+                "name": "Admin Aurora"
+            }
         }
-        USERS_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-
+        USERS_FILE.write_text(
+            json.dumps(users_data, indent=2, ensure_ascii=False), 
+            encoding="utf-8"
+        )
+        print("✅ Arquivo users.json criado")
+    
+    if not ALERTS_FILE.exists():
+        ALERTS_FILE.write_text("", encoding="utf-8")
+        print("✅ Arquivo alerts.log criado")
+    
+    if not STATE_FILE.exists():
+        STATE_FILE.write_text(
+            json.dumps({"last_id": 0}, indent=2, ensure_ascii=False), 
+            encoding="utf-8"
+        )
+        print("✅ Arquivo state.json criado")
 
 def load_users() -> dict:
+    """Carrega usuários do arquivo"""
     ensure_files()
     try:
-        raw = USERS_FILE.read_text(encoding="utf-8")
-        if not raw.strip():
-            # arquivo vazio
-            ensure_files()
-            raw = USERS_FILE.read_text(encoding="utf-8")
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        # users.json corrompido -> recria admin padrão para não dar 500
-        admin_hash = hash_password("admin123")
-        data = {
-            "admin": {"password_hash": admin_hash, "role": "admin", "name": "Admin Aurora"}
-        }
-        USERS_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-        return data
-
-
-def save_users(data: dict):
-    USERS_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def safe_render(template_name: str, **ctx):
-    """
-    Evita erro 500 caso o template esteja fora do lugar no deploy.
-    1) tenta /templates/<template_name>
-    2) tenta arquivo solto na raiz do projeto (BASE_DIR/<template_name>)
-    3) fallback HTML mínimo (não muda seu layout se o template existir)
-    """
-    try:
-        return render_template(template_name, **ctx)
+        data = json.loads(USERS_FILE.read_text(encoding="utf-8"))
     except Exception as e:
-        # tenta fallback lendo arquivo da raiz (caso tenha sido commitado fora de /templates)
-        fp = BASE_DIR / template_name
-        if fp.exists():
-            try:
-                return render_template_string(fp.read_text(encoding="utf-8"), **ctx)
-            except Exception:
-                pass
+        print(f"Erro ao carregar users.json: {e}")
+        data = {}
+    
+    # Verifica se o admin existe
+    if "admin" not in data:
+        data["admin"] = {
+            "password_hash": hash_password("admin123"),
+            "role": "admin",
+            "name": "Admin Aurora"
+        }
+        save_users(data)
+    
+    return data
 
-        # fallback mínimo para não travar com 500
-        html = f"""<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Aurora · Painel</title>
-  <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body style="font-family:Arial;padding:20px">
-  <h2>⚠️ Template não encontrado: {template_name}</h2>
-  <p>O backend está rodando, mas o HTML não está no lugar certo no deploy.</p>
-  <p>Confirme se existe: <b>/templates/{template_name}</b></p>
-  <pre style="white-space:pre-wrap;background:#111;color:#fff;padding:12px;border-radius:8px">{str(e)}</pre>
-</body>
-</html>"""
-        return render_template_string(html), 200
+def save_users(data: dict) -> None:
+    """Salva usuários no arquivo"""
+    USERS_FILE.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), 
+        encoding="utf-8"
+    )
 
-
-# =========================
-# ROTAS
-# =========================
-@app.route("/")
-def home():
-    return redirect("/panic")
-
-
-@app.route("/panic")
-def panic():
+def list_trusted_names() -> list[str]:
     users = load_users()
-    trusted = [
-        info.get("name", u)
-        for u, info in users.items()
-        if info.get("role") == "trusted"
-    ]
-    # usa safe_render para nunca dar 500 por template ausente
-    return safe_render("panic_button.html", trusted=trusted)
+    arr = [info.get("name") or u for u, info in users.items() if info.get("role") == "trusted"]
+    arr.sort(key=lambda s: s.lower())
+    return arr
 
+def next_alert_id() -> int:
+    ensure_files()
+    try:
+        st = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        st = {"last_id": 0}
+    st["last_id"] = int(st.get("last_id", 0)) + 1
+    STATE_FILE.write_text(json.dumps(st, indent=2, ensure_ascii=False), encoding="utf-8")
+    return st["last_id"]
 
-# =========================
-# API ALERTAS
-# =========================
-@app.route("/api/send_alert", methods=["POST"])
+def log_alert(payload: dict) -> None:
+    ensure_files()
+    with ALERTS_FILE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    print(f"✅ Alerta #{payload['id']} salvo")
+
+def read_last_alert():
+    """Lê o último alerta do arquivo de logs"""
+    ensure_files()
+    txt = ALERTS_FILE.read_text(encoding="utf-8").strip()
+    if not txt:
+        return None
+    lines = [ln for ln in txt.split("\n") if ln.strip()]
+    try:
+        last = json.loads(lines[-1])
+        return last
+    except Exception as e:
+        print(f"Erro ao ler último alerta: {e}")
+        return None
+
+@app.get("/health")
+def health():
+    users = load_users()
+    admin_ok = "admin" in users
+    admin_login_ok = False
+    if admin_ok:
+        admin_hash = users["admin"].get("password_hash", "")
+        admin_login_ok = verify_password("admin123", admin_hash)
+    
+    return jsonify({
+        "ok": True,
+        "server_time_br": now_br_str(),
+        "tz": "America/Sao_Paulo" if TZ is not None else "LOCAL_SYSTEM_TIME",
+        "admin_exists": admin_ok,
+        "admin_login_working": admin_login_ok,
+        "css_ok": (BASE_DIR / "static" / "css" / "style.css").exists(),
+        "js_ok": (BASE_DIR / "static" / "js" / "panic.js").exists(),
+        "mp3_ok": (BASE_DIR / "static" / "audio" / "sirene.mp3").exists(),
+        "template_panic_ok": (BASE_DIR / "templates" / "panic_button.html").exists(),
+        "template_trusted_ok": (BASE_DIR / "templates" / "panel_trusted.html").exists(),
+        "users_json_ok": USERS_FILE.exists(),
+        "alerts_log_ok": ALERTS_FILE.exists(),
+    })
+
+@app.get("/legal")
+def legal():
+    return render_template("legal.html")
+
+@app.get("/")
+def index():
+    return redirect(url_for("panic_button"))
+
+@app.get("/panic")
+def panic_button():
+    trusted = list_trusted_names()
+    return render_template("panic_button.html", trusted=trusted)
+
+@app.post("/api/send_alert")
 def send_alert():
+    # Rate limit
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr) or "unknown"
+    now = time.time()
+    last = _RATE["last_by_ip"].get(ip, 0)
+    if now - last < _RATE["window_sec"]:
+        return jsonify({"ok": False, "error": "Aguarde alguns segundos."}), 429
+    _RATE["last_by_ip"][ip] = now
+
     data = request.get_json(silent=True) or {}
-
-    alert = {
-        "timestamp": datetime.now().isoformat(timespec="seconds"),
-        "name": (data.get("name") or "").strip(),
-        "situation": (data.get("situation") or "").strip(),
-        "message": (data.get("message") or "").strip(),
-        "lat": data.get("lat"),
-        "lng": data.get("lng"),
+    
+    # Processar localização
+    location_data = None
+    if data.get("location"):
+        loc = data.get("location")
+        if isinstance(loc, dict):
+            lat = loc.get("lat")
+            lon = loc.get("lon")
+            if lat is not None and lon is not None:
+                location_data = {
+                    "lat": float(lat),
+                    "lon": float(lon),
+                    "accuracy_m": loc.get("accuracy_m"),
+                    "timestamp": now_br_str()
+                }
+    
+    payload = {
+        "id": next_alert_id(),
+        "ts": now_br_str(),
+        "name": (data.get("name") or "Não informado"),
+        "situation": (data.get("situation") or "Não especificado"),
+        "message": (data.get("message") or ""),
+        "location": location_data,
+        "consent_location": True if location_data else False,
     }
+    
+    log_alert(payload)
+    return jsonify({"ok": True, "id": payload["id"]})
 
-    ensure_files()
-    with open(ALERTS_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(alert, ensure_ascii=False) + "\n")
-
-    return jsonify({"status": "ok"})
-
-
-@app.route("/api/last_alert", methods=["GET"])
+@app.get("/api/last_alert")
 def last_alert():
+    last = read_last_alert()
+    return jsonify({"ok": True, "last": last})
+
+@app.get("/api/alerts")
+def get_alerts():
     ensure_files()
-    lines = ALERTS_FILE.read_text(encoding="utf-8").splitlines()
-    if not lines:
-        return jsonify({"last": None})
-
-    # pega o último JSON válido
-    for i in range(len(lines) - 1, -1, -1):
+    txt = ALERTS_FILE.read_text(encoding="utf-8").strip()
+    if not txt:
+        return jsonify({"ok": True, "alerts": []})
+    
+    lines = [ln for ln in txt.split("\n") if ln.strip()]
+    alerts = []
+    for line in lines[-50:]:
         try:
-            return jsonify({"last": json.loads(lines[i])})
-        except Exception:
-            continue
+            alerts.append(json.loads(line))
+        except:
+            pass
+    return jsonify({"ok": True, "alerts": alerts})
 
-    return jsonify({"last": None})
-
-
-# =========================
-# ADMIN
-# =========================
+# ===== ADMIN =====
 @app.route("/panel/login", methods=["GET", "POST"])
-def login_admin():
-    err = ""
+def admin_login():
+    users = load_users()
+    error = False
+    
     if request.method == "POST":
-        user = (request.form.get("user") or "").strip().lower()
-        password = request.form.get("password") or ""
+        u = (request.form.get("user") or "").strip()
+        p = (request.form.get("password") or "")
+        
+        info = users.get(u)
+        if info and info.get("role") == "admin" and verify_password(p, info.get("password_hash", "")):
+            session.clear()
+            session["role"] = "admin"
+            session["user"] = u
+            return redirect(url_for("admin_panel"))
+        error = True
+    
+    return render_template("login_admin.html", error=error)
 
-        users = load_users()
-        info = users.get(user)
-        if info and info.get("role") == "admin" and verify_password(password, info.get("password_hash", "")):
-            session["admin"] = True
-            return redirect("/panel")
-        err = "Login inválido."
-
-    return safe_render("login_admin.html", err=err)
-
-
-@app.route("/panel")
-def panel_admin():
-    if not session.get("admin"):
-        return redirect("/panel/login")
-
+@app.get("/panel")
+def admin_panel():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
     users = load_users()
     trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
-    return safe_render("panel_admin.html", trusted=trusted)
+    msg = request.args.get("msg", "")
+    err = request.args.get("err", "")
+    return render_template("panel_admin.html", trusted=trusted, msg=msg, err=err)
 
-
-@app.route("/panel/add_trusted", methods=["POST"])
-def add_trusted():
-    if not session.get("admin"):
-        return redirect("/panel/login")
-
+@app.post("/panel/add_trusted")
+def admin_add_trusted():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+    
     name = (request.form.get("trusted_name") or "").strip()
     username = (request.form.get("trusted_user") or "").strip().lower()
-    password = request.form.get("trusted_password") or ""
+    password = (request.form.get("trusted_password") or "").strip()
 
-    users = load_users()
-    trusted_count = sum(1 for _, info in users.items() if info.get("role") == "trusted")
-
-    if trusted_count >= 3:
-        return redirect("/panel?err=Limite+de+3+pessoas+atingido")
     if not name or not username or not password:
         return redirect("/panel?err=Preencha+todos+os+campos")
+
+    users = load_users()
     if username in users:
-        return redirect("/panel?err=Usuário+já+existe")
+        return redirect("/panel?err=Usuario+ja+existe")
+
+    trusted_users = [u for u, info in users.items() if info.get("role") == "trusted"]
+    if len(trusted_users) >= 3:
+        return redirect("/panel?err=Limite+de+3+pessoas+atingido")
 
     users[username] = {
-        "name": name,
-        "role": "trusted",
-        "password_hash": hash_password(password),
+        "password_hash": hash_password(password), 
+        "role": "trusted", 
+        "name": name
     }
     save_users(users)
-    return redirect("/panel?msg=Cadastrado+com+sucesso")
+    return redirect("/panel?msg=Pessoa+cadastrada+com+sucesso")
 
-
-@app.route("/panel/delete_trusted", methods=["POST"])
-def delete_trusted():
-    if not session.get("admin"):
-        return redirect("/panel/login")
-
-    username = (request.form.get("username") or "").strip().lower()
+@app.post("/panel/delete_trusted")
+def admin_delete_trusted():
+    if session.get("role") != "admin":
+        return redirect(url_for("admin_login"))
+    username = (request.form.get("username") or "").strip()
     users = load_users()
-
     if username in users and users[username].get("role") == "trusted":
-        del users[username]
+        users.pop(username)
         save_users(users)
+        return redirect("/panel?msg=Pessoa+removida")
+    return redirect("/panel?err=Nao+foi+possivel+remover")
 
-    return redirect("/panel?msg=Removido+com+sucesso")
-
-
-@app.route("/logout_admin")
+@app.get("/logout_admin")
 def logout_admin():
-    session.pop("admin", None)
-    return redirect("/panel/login")
+    session.clear()
+    return redirect(url_for("admin_login"))
 
-
-# =========================
-# TRUSTED (Pessoa de confiança)
-# =========================
+# ===== TRUSTED =====
 @app.route("/trusted/login", methods=["GET", "POST"])
-def login_trusted():
-    err = ""
-    if request.method == "POST":
-        user = (request.form.get("user") or "").strip().lower()
-        password = request.form.get("password") or ""
-
-        users = load_users()
-        info = users.get(user)
-        if info and info.get("role") == "trusted" and verify_password(password, info.get("password_hash", "")):
-            session["trusted"] = user
-            return redirect("/trusted/panel")
-        err = "Login inválido."
-
-    return safe_render("login_trusted.html", err=err)
-
-
-@app.route("/trusted/panel")
-def panel_trusted():
-    if not session.get("trusted"):
-        return redirect("/trusted/login")
-
+def trusted_login():
     users = load_users()
-    me = users.get(session["trusted"], {})
-    display_name = me.get("name", "Pessoa de Confiança")
-    return safe_render("panel_trusted.html", display_name=display_name)
+    error = False
+    error_msg = ""
+    
+    if request.method == "POST":
+        u = (request.form.get("user") or "").strip().lower()
+        p = (request.form.get("password") or "")
+        
+        info = users.get(u)
+        if info and info.get("role") == "trusted" and verify_password(p, info.get("password_hash", "")):
+            session.clear()
+            session["role"] = "trusted"
+            session["trusted"] = u
+            session["trusted_name"] = info.get("name", u)
+            return redirect(url_for("trusted_panel"))
+        error = True
+        error_msg = "Usuário ou senha inválidos"
+    
+    return render_template("login_trusted.html", error=error, error_msg=error_msg)
 
+@app.get("/trusted/panel")
+def trusted_panel():
+    if session.get("role") != "trusted":
+        return redirect(url_for("trusted_login"))
+    
+    users = load_users()
+    u = session.get("trusted")
+    
+    if not u:
+        session.clear()
+        return redirect(url_for("trusted_login"))
+    
+    info = users.get(u, {})
+    display_name = info.get("name") or u
+    
+    return render_template("panel_trusted.html", display_name=display_name)
 
-@app.route("/logout_trusted")
+@app.get("/logout_trusted")
 def logout_trusted():
-    session.pop("trusted", None)
-    return redirect("/trusted/login")
+    session.clear()
+    return redirect(url_for("trusted_login"))
 
+@app.route("/trusted/change_password", methods=["GET", "POST"])
+def trusted_change_password():
+    if session.get("role") != "trusted":
+        return redirect(url_for("trusted_login"))
+    
+    msg, err = "", ""
+    if request.method == "POST":
+        old = request.form.get("old_password") or ""
+        new = (request.form.get("new_password") or "").strip()
+        users = load_users()
+        u = session.get("trusted")
+        info = users.get(u)
+        
+        if not info or (not verify_password(old, info.get("password_hash", ""))):
+            err = "Senha atual incorreta."
+        elif len(new) < 4:
+            err = "Nova senha muito curta (mínimo 4)."
+        else:
+            users[u]["password_hash"] = hash_password(new)
+            save_users(users)
+            msg = "Senha alterada com sucesso."
+    
+    return render_template("trusted_change_password.html", msg=msg, err=err)
+
+@app.route("/trusted/recover", methods=["GET", "POST"])
+def trusted_recover():
+    msg, err = "", ""
+    if request.method == "POST":
+        u = (request.form.get("user") or "").strip().lower()
+        new = (request.form.get("new_password") or "").strip()
+        users = load_users()
+        info = users.get(u)
+        
+        if not info or info.get("role") != "trusted":
+            err = "Usuário não encontrado."
+        elif len(new) < 4:
+            err = "Senha muito curta (mínimo 4)."
+        else:
+            users[u]["password_hash"] = hash_password(new)
+            save_users(users)
+            msg = "Senha redefinida. Faça login."
+    
+    return render_template("trusted_recover.html", msg=msg, err=err)
 
 if __name__ == "__main__":
+    print("=" * 60)
+    print("🚀 Iniciando Aurora Mulher Segura")
+    print("=" * 60)
+    
     ensure_files()
-    port = int(os.environ.get("PORT", "5000"))
+    
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

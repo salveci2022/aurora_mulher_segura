@@ -1,92 +1,123 @@
-const statusEl = document.getElementById("status");
-const chipsEl = document.getElementById("chips");
-const sosBtn = document.getElementById("sosBtn");
+const BACKENDS = [
+  window.location.origin,
+  "https://aurora-mulher-segura.onrender.com",
+  "https://aurora-backup.fly.dev"
+];
 
-function setStatus(msg, type = "ok") {
-  if (!statusEl) return;
-  statusEl.textContent = msg || "";
-  statusEl.className = "status " + (type === "err" ? "status-err" : "status-ok");
+function qs(id){ return document.getElementById(id); }
+
+function setStatus(msg){
+  const el = qs("status");
+  if(el) el.textContent = msg || "";
 }
 
-function getSelectedSituation() {
-  const active = document.querySelector(".chip.active");
-  return active ? active.dataset.value : "";
+function getActiveSituation(){
+  const chips = document.querySelectorAll("#chips .chip");
+  for(const c of chips){
+    if(c.classList.contains("active")) return c.textContent.trim();
+  }
+  return "";
 }
 
-function selectChip(btn) {
-  document.querySelectorAll(".chip").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
+async function postToBackends(path, payload){
+  // tenta backend por backend (rápido e sem travar)
+  for(const base of BACKENDS){
+    try{
+      const r = await fetch(base + path, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+      if(r.ok) return true;
+    }catch(e){}
+  }
+  return false;
 }
 
-if (chipsEl) {
-  chipsEl.addEventListener("click", (e) => {
-    const btn = e.target.closest(".chip");
-    if (!btn) return;
-    selectChip(btn);
-  });
-}
-
-function getLocationOnce(timeoutMs = 9000) {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error("Geolocalização não suportada."));
-    let done = false;
-
-    const timer = setTimeout(() => {
-      if (done) return;
-      done = true;
-      reject(new Error("Tempo limite para obter localização."));
-    }, timeoutMs);
+function getLocationOnce(timeoutMs=12000){
+  return new Promise((resolve, reject)=>{
+    if(!navigator.geolocation) return reject(new Error("Geolocalização indisponível."));
+    const timer = setTimeout(()=>reject(new Error("Tempo esgotado ao obter GPS.")), timeoutMs);
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (done) return;
-        done = true;
+      (pos)=>{
         clearTimeout(timer);
         resolve({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy
+          acc: pos.coords.accuracy
         });
       },
-      (err) => {
-        if (done) return;
-        done = true;
+      (err)=>{
         clearTimeout(timer);
         reject(err);
       },
-      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 }
+      { enableHighAccuracy:true, timeout:timeoutMs, maximumAge:0 }
     );
   });
 }
 
-async function sendAlert(payload) {
-  const res = await fetch("/api/send_alert", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+// Chips (seleção)
+(function(){
+  const chips = document.querySelectorAll("#chips .chip");
+  chips.forEach(ch=>{
+    ch.addEventListener("click", ()=>{
+      chips.forEach(x=>x.classList.remove("active"));
+      ch.classList.add("active");
+    });
+  });
+})();
+
+// Botões Reiniciar/Limpar/Sair
+(function(){
+  const btnRestart = qs("btnRestart");
+  const btnClear   = qs("btnClear");
+  const btnExit    = qs("btnExit");
+
+  if(btnRestart) btnRestart.addEventListener("click", ()=>location.reload());
+
+  if(btnClear) btnClear.addEventListener("click", ()=>{
+    qs("name").value = "";
+    qs("message").value = "";
+    setStatus("Campos limpos.");
+    setTimeout(()=>setStatus(""), 1200);
   });
 
-  if (!res.ok) throw new Error("Falha ao enviar alerta (HTTP " + res.status + ")");
-  return res.json().catch(() => ({}));
-}
+  if(btnExit) btnExit.addEventListener("click", ()=>{
+    // se estiver como PWA, volta pra tela inicial do app; no browser, abre página segura (em branco)
+    try{ window.close(); }catch(e){}
+    location.href = "/panic";
+  });
+})();
 
-async function handleSOS() {
-  try {
-    sosBtn.disabled = true;
-    setStatus("Enviando alerta...", "ok");
+// SOS (toque e segure)
+(function(){
+  const btn = qs("sosBtn");
+  if(!btn) return;
 
-    const name = (document.getElementById("name")?.value || "").trim();
-    const message = (document.getElementById("message")?.value || "").trim();
-    const situation = getSelectedSituation();
-    const share = document.getElementById("share_location")?.checked;
+  let holdTimer = null;
+  let sending = false;
+
+  async function sendSOS(){
+    if(sending) return;
+    sending = true;
+
+    const name = (qs("name").value || "").trim();
+    const situation = getActiveSituation();
+    const message = (qs("message").value || "").trim();
+    const share = qs("shareLoc").checked;
+
+    setStatus("Preparando alerta...");
 
     let loc = null;
-    if (share) {
-      try {
+    if(share){
+      setStatus("Obtendo localização (GPS)...");
+      try{
         loc = await getLocationOnce();
-      } catch (e) {
-        // Se não pegar GPS, ainda assim envia sem localização
+      }catch(e){
+        // NÃO trava: só avisa e manda sem GPS
         loc = null;
+        setStatus("Sem GPS (permissão/erro). Enviando sem localização...");
       }
     }
 
@@ -96,18 +127,45 @@ async function handleSOS() {
       message,
       lat: loc ? loc.lat : null,
       lng: loc ? loc.lng : null,
-      accuracy: loc ? loc.accuracy : null
+      accuracy: loc ? loc.acc : null,
+      ts: new Date().toISOString()
     };
 
-    await sendAlert(payload);
-    setStatus("✅ Alerta enviado com sucesso!", "ok");
-  } catch (e) {
-    setStatus("❌ Erro: " + (e?.message || "falha ao enviar"), "err");
-  } finally {
-    sosBtn.disabled = false;
-  }
-}
+    setStatus("Enviando alerta...");
+    const ok = await postToBackends("/api/send_alert", payload);
 
-if (sosBtn) {
-  sosBtn.addEventListener("click", handleSOS);
-}
+    if(ok){
+      setStatus("✅ Alerta enviado com sucesso!");
+    }else{
+      setStatus("❌ Falha ao enviar. Verifique conexão/servidor.");
+    }
+
+    sending = false;
+  }
+
+  function startHold(){
+    if(holdTimer || sending) return;
+    setStatus("Segure... enviando em 1s");
+    holdTimer = setTimeout(()=>{
+      holdTimer = null;
+      sendSOS();
+    }, 1000);
+  }
+
+  function cancelHold(){
+    if(holdTimer){
+      clearTimeout(holdTimer);
+      holdTimer = null;
+      setStatus("");
+    }
+  }
+
+  // Desktop
+  btn.addEventListener("mousedown", startHold);
+  btn.addEventListener("mouseup", cancelHold);
+  btn.addEventListener("mouseleave", cancelHold);
+
+  // Mobile
+  btn.addEventListener("touchstart", (e)=>{ e.preventDefault(); startHold(); }, {passive:false});
+  btn.addEventListener("touchend", (e)=>{ e.preventDefault(); cancelHold(); }, {passive:false});
+})();

@@ -1,240 +1,87 @@
-# -*- coding: utf-8 -*-
-
-import os
-import json
-import bcrypt
+from flask import Flask, render_template, request, jsonify
 from pathlib import Path
+import json
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, session, jsonify
-
-# =========================
-# CONFIG
-# =========================
-
-BASE_DIR = Path(__file__).resolve().parent
-
-USERS_FILE = BASE_DIR / "users.json"
-ALERTS_FILE = BASE_DIR / "alerts.log"
 
 app = Flask(__name__)
-app.secret_key = "aurora_secret_key_2026"
 
-# =========================
-# HELPERS
-# =========================
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+
+USERS_FILE = DATA_DIR / "users.json"
+ALERTS_FILE = DATA_DIR / "alerts.json"
+
+# ---------------------------
+# SETUP
+# ---------------------------
 
 def ensure_files():
+    DATA_DIR.mkdir(exist_ok=True)
+
     if not USERS_FILE.exists():
-        admin_hash = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
-        data = {
-            "admin": {
-                "password_hash": admin_hash,
-                "role": "admin",
-                "name": "Admin Aurora"
-            }
-        }
-        USERS_FILE.write_text(json.dumps(data, indent=2))
+        USERS_FILE.write_text(json.dumps({}))
 
     if not ALERTS_FILE.exists():
-        ALERTS_FILE.write_text("")
+        ALERTS_FILE.write_text(json.dumps([]))
+
+ensure_files()
+
+# ---------------------------
+# HELPERS
+# ---------------------------
 
 def load_users():
     return json.loads(USERS_FILE.read_text())
 
 def save_users(data):
-    USERS_FILE.write_text(json.dumps(data, indent=2))
+    USERS_FILE.write_text(json.dumps(data, indent=4))
 
-def hash_password(password):
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+def load_alerts():
+    return json.loads(ALERTS_FILE.read_text())
 
-def verify_password(password, hashed):
-    return bcrypt.checkpw(password.encode(), hashed.encode())
+def save_alerts(data):
+    ALERTS_FILE.write_text(json.dumps(data, indent=4))
 
-# =========================
-# AUTO INIT (IMPORTANTE)
-# =========================
-
-ensure_files()
-
-# =========================
+# ---------------------------
 # ROTAS
-# =========================
+# ---------------------------
 
 @app.route("/")
 def home():
-    return redirect("/panic")
-
-# -------------------------
+    return render_template("panic.html")
 
 @app.route("/panic")
 def panic():
-    users = load_users()
-    trusted = [
-        info["name"]
-        for u, info in users.items()
-        if info.get("role") == "trusted"
-    ]
-    return render_template("panic_button.html", trusted=trusted)
+    return render_template("panic.html")
 
-# -------------------------
+@app.route("/trusted")
+def trusted():
+    return render_template("trusted.html")
 
-@app.route("/api/send_alert", methods=["POST"])
-def send_alert():
+@app.route("/api/panic", methods=["POST"])
+def api_panic():
     data = request.json
 
-    alert = {
-        "timestamp": datetime.now().isoformat(),
-        "data": data
-    }
+    alerts = load_alerts()
 
-    with open(ALERTS_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(alert) + "\n")
+    alerts.append({
+        "name": data.get("name"),
+        "lat": data.get("lat"),
+        "lng": data.get("lng"),
+        "time": datetime.now().strftime("%H:%M:%S")
+    })
+
+    save_alerts(alerts)
 
     return jsonify({"status": "ok"})
 
-# -------------------------
+@app.route("/api/alerts")
+def api_alerts():
+    return jsonify(load_alerts())
 
-@app.route("/api/last_alert")
-def last_alert():
-    if not ALERTS_FILE.exists():
-        return jsonify({"last": None})
-
-    lines = ALERTS_FILE.read_text().splitlines()
-
-    if not lines:
-        return jsonify({"last": None})
-
-    return jsonify({"last": json.loads(lines[-1])})
-
-# =========================
-# ADMIN
-# =========================
-
-@app.route("/panel/login", methods=["GET", "POST"])
-def login_admin():
-    error = False
-
-    if request.method == "POST":
-        user = request.form.get("user")
-        password = request.form.get("password")
-
-        users = load_users()
-        info = users.get(user)
-
-        if info and verify_password(password, info["password_hash"]) and info["role"] == "admin":
-            session["admin"] = user
-            return redirect("/panel")
-        else:
-            error = True
-
-    return render_template("login_admin.html", error=error)
-
-# -------------------------
-
-@app.route("/panel")
-def panel_admin():
-    if "admin" not in session:
-        return redirect("/panel/login")
-
-    users = load_users()
-    trusted = {u:info for u,info in users.items() if info.get("role") == "trusted"}
-
-    return render_template("panel_admin.html", trusted=trusted)
-
-# -------------------------
-
-@app.route("/panel/add_trusted", methods=["POST"])
-def add_trusted():
-    if "admin" not in session:
-        return redirect("/panel/login")
-
-    users = load_users()
-
-    name = request.form.get("trusted_name")
-    username = request.form.get("trusted_user")
-    password = request.form.get("trusted_password")
-
-    if username in users:
-        return redirect("/panel")
-
-    users[username] = {
-        "name": name,
-        "password_hash": hash_password(password),
-        "role": "trusted"
-    }
-
-    save_users(users)
-    return redirect("/panel")
-
-# -------------------------
-
-@app.route("/panel/delete_trusted", methods=["POST"])
-def delete_trusted():
-    if "admin" not in session:
-        return redirect("/panel/login")
-
-    users = load_users()
-    username = request.form.get("username")
-
-    if username in users:
-        del users[username]
-        save_users(users)
-
-    return redirect("/panel")
-
-# -------------------------
-
-@app.route("/logout_admin")
-def logout_admin():
-    session.clear()
-    return redirect("/panel/login")
-
-# =========================
-# TRUSTED
-# =========================
-
-@app.route("/trusted/login", methods=["GET", "POST"])
-def login_trusted():
-    error = False
-
-    if request.method == "POST":
-        user = request.form.get("user")
-        password = request.form.get("password")
-
-        users = load_users()
-        info = users.get(user)
-
-        if info and verify_password(password, info["password_hash"]) and info["role"] == "trusted":
-            session["trusted"] = user
-            return redirect("/trusted")
-        else:
-            error = True
-
-    return render_template("login_trusted.html", error=error)
-
-# -------------------------
-
-@app.route("/trusted")
-def panel_trusted():
-    if "trusted" not in session:
-        return redirect("/trusted/login")
-
-    user = session["trusted"]
-    users = load_users()
-    display_name = users[user]["name"]
-
-    return render_template("panel_trusted.html", display_name=display_name)
-
-# -------------------------
-
-@app.route("/logout_trusted")
-def logout_trusted():
-    session.clear()
-    return redirect("/trusted/login")
-
-# =========================
-# START LOCAL
-# =========================
+# ---------------------------
+# START
+# ---------------------------
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)

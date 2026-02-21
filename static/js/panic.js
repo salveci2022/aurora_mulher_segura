@@ -1,140 +1,101 @@
-// ================================
-// AURORA MULHER SEGURA - PANIC.JS
-// ================================
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Aurora Mulher Segura</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-// Ordem de tentativa de envio
-const BACKENDS = [
-  window.location.origin,                 // servidor atual
-  'https://aurora-mulher-segura.onrender.com',
-  'https://aurora-backup.fly.dev'
-];
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#7a00ff">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 
-let sending = false;
-
-// -------------------------------
-// Helpers
-// -------------------------------
-
-function qs(id) {
-  return document.getElementById(id);
+<style>
+body{
+ background:radial-gradient(circle at top,#3a0057,#0a0015);
+ font-family:Arial;
+ color:white;
+ text-align:center;
 }
-
-function setStatus(msg) {
-  const el = qs("status");
-  if (el) el.innerText = msg;
+.container{
+ max-width:420px;
+ margin:auto;
+ padding:30px;
 }
-
-function getSituation() {
-  const active = document.querySelector(".chip.active");
-  return active ? active.dataset.situation : "";
+h1{color:#ff2fd4;}
+button{
+ width:100%;
+ padding:22px;
+ border:none;
+ border-radius:14px;
+ background:linear-gradient(45deg,#7a00ff,#ff2fd4);
+ color:white;
+ font-size:20px;
 }
+select,input{
+ width:100%;
+ padding:12px;
+ margin-top:8px;
+ border-radius:8px;
+ border:none;
+}
+</style>
+</head>
 
-async function postToBackend(path, payload) {
-  for (let base of BACKENDS) {
-    try {
-      const res = await fetch(base + path, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
+<body>
+<div class="container">
+  <h1>Aurora Mulher Segura</h1>
+
+  <select id="trusted">
+    {% for name in trusted %}
+      <option>{{name}}</option>
+    {% endfor %}
+  </select>
+
+  <input id="name" placeholder="Seu nome">
+  <input id="situation" placeholder="Situação">
+  <input id="message" placeholder="Mensagem opcional">
+
+  <button onclick="send()">ATIVAR PÂNICO</button>
+</div>
+
+<script>
+async function send(){
+  if(!navigator.geolocation){
+    alert("Seu celular/navegador não tem GPS disponível.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    try{
+      await fetch("/api/send_alert",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          name:document.getElementById("name").value,
+          situation:document.getElementById("situation").value,
+          message:document.getElementById("message").value,
+          location:{
+            lat:pos.coords.latitude,
+            lon:pos.coords.longitude,
+            accuracy_m:pos.coords.accuracy
+          }
+        })
       });
-
-      if (res.ok) {
-        return true;
-      }
-    } catch (e) {
-      console.log("Falhou em:", base);
+      alert("Alerta enviado!");
+    }catch(e){
+      alert("Falha ao enviar. Verifique a internet.");
     }
-  }
-  return false;
+  }, ()=>{
+    alert("Permita o acesso à localização para enviar o alerta.");
+  }, { enableHighAccuracy:true, timeout:15000 });
 }
 
-// -------------------------------
-// GEOLOCATION
-// -------------------------------
-
-function getLocation() {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      resolve({ lat: null, lng: null });
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        resolve({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude
-        });
-      },
-      () => resolve({ lat: null, lng: null }),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  });
+// registra service worker (PWA)
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/static/sw.js").catch(()=>{});
 }
+</script>
 
-// -------------------------------
-// SEND ALERT
-// -------------------------------
-
-async function sendAlert() {
-  if (sending) return;
-  sending = true;
-
-  setStatus("Enviando alerta...");
-
-  const name = qs("name")?.value || "";
-  const message = qs("message")?.value || "";
-  const situation = getSituation();
-  const shareLocation = qs("shareLocation")?.checked || false;
-
-  let lat = null;
-  let lng = null;
-
-  if (shareLocation) {
-    const loc = await getLocation();
-    lat = loc.lat;
-    lng = loc.lng;
-  }
-
-  const payload = {
-    name,
-    message,
-    situation,
-    lat,
-    lng
-  };
-
-  const ok = await postToBackend("/api/send_alert", payload);
-
-  if (ok) {
-    setStatus("Alerta enviado com sucesso!");
-  } else {
-    setStatus("Falha ao enviar alerta.");
-  }
-
-  sending = false;
-}
-
-// -------------------------------
-// EVENTS
-// -------------------------------
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  // Chips de situação
-  document.querySelectorAll(".chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
-    });
-  });
-
-  // Botão SOS
-  const sosBtn = qs("sosBtn");
-  if (sosBtn) {
-    sosBtn.addEventListener("click", sendAlert);
-  }
-
-});
+</body>
+</html>

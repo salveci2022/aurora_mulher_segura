@@ -5,6 +5,73 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Admin · Aurora</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Estilos adicionais sem quebrar o design */
+    .redundancy-card {
+      margin-top: 20px;
+      border: 1px solid rgba(255,98,212,.22);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .redundancy-header {
+      background: rgba(255,79,200,0.15);
+      padding: 12px 15px;
+      border-bottom: 1px solid rgba(255,98,212,.22);
+    }
+    .redundancy-body {
+      padding: 15px;
+    }
+    .backend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      margin: 5px 0;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      border-left: 3px solid transparent;
+    }
+    .backend-item.online {
+      border-left-color: #00ff00;
+    }
+    .backend-item.offline {
+      border-left-color: #ff0000;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .stat-box {
+      background: rgba(255,79,200,0.05);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ff4fc8;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: #cdb7e6;
+    }
+    .refresh-btn {
+      background: none;
+      border: 1px solid rgba(255,98,212,.28);
+      color: #ffd0f0;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 11px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .refresh-btn:hover {
+      background: rgba(255,98,212,.1);
+    }
+  </style>
 </head>
 <body class="aurora-bg">
   <main class="center-wrap">
@@ -19,28 +86,229 @@
         </div>
         <div class="top-actions">
           <a class="pill" href="/panic">Painel da mulher</a>
+          <a class="pill" href="/logout_admin">Sair</a>
         </div>
       </div>
 
       <div class="content">
-        <h1 class="h1">LOGIN ADMIN</h1>
-        <p class="center muted small">Usuário padrão: admin · Senha: admin123</p>
+        <h1 class="h1">CADASTRO</h1>
+        <p class="center muted small">Cadastre até 3 pessoas de confiança.</p>
 
-        {% if error %}<div class="alert alert-danger">Usuário ou senha inválidos.</div>{% endif %}
+        {% if msg %}<div class="alert alert-ok">{{ msg.replace('+',' ') }}</div>{% endif %}
+        {% if err %}<div class="alert alert-danger">{{ err.replace('+',' ') }}</div>{% endif %}
 
-        <form method="post">
-          <label class="label">Usuário</label>
-          <input class="input" name="user" placeholder="admin" required>
+        <div class="list">
+          {% for u, info in trusted.items() %}
+          <div class="item">
+            <div>
+              <strong>{{ info.name }}</strong>
+              <div class="badge">Usuário: {{ u }}</div>
+            </div>
+            <form method="post" action="/panel/delete_trusted" onsubmit="return confirm('Remover esta pessoa?');">
+              <input type="hidden" name="username" value="{{ u }}">
+              <button class="pill" type="submit">Remover</button>
+            </form>
+          </div>
+          {% endfor %}
+          {% if trusted|length == 0 %}
+            <div class="alert">Nenhuma pessoa cadastrada ainda.</div>
+          {% endif %}
+        </div>
+
+        <form method="post" action="/panel/add_trusted" style="margin-top:14px">
+          <label class="label">Nome</label>
+          <input class="input" name="trusted_name" placeholder="Ex: Mãe da Ana" required>
+          <label class="label">Usuário (login)</label>
+          <input class="input" name="trusted_user" placeholder="ex: maeana" required>
           <label class="label">Senha</label>
-          <input class="input" type="password" name="password" placeholder="••••••••" required>
-          <button class="btn btn-primary" type="submit">Entrar</button>
+          <input class="input" name="trusted_password" placeholder="ex: 1234" required>
+          <button class="btn btn-primary" type="submit">Cadastrar</button>
         </form>
 
+        <!-- ===== CARD DE REDUNDÂNCIA ===== -->
+        <div class="redundancy-card">
+          <div class="redundancy-header">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <h3 style="color: #ff4fc8; margin: 0; font-size: 16px;">🔄 REDUNDÂNCIA DE INFRAESTRUTURA</h3>
+              <button class="refresh-btn" onclick="loadRedundancyStatus()">↻ Atualizar</button>
+            </div>
+            <p class="small muted" style="margin: 5px 0 0 0;">Failover automático entre servidores</p>
+          </div>
+          <div class="redundancy-body">
+            <div id="redundancy-status">
+              <div class="center">
+                <span class="badge">Carregando status...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="center small muted" style="margin-top:10px">
-          <a class="link" href="/health">Diagnóstico</a>
+          Pessoa de confiança entra em <span class="badge">/trusted/login</span>
+        </div>
+        <div class="center small muted" style="margin-top:5px">
+          <a class="link" href="/api/redundancy-status" target="_blank">API Status</a> · 
+          <a class="link" href="/health" target="_blank">Health Check</a>
         </div>
       </div>
     </section>
   </main>
+
+  <script>
+    // ===== FUNÇÃO PARA CARREGAR STATUS DA REDUNDÂNCIA =====
+    async function loadRedundancyStatus() {
+      const statusDiv = document.getElementById('redundancy-status');
+      
+      try {
+        // Mostra loading
+        statusDiv.innerHTML = `
+          <div class="center">
+            <span class="badge">🔄 Atualizando...</span>
+          </div>
+        `;
+        
+        // Faz requisição para a API
+        const response = await fetch('/api/redundancy-status');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("📊 Status de redundância:", data);
+        
+        let html = '';
+        
+        // Backend atual em destaque
+        const currentBackend = data.backends.find(b => b.active) || data.backends[0];
+        
+        html += `
+          <div style="margin: 10px 0 15px 0; padding: 12px; background: rgba(255,79,200,0.15); border-radius: 10px; text-align: center;">
+            <div style="font-size: 12px; color: #cdb7e6; margin-bottom: 5px;">🔵 BACKEND ATIVO</div>
+            <div style="font-size: 20px; font-weight: bold; color: #ff4fc8; letter-spacing: 1px;">${currentBackend.name.toUpperCase()}</div>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 8px;">
+              <span class="badge">⏱️ ${currentBackend.response_time || 'N/A'}</span>
+              <span class="badge">🔄 ${data.stats.total_switches} trocas</span>
+            </div>
+          </div>
+        `;
+        
+        // Lista de backends
+        html += `<div style="margin-bottom: 15px;">`;
+        data.backends.forEach(b => {
+          const statusClass = b.healthy ? 'online' : 'offline';
+          const statusIcon = b.healthy ? '✅' : '❌';
+          const activeTag = b.active ? '<span style="background: #ff4fc8; color: #0a0014; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px;">ATIVO</span>' : '';
+          
+          html += `
+            <div class="backend-item ${statusClass}">
+              <div>
+                <strong style="font-size: 14px;">${b.name.toUpperCase()}</strong>
+                ${activeTag}
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="badge">${statusIcon} ${b.healthy ? 'Online' : 'Offline'}</span>
+                <span class="badge">⚠️ ${b.failures} falhas</span>
+                <span class="badge">📡 ${b.response_time || 'N/A'}</span>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+        
+        // Estatísticas adicionais
+        html += `
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-value">${data.stats.total_switches || 0}</div>
+              <div class="stat-label">Trocas de servidor</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">${data.stats.total_requests || 0}</div>
+              <div class="stat-label">Requisições</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">${data.stats.failed_requests || 0}</div>
+              <div class="stat-label">Falhas</div>
+            </div>
+          </div>
+        `;
+        
+        // Última troca
+        if (data.stats.last_switch) {
+          const lastSwitch = new Date(data.stats.last_switch).toLocaleString('pt-BR');
+          html += `
+            <div style="margin-top: 10px; text-align: center; font-size: 10px; color: #cdb7e6;">
+              Última troca: ${lastSwitch}
+            </div>
+          `;
+        }
+        
+        statusDiv.innerHTML = html;
+        
+      } catch (error) {
+        console.error("❌ Erro ao carregar status:", error);
+        statusDiv.innerHTML = `
+          <div class="alert alert-danger" style="margin: 0;">
+            <strong>❌ Erro ao carregar status</strong><br>
+            <span class="small">${error.message}</span>
+          </div>
+        `;
+      }
+    }
+
+    // Carregar status ao abrir a página
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRedundancyStatus();
+      // Atualizar a cada 10 segundos
+      setInterval(loadRedundancyStatus, 10000);
+    });
+
+    // Mostrar notificação de failover (opcional)
+    let lastActiveBackend = null;
+    
+    async function checkBackendChange() {
+      try {
+        const response = await fetch('/api/redundancy-status');
+        const data = await response.json();
+        const currentActive = data.backends.find(b => b.active)?.name;
+        
+        if (lastActiveBackend && lastActiveBackend !== currentActive) {
+          // Mostrar notificação de failover
+          const notification = document.createElement('div');
+          notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4fc8;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 0 20px rgba(255,79,200,0.5);
+          `;
+          notification.innerHTML = `
+            🔄 FAILOVER ATIVADO<br>
+            <span style="font-size: 12px;">Servidor: ${currentActive?.toUpperCase()}</span>
+          `;
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+          }, 4000);
+        }
+        
+        lastActiveBackend = currentActive;
+      } catch (e) {
+        // Ignora erros
+      }
+    }
+    
+    // Verificar mudanças a cada 5 segundos
+    setInterval(checkBackendChange, 5000);
+  </script>
 </body>
 </html>

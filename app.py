@@ -8,8 +8,8 @@ import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-# Windows pode nÃ£o ter base de fusos (tzdata). Tentamos carregar e, se faltar,
-# usamos horÃ¡rio local do sistema.
+# Windows pode não ter base de fusos (tzdata). Tentamos carregar e, se faltar,
+# usamos horário local do sistema.
 try:
     TZ = ZoneInfo("America/Sao_Paulo")
 except Exception:
@@ -41,7 +41,7 @@ def verify_password(raw: str, hashed: str) -> bool:
             return False
         return bcrypt.checkpw(raw.encode('utf-8'), hashed.encode('utf-8'))
     except Exception as e:
-        print(f"Erro na verificaÃ§Ã£o de senha: {e}")
+        print(f"Erro na verificação de senha: {e}")
         return False
 
 def now_br_str() -> str:
@@ -50,7 +50,7 @@ def now_br_str() -> str:
     return datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 def ensure_files():
-    """Garante que os arquivos necessÃ¡rios existam"""
+    """Garante que os arquivos necessários existam"""
     if not USERS_FILE.exists():
         admin_hash = hash_password("admin123")
         users_data = {
@@ -64,21 +64,21 @@ def ensure_files():
             json.dumps(users_data, indent=2, ensure_ascii=False), 
             encoding="utf-8"
         )
-        print("âœ… Arquivo users.json criado")
+        print("? Arquivo users.json criado")
     
     if not ALERTS_FILE.exists():
         ALERTS_FILE.write_text("", encoding="utf-8")
-        print("âœ… Arquivo alerts.log criado")
+        print("? Arquivo alerts.log criado")
     
     if not STATE_FILE.exists():
         STATE_FILE.write_text(
             json.dumps({"last_id": 0}, indent=2, ensure_ascii=False), 
             encoding="utf-8"
         )
-        print("âœ… Arquivo state.json criado")
+        print("? Arquivo state.json criado")
 
 def load_users() -> dict:
-    """Carrega usuÃ¡rios do arquivo"""
+    """Carrega usuários do arquivo"""
     ensure_files()
     try:
         data = json.loads(USERS_FILE.read_text(encoding="utf-8"))
@@ -98,7 +98,7 @@ def load_users() -> dict:
     return data
 
 def save_users(data: dict) -> None:
-    """Salva usuÃ¡rios no arquivo"""
+    """Salva usuários no arquivo"""
     USERS_FILE.write_text(
         json.dumps(data, indent=2, ensure_ascii=False), 
         encoding="utf-8"
@@ -124,10 +124,10 @@ def log_alert(payload: dict) -> None:
     ensure_files()
     with ALERTS_FILE.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    print(f"âœ… Alerta #{payload['id']} salvo")
+    print(f"? Alerta #{payload['id']} salvo")
 
 def read_last_alert():
-    """LÃª o Ãºltimo alerta do arquivo de logs"""
+    """Lê o último alerta do arquivo de logs"""
     ensure_files()
     txt = ALERTS_FILE.read_text(encoding="utf-8").strip()
     if not txt:
@@ -137,7 +137,7 @@ def read_last_alert():
         last = json.loads(lines[-1])
         return last
     except Exception as e:
-        print(f"Erro ao ler Ãºltimo alerta: {e}")
+        print(f"Erro ao ler último alerta: {e}")
         return None
 
 @app.get("/health")
@@ -189,7 +189,7 @@ def send_alert():
 
     data = request.get_json(silent=True) or {}
     
-    # Processar localizaÃ§Ã£o
+    # Processar localização
     location_data = None
     if data.get("location"):
         loc = data.get("location")
@@ -207,8 +207,8 @@ def send_alert():
     payload = {
         "id": next_alert_id(),
         "ts": now_br_str(),
-        "name": (data.get("name") or "NÃ£o informado"),
-        "situation": (data.get("situation") or "NÃ£o especificado"),
+        "name": (data.get("name") or "Não informado"),
+        "situation": (data.get("situation") or "Não especificado"),
         "message": (data.get("message") or ""),
         "location": location_data,
         "consent_location": True if location_data else False,
@@ -332,7 +332,7 @@ def trusted_login():
             session["trusted_name"] = info.get("name", u)
             return redirect(url_for("trusted_panel"))
         error = True
-        error_msg = "UsuÃ¡rio ou senha invÃ¡lidos"
+        error_msg = "Usuário ou senha inválidos"
     
     return render_template("login_trusted.html", error=error, error_msg=error_msg)
 
@@ -374,7 +374,7 @@ def trusted_change_password():
         if not info or (not verify_password(old, info.get("password_hash", ""))):
             err = "Senha atual incorreta."
         elif len(new) < 4:
-            err = "Nova senha muito curta (mÃ­nimo 4)."
+            err = "Nova senha muito curta (mínimo 4)."
         else:
             users[u]["password_hash"] = hash_password(new)
             save_users(users)
@@ -392,19 +392,19 @@ def trusted_recover():
         info = users.get(u)
         
         if not info or info.get("role") != "trusted":
-            err = "UsuÃ¡rio nÃ£o encontrado."
+            err = "Usuário não encontrado."
         elif len(new) < 4:
-            err = "Senha muito curta (mÃ­nimo 4)."
+            err = "Senha muito curta (mínimo 4)."
         else:
             users[u]["password_hash"] = hash_password(new)
             save_users(users)
-            msg = "Senha redefinida. FaÃ§a login."
+            msg = "Senha redefinida. Faça login."
     
     return render_template("trusted_recover.html", msg=msg, err=err)
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("ðŸš€ Iniciando Aurora Mulher Segura")
+    print("?? Iniciando Aurora Mulher Segura")
     print("=" * 60)
     
     ensure_files()

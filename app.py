@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import annotations
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from pathlib import Path

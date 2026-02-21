@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import os
 import json
 import bcrypt
@@ -9,23 +10,25 @@ from flask import Flask, render_template, request, redirect, session, jsonify
 # =========================
 # CONFIG
 # =========================
+
 BASE_DIR = Path(__file__).resolve().parent
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "aurora_secret_key_2026")
 
 # =========================
 # HELPERS
 # =========================
-def _safe_write(path: Path, content: str):
-    path.write_text(content, encoding="utf-8")
+
+def _write_json(path: Path, data: dict):
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def ensure_files():
     # users.json
     if not USERS_FILE.exists():
-        admin_hash = bcrypt.hashpw(b"admin123", bcrypt.gensalt()).decode("utf-8")
+        admin_hash = bcrypt.hashpw("admin123".encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         data = {
             "admin": {
                 "password_hash": admin_hash,
@@ -33,22 +36,45 @@ def ensure_files():
                 "name": "Admin Aurora"
             }
         }
-        _safe_write(USERS_FILE, json.dumps(data, indent=2, ensure_ascii=False))
+        _write_json(USERS_FILE, data)
 
     # alerts.log
     if not ALERTS_FILE.exists():
-        _safe_write(ALERTS_FILE, "")
+        ALERTS_FILE.write_text("", encoding="utf-8")
 
-def load_users():
+def load_users() -> dict:
+    """
+    Lê users.json com tolerância a erro.
+    Se o arquivo estiver vazio/corrompido, recria com admin padrão.
+    """
     ensure_files()
-    try:
-        return json.loads(USERS_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        # se o JSON corromper, não derruba o app
-        return {}
 
-def save_users(data):
-    _safe_write(USERS_FILE, json.dumps(data, indent=2, ensure_ascii=False))
+    try:
+        raw = USERS_FILE.read_text(encoding="utf-8").strip()
+        if not raw:
+            raise json.JSONDecodeError("empty", raw, 0)
+
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            raise json.JSONDecodeError("not a dict", raw, 0)
+
+        return data
+
+    except json.JSONDecodeError:
+        # Recria um users.json válido para não derrubar o sistema
+        admin_hash = bcrypt.hashpw("admin123".encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        data = {
+            "admin": {
+                "password_hash": admin_hash,
+                "role": "admin",
+                "name": "Admin Aurora"
+            }
+        }
+        _write_json(USERS_FILE, data)
+        return data
+
+def save_users(data: dict):
+    _write_json(USERS_FILE, data)
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -59,50 +85,52 @@ def verify_password(password: str, hashed: str) -> bool:
     except Exception:
         return False
 
+# =========================
+# INIT
+# =========================
 ensure_files()
 
 # =========================
-# ROTAS - BASE
+# ROTAS
 # =========================
+
 @app.route("/")
 def home():
     return redirect("/panic")
 
-# =========================
-# PAINEL DA MULHER (PANIC)
-# =========================
 @app.route("/panic")
 def panic():
-    # IMPORTANTE: este template precisa existir em /templates/panic_button.html
     users = load_users()
     trusted = [
-        info.get("name", u)
-        for u, info in users.items()
+        info.get("name", "")
+        for _, info in users.items()
         if info.get("role") == "trusted"
     ]
     return render_template("panic_button.html", trusted=trusted)
 
-# =========================
-# API ALERTAS
-# =========================
 @app.route("/api/send_alert", methods=["POST"])
 def send_alert():
     data = request.get_json(silent=True) or {}
+
     alert = {
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "data": data
     }
+
     with open(ALERTS_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(alert, ensure_ascii=False) + "\n")
+
     return jsonify({"status": "ok"})
 
 @app.route("/api/last_alert")
 def last_alert():
     if not ALERTS_FILE.exists():
         return jsonify({"last": None})
+
     lines = ALERTS_FILE.read_text(encoding="utf-8").splitlines()
     if not lines:
         return jsonify({"last": None})
+
     try:
         return jsonify({"last": json.loads(lines[-1])})
     except Exception:
@@ -111,9 +139,11 @@ def last_alert():
 # =========================
 # ADMIN
 # =========================
+
 @app.route("/panel/login", methods=["GET", "POST"])
 def login_admin():
     error = False
+
     if request.method == "POST":
         user = (request.form.get("user") or "").strip()
         password = request.form.get("password") or ""
@@ -122,10 +152,10 @@ def login_admin():
         info = users.get(user)
 
         if info and info.get("role") == "admin" and verify_password(password, info.get("password_hash", "")):
-            session.clear()
             session["admin"] = user
             return redirect("/panel")
-        error = True
+        else:
+            error = True
 
     return render_template("login_admin.html", error=error)
 
@@ -146,27 +176,28 @@ def add_trusted():
     users = load_users()
 
     name = (request.form.get("trusted_name") or "").strip()
-    username = (request.form.get("trusted_user") or "").strip()
+    username = (request.form.get("trusted_user") or "").strip().lower()
     password = request.form.get("trusted_password") or ""
 
-    if not name or not username or not password:
-        return redirect("/panel?err=campos_obrigatorios")
-
-    if username in users:
-        return redirect("/panel?err=usuario_ja_existe")
-
-    # regra de até 3 pessoas trusted
+    # limite de 3 trusted
     trusted_count = sum(1 for _, info in users.items() if info.get("role") == "trusted")
     if trusted_count >= 3:
-        return redirect("/panel?err=limite_3")
+        return redirect("/panel?err=Limite+de+3+pessoas+de+confiança")
+
+    if not name or not username or not password:
+        return redirect("/panel?err=Preencha+todos+os+campos")
+
+    if username in users:
+        return redirect("/panel?err=Usuário+já+existe")
 
     users[username] = {
         "name": name,
         "password_hash": hash_password(password),
         "role": "trusted"
     }
+
     save_users(users)
-    return redirect("/panel?msg=cadastrado")
+    return redirect("/panel?msg=Cadastrado+com+sucesso")
 
 @app.route("/panel/delete_trusted", methods=["POST"])
 def delete_trusted():
@@ -180,7 +211,7 @@ def delete_trusted():
         del users[username]
         save_users(users)
 
-    return redirect("/panel?msg=removido")
+    return redirect("/panel?msg=Removido+com+sucesso")
 
 @app.route("/logout_admin")
 def logout_admin():
@@ -190,22 +221,23 @@ def logout_admin():
 # =========================
 # TRUSTED
 # =========================
+
 @app.route("/trusted/login", methods=["GET", "POST"])
 def login_trusted():
     error = False
 
     if request.method == "POST":
-        user = (request.form.get("user") or "").strip()
+        user = (request.form.get("user") or "").strip().lower()
         password = request.form.get("password") or ""
 
         users = load_users()
         info = users.get(user)
 
         if info and info.get("role") == "trusted" and verify_password(password, info.get("password_hash", "")):
-            session.clear()
             session["trusted"] = user
             return redirect("/trusted")
-        error = True
+        else:
+            error = True
 
     return render_template("login_trusted.html", error=error)
 
@@ -216,7 +248,7 @@ def panel_trusted():
 
     user = session["trusted"]
     users = load_users()
-    display_name = users.get(user, {}).get("name", user)
+    display_name = users.get(user, {}).get("name", "Pessoa de Confiança")
 
     return render_template("panel_trusted.html", display_name=display_name)
 
@@ -226,8 +258,10 @@ def logout_trusted():
     return redirect("/trusted/login")
 
 # =========================
-# LOCAL DEV
+# START LOCAL
 # =========================
+
 if __name__ == "__main__":
+    ensure_files()
     port = int(os.environ.get("PORT", "5000"))
     app.run(host="0.0.0.0", port=port, debug=False)

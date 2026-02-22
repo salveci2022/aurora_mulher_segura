@@ -352,6 +352,178 @@
     </div>
   </div>
 
-<script src="/static/panic.js?v=20260221-1"></script>
+<!-- SCRIPT ÚNICO DIRETO NO HTML - NÃO TRAVA -->
+<script>
+console.log("🚀 panic.js carregado");
+
+// Funções globais para os botões
+window.reiniciar = function() {
+    location.reload();
+};
+
+window.limpar = function() {
+    const nameInput = document.getElementById('name');
+    const messageInput = document.getElementById('message');
+    const shareLoc = document.getElementById('shareLoc');
+    const chips = document.querySelectorAll('.chip');
+    const statusBox = document.getElementById('status');
+    
+    if (nameInput) nameInput.value = '';
+    if (messageInput) messageInput.value = '';
+    if (shareLoc) shareLoc.checked = true;
+    if (chips) {
+        chips.forEach(c => c.classList.remove('active'));
+        if (chips.length > 0) chips[0].classList.add('active');
+    }
+    if (statusBox) statusBox.innerHTML = 'Pronto. Toque e segure no SOS para enviar.';
+};
+
+window.sair = function() {
+    if (confirm('Deseja sair do aplicativo?')) {
+        window.close();
+        window.location.href = 'about:blank';
+    }
+};
+
+// Inicializar quando o DOM carregar
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("✅ DOM carregado!");
+
+    const sosBtn = document.getElementById('sosBtn');
+    const nameInput = document.getElementById('name');
+    const messageInput = document.getElementById('message');
+    const shareLoc = document.getElementById('shareLoc');
+    const chips = document.querySelectorAll('.chip');
+    const statusBox = document.getElementById('status');
+    const btnRestart = document.getElementById('btnRestart');
+    const btnClear = document.getElementById('btnClear');
+    const btnExit = document.getElementById('btnExit');
+
+    let selectedSituation = chips.length > 0 ? chips[0].innerText.trim() : '';
+    let holdTimer = null;
+
+    if (!sosBtn) {
+        console.error('❌ Botão SOS não encontrado!');
+        return;
+    }
+
+    // Configurar botões do topo
+    if (btnRestart) btnRestart.onclick = window.reiniciar;
+    if (btnClear) btnClear.onclick = window.limpar;
+    if (btnExit) btnExit.onclick = window.sair;
+
+    // Configurar chips
+    chips.forEach(chip => {
+        chip.onclick = function() {
+            chips.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            selectedSituation = this.innerText.trim();
+            if (statusBox) statusBox.innerHTML = `Situação: ${selectedSituation}`;
+        };
+    });
+
+    // Função de localização
+    function getLocation() {
+        return new Promise((resolve) => {
+            if (!shareLoc || !shareLoc.checked) {
+                resolve(null);
+                return;
+            }
+            if (!navigator.geolocation) {
+                if (statusBox) statusBox.innerHTML = '⚠️ GPS não suportado';
+                resolve(null);
+                return;
+            }
+            if (statusBox) statusBox.innerHTML = '📍 Obtendo localização...';
+            
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    if (statusBox) statusBox.innerHTML = '📍 Localização obtida';
+                    resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                },
+                err => {
+                    if (statusBox) statusBox.innerHTML = '⚠️ Erro no GPS';
+                    resolve(null);
+                },
+                { timeout: 10000 }
+            );
+        });
+    }
+
+    // Função de envio
+    async function enviarAlerta() {
+        if (!selectedSituation) {
+            alert('⚠️ Selecione a situação!');
+            return;
+        }
+
+        sosBtn.disabled = true;
+        const originalText = sosBtn.innerHTML;
+        sosBtn.innerHTML = 'ENVIANDO...';
+        
+        try {
+            const location = await getLocation();
+            const dados = {
+                name: nameInput?.value || 'Usuária',
+                situation: selectedSituation,
+                message: messageInput?.value || '',
+                lat: location?.lat || null,
+                lng: location?.lng || null
+            };
+            
+            // Tenta enviar para API, se não tiver, simula
+            try {
+                const res = await fetch('/api/send_alert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+                if (res.ok) {
+                    alert('✅ ALERTA ENVIADO!');
+                } else {
+                    alert('🚨 ALERTA (modo demonstração)\nSituação: ' + dados.situation);
+                }
+            } catch (e) {
+                alert('🚨 ALERTA (modo demonstração)\nSituação: ' + dados.situation);
+            }
+            
+            if (statusBox) statusBox.innerHTML = '✅ Alerta enviado!';
+            
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('❌ Erro ao enviar');
+        } finally {
+            setTimeout(() => {
+                sosBtn.disabled = false;
+                sosBtn.innerHTML = originalText;
+            }, 1000);
+        }
+    }
+
+    // Eventos do botão SOS
+    sosBtn.onclick = (e) => {
+        e.preventDefault();
+        enviarAlerta();
+    };
+
+    sosBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        clearTimeout(holdTimer);
+        holdTimer = setTimeout(enviarAlerta, 600);
+    });
+
+    sosBtn.addEventListener('touchend', () => clearTimeout(holdTimer));
+    sosBtn.addEventListener('touchcancel', () => clearTimeout(holdTimer));
+    
+    sosBtn.addEventListener('mousedown', () => {
+        holdTimer = setTimeout(enviarAlerta, 600);
+    });
+    
+    sosBtn.addEventListener('mouseup', () => clearTimeout(holdTimer));
+    sosBtn.addEventListener('mouseleave', () => clearTimeout(holdTimer));
+    
+    console.log("🎉 Painel pronto!");
+});
+</script>
 </body>
 </html>

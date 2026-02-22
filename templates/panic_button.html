@@ -1,529 +1,85 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aurora Mulher Segura — Botão de Pânico</title>
+<meta charset="utf-8">
+<title>Aurora Mulher Segura - SOS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- PWA -->
-  <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#7a00ff">
-  <link rel="icon" href="/static/icon-192.png">
-  <link rel="apple-touch-icon" href="/static/icon-192.png">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-  <style>
-    :root{
-      --bg1:#3a0057;
-      --bg2:#0a0015;
-      --card:#14001f;
-      --stroke:rgba(255,255,255,.10);
-      --soft:rgba(168,85,255,.18);
-      --p1:#ff2fd4;
-      --p2:#7a00ff;
-      --txt:#ffffff;
-      --muted:rgba(255,255,255,.72);
-    }
-
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      min-height:100vh;
-      font-family:Arial, sans-serif;
-      color:var(--txt);
-      background:radial-gradient(circle at top, var(--bg1), var(--bg2));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:22px;
-    }
-
-    .card{
-      width:min(460px, 96vw);
-      background:linear-gradient(180deg, rgba(20,0,31,.92), rgba(12,0,20,.92));
-      border:1px solid var(--stroke);
-      border-radius:22px;
-      box-shadow:0 0 40px var(--soft);
-      overflow:hidden;
-      position:relative;
-    }
-
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:16px 16px 12px;
-      border-bottom:1px solid rgba(255,255,255,.07);
-      background:linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,0));
-    }
-
-    .brand{
-      display:flex;align-items:center;gap:12px;
-    }
-    .brand .logo{
-      width:42px;height:42px;border-radius:14px;
-      background:linear-gradient(45deg, var(--p2), var(--p1));
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 0 18px rgba(255,47,212,.22);
-      font-size:20px;
-    }
-    .brand .text b{display:block;font-size:13px;letter-spacing:.4px}
-    .brand .text span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
-
-    .actions{
-      display:flex;flex-direction:column;gap:8px;align-items:flex-end;
-    }
-    .pill{
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.04);
-      color:rgba(255,255,255,.92);
-      padding:7px 12px;
-      border-radius:999px;
-      font-size:12px;
-      text-decoration:none;
-      transition:.2s;
-      white-space:nowrap;
-    }
-    .pill:hover{transform:translateY(-1px);border-color:rgba(255,47,212,.35)}
-
-    .body{
-      padding:18px 16px 16px;
-    }
-
-    h1{
-      text-align:center;
-      font-size:22px;
-      letter-spacing:2px;
-      margin:8px 0 6px;
-    }
-    .sub{
-      text-align:center;
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:14px;
-    }
-
-    .mini-actions{
-      display:flex;
-      justify-content:flex-end;
-      gap:8px;
-      margin-bottom:10px;
-    }
-    .mini-actions button{
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.04);
-      color:rgba(255,255,255,.92);
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      cursor:pointer;
-    }
-    .mini-actions button:hover{border-color:rgba(255,47,212,.35)}
-
-    .trusted-box{
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      border-radius:16px;
-      padding:12px;
-      margin:10px 0 14px;
-    }
-    .trusted-box .label{
-      font-size:12px;color:rgba(255,255,255,.78);
-      margin-bottom:8px;
-    }
-    .chipsline{display:flex;flex-wrap:wrap;gap:8px}
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,47,212,.25);
-      background:rgba(255,47,212,.10);
-      font-size:12px;
-    }
-
-    .field{margin:10px 0}
-    .field label{display:block;font-size:12px;color:rgba(255,255,255,.78);margin:0 0 6px}
-    input, textarea{
-      width:100%;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.18);
-      color:white;
-      padding:12px 12px;
-      outline:none;
-      font-size:14px;
-    }
-    textarea{min-height:72px;resize:none}
-
-    .chips{
-      display:flex;flex-wrap:wrap;gap:10px;
-      margin-top:6px;
-    }
-    .chip{
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.03);
-      color:rgba(255,255,255,.92);
-      padding:9px 12px;
-      border-radius:999px;
-      font-size:12px;
-      cursor:pointer;
-      transition:.15s;
-      user-select:none;
-    }
-    .chip.active{
-      border-color:rgba(255,47,212,.55);
-      background:linear-gradient(45deg, rgba(122,0,255,.22), rgba(255,47,212,.18));
-      box-shadow:0 0 16px rgba(255,47,212,.15);
-    }
-
-    .checkline{
-      display:flex;gap:10px;align-items:flex-start;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      border-radius:16px;
-      padding:12px;
-      margin:12px 0;
-    }
-    .checkline input{width:auto;margin-top:2px}
-    .checkline .txt{
-      font-size:12px;color:rgba(255,255,255,.84);
-      line-height:1.4;
-    }
-    .hint{
-      font-size:12px;color:rgba(255,255,255,.75);
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.02);
-      padding:10px 12px;
-      border-radius:14px;
-      margin-top:10px;
-    }
-
-    /* BOTÃO SOS redondo */
-    .sos-wrap{
-      display:flex;
-      justify-content:center;
-      margin:18px 0 6px;
-    }
-    .sos{
-      width:230px;height:230px;
-      border-radius:50%;
-      border:1px solid rgba(255,255,255,.14);
-      background:
-        radial-gradient(circle at 35% 30%, rgba(255,255,255,.16), rgba(255,255,255,0) 45%),
-        radial-gradient(circle at center, rgba(255,47,212,.55), rgba(122,0,255,.35) 55%, rgba(10,0,21,.85) 100%);
-      box-shadow:
-        0 0 0 10px rgba(255,47,212,.08),
-        0 0 0 22px rgba(122,0,255,.06),
-        0 18px 44px rgba(0,0,0,.55);
-      cursor:pointer;
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      user-select:none;
-      -webkit-tap-highlight-color:transparent;
-      transition:transform .08s ease;
-    }
-    .sos:active{transform:scale(.985)}
-    .sos .inner{
-      text-align:center;
-      line-height:1;
-      filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));
-    }
-    .sos .inner .big{
-      font-size:44px;
-      letter-spacing:6px;
-      font-weight:800;
-    }
-    .sos .inner .small{
-      margin-top:10px;
-      font-size:12px;
-      letter-spacing:2px;
-      color:rgba(255,255,255,.86);
-      font-weight:700;
-    }
-
-    .footer{
-      text-align:center;
-      font-size:12px;
-      color:rgba(255,255,255,.65);
-      padding:14px 12px 16px;
-    }
-    .footer a{color:rgba(255,255,255,.85);text-decoration:none}
-    .footer a:hover{text-decoration:underline}
-
-    /* status */
-    #status{
-      margin-top:10px;
-      min-height:18px;
-      text-align:center;
-      font-size:12px;
-      color:rgba(255,255,255,.78);
-    }
-  </style>
 </head>
 
-<body>
-  <div class="card">
+<body class="aurora-bg">
 
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo">♀</div>
-        <div class="text">
-          <b>AURORA_MULHER_SEGURA</b>
-          <span>Proteção Feminina 24h</span>
-        </div>
-      </div>
+<main class="center-wrap">
+<section class="aurora-card">
 
-      <div class="actions">
-        <a class="pill" href="/trusted/login">Pessoa de Confiança</a>
-        <a class="pill" href="/panel/login">Admin</a>
-      </div>
-    </div>
-
-    <div class="body">
-      <h1>BOTÃO DE PÂNICO</h1>
-      <div class="sub">Versão demonstrativa — treine o fluxo de emergência.</div>
-
-      <div class="mini-actions">
-        <button type="button" id="btnRestart">Reiniciar</button>
-        <button type="button" id="btnClear">Limpar</button>
-        <button type="button" id="btnExit">Sair</button>
-      </div>
-
-      <div class="trusted-box">
-        <div class="label">Pessoas de confiança cadastradas:</div>
-        <div class="chipsline">
-          {% if trusted and trusted|length > 0 %}
-            {% for t in trusted %}
-              <span class="badge">{{ t }}</span>
-            {% endfor %}
-          {% else %}
-            <span class="badge">Nenhuma cadastrada</span>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="name">Seu nome</label>
-        <input id="name" placeholder="Ex: Ana, Maria..." autocomplete="name">
-      </div>
-
-      <div class="field">
-        <label>Tipo de situação</label>
-        <div class="chips" id="chips">
-          <div class="chip active">Violência física</div>
-          <div class="chip">Agressão verbal / ameaças</div>
-          <div class="chip">Perseguição / Stalking</div>
-          <div class="chip">Situação de risco</div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="message">Mensagem (opcional)</label>
-        <textarea id="message" placeholder="Descreva rapidamente o que está acontecendo (opcional)..."></textarea>
-      </div>
-
-      <div class="checkline">
-        <input id="shareLoc" type="checkbox" checked>
-        <div class="txt">
-          <b>Compartilhar localização exata (GPS)</b> — será pedida permissão.<br>
-          Se não marcar, o SOS vai sem localização.
-        </div>
-      </div>
-
-      <div class="hint">Pronto. <b>Toque e segure</b> no SOS para enviar.</div>
-
-      <div class="sos-wrap">
-        <button class="sos" id="sosBtn" type="button" aria-label="Enviar SOS">
-          <div class="inner">
-            <div class="big">SOS</div>
-            <div class="small">TOQUE E SEGURE</div>
-          </div>
-        </button>
-      </div>
-
-      <div id="status"></div>
-    </div>
-
-    <div class="footer">
-      <a href="/trusted/login">Pessoa de confiança</a> •
-      <a href="/panel/login">Admin</a> •
-      <a href="/api/last_alert">Histórico</a>
+<!-- TOPO -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot">♀</div>
+    <div>
+      <div class="brand-title">AURORA_MULHER_SEGURA</div>
+      <div class="brand-sub">Botão de Pânico</div>
     </div>
   </div>
+</div>
 
-<!-- SCRIPT ÚNICO DIRETO NO HTML - NÃO TRAVA -->
-<script>
-console.log("🚀 panic.js carregado");
+<!-- CONTEÚDO -->
+<div class="content">
 
-// Funções globais para os botões
-window.reiniciar = function() {
-    location.reload();
-};
+<h1 class="h1">BOTÃO DE PÂNICO</h1>
 
-window.limpar = function() {
-    const nameInput = document.getElementById('name');
-    const messageInput = document.getElementById('message');
-    const shareLoc = document.getElementById('shareLoc');
-    const chips = document.querySelectorAll('.chip');
-    const statusBox = document.getElementById('status');
-    
-    if (nameInput) nameInput.value = '';
-    if (messageInput) messageInput.value = '';
-    if (shareLoc) shareLoc.checked = true;
-    if (chips) {
-        chips.forEach(c => c.classList.remove('active'));
-        if (chips.length > 0) chips[0].classList.add('active');
-    }
-    if (statusBox) statusBox.innerHTML = 'Pronto. Toque e segure no SOS para enviar.';
-};
+<p class="center muted small">
+Toque e segure para enviar um pedido de ajuda
+</p>
 
-window.sair = function() {
-    if (confirm('Deseja sair do aplicativo?')) {
-        window.close();
-        window.location.href = 'about:blank';
-    }
-};
+<!-- STATUS -->
+<div class="alert" id="status"></div>
 
-// Inicializar quando o DOM carregar
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("✅ DOM carregado!");
+<!-- NOME -->
+<label class="label">Seu nome</label>
+<input id="name" class="input" placeholder="Digite seu nome">
 
-    const sosBtn = document.getElementById('sosBtn');
-    const nameInput = document.getElementById('name');
-    const messageInput = document.getElementById('message');
-    const shareLoc = document.getElementById('shareLoc');
-    const chips = document.querySelectorAll('.chip');
-    const statusBox = document.getElementById('status');
-    const btnRestart = document.getElementById('btnRestart');
-    const btnClear = document.getElementById('btnClear');
-    const btnExit = document.getElementById('btnExit');
+<!-- OCORRÊNCIAS -->
+<label class="label">Tipo de situação</label>
 
-    let selectedSituation = chips.length > 0 ? chips[0].innerText.trim() : '';
-    let holdTimer = null;
+<div class="chips">
+  <div class="chip">Violência física</div>
+  <div class="chip">Agressão verbal / ameaça</div>
+  <div class="chip">Perseguição / stalking</div>
+  <div class="chip">Sequestro</div>
+  <div class="chip">Outros</div>
+</div>
 
-    if (!sosBtn) {
-        console.error('❌ Botão SOS não encontrado!');
-        return;
-    }
+<!-- MENSAGEM -->
+<label class="label">Mensagem (opcional)</label>
+<textarea id="message" class="textarea"
+placeholder="Descreva rapidamente o que está acontecendo"></textarea>
 
-    // Configurar botões do topo
-    if (btnRestart) btnRestart.onclick = window.reiniciar;
-    if (btnClear) btnClear.onclick = window.limpar;
-    if (btnExit) btnExit.onclick = window.sair;
+<!-- GPS -->
+<label class="label">
+<input type="checkbox" id="shareLocation" checked>
+ Compartilhar localização exata
+</label>
 
-    // Configurar chips
-    chips.forEach(chip => {
-        chip.onclick = function() {
-            chips.forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            selectedSituation = this.innerText.trim();
-            if (statusBox) statusBox.innerHTML = `Situação: ${selectedSituation}`;
-        };
-    });
+<!-- BOTÃO SOS -->
+<div class="sos-wrap">
+  <div class="sos" id="sosBtn">
+    <div>
+      <div class="sos-text">SOS</div>
+      <div class="sos-sub">TOQUE E SEGURE</div>
+    </div>
+  </div>
+</div>
 
-    // Função de localização
-    function getLocation() {
-        return new Promise((resolve) => {
-            if (!shareLoc || !shareLoc.checked) {
-                resolve(null);
-                return;
-            }
-            if (!navigator.geolocation) {
-                if (statusBox) statusBox.innerHTML = '⚠️ GPS não suportado';
-                resolve(null);
-                return;
-            }
-            if (statusBox) statusBox.innerHTML = '📍 Obtendo localização...';
-            
-            navigator.geolocation.getCurrentPosition(
-                pos => {
-                    if (statusBox) statusBox.innerHTML = '📍 Localização obtida';
-                    resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                },
-                err => {
-                    if (statusBox) statusBox.innerHTML = '⚠️ Erro no GPS';
-                    resolve(null);
-                },
-                { timeout: 10000 }
-            );
-        });
-    }
+</div>
 
-    // Função de envio
-    async function enviarAlerta() {
-        if (!selectedSituation) {
-            alert('⚠️ Selecione a situação!');
-            return;
-        }
+</section>
+</main>
 
-        sosBtn.disabled = true;
-        const originalText = sosBtn.innerHTML;
-        sosBtn.innerHTML = 'ENVIANDO...';
-        
-        try {
-            const location = await getLocation();
-            const dados = {
-                name: nameInput?.value || 'Usuária',
-                situation: selectedSituation,
-                message: messageInput?.value || '',
-                lat: location?.lat || null,
-                lng: location?.lng || null
-            };
-            
-            // Tenta enviar para API, se não tiver, simula
-            try {
-                const res = await fetch('/api/send_alert', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dados)
-                });
-                if (res.ok) {
-                    alert('✅ ALERTA ENVIADO!');
-                } else {
-                    alert('🚨 ALERTA (modo demonstração)\nSituação: ' + dados.situation);
-                }
-            } catch (e) {
-                alert('🚨 ALERTA (modo demonstração)\nSituação: ' + dados.situation);
-            }
-            
-            if (statusBox) statusBox.innerHTML = '✅ Alerta enviado!';
-            
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('❌ Erro ao enviar');
-        } finally {
-            setTimeout(() => {
-                sosBtn.disabled = false;
-                sosBtn.innerHTML = originalText;
-            }, 1000);
-        }
-    }
+<!-- JS -->
+<script src="/static/js/panic.js"></script>
 
-    // Eventos do botão SOS
-    sosBtn.onclick = (e) => {
-        e.preventDefault();
-        enviarAlerta();
-    };
-
-    sosBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        clearTimeout(holdTimer);
-        holdTimer = setTimeout(enviarAlerta, 600);
-    });
-
-    sosBtn.addEventListener('touchend', () => clearTimeout(holdTimer));
-    sosBtn.addEventListener('touchcancel', () => clearTimeout(holdTimer));
-    
-    sosBtn.addEventListener('mousedown', () => {
-        holdTimer = setTimeout(enviarAlerta, 600);
-    });
-    
-    sosBtn.addEventListener('mouseup', () => clearTimeout(holdTimer));
-    sosBtn.addEventListener('mouseleave', () => clearTimeout(holdTimer));
-    
-    console.log("🎉 Painel pronto!");
-});
-</script>
 </body>
 </html>

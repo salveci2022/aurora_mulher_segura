@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Aurora Mulher Segura - SOS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Estilos básicos para garantir que tudo apareça */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(145deg, #0b0c1e, #1a1b3a);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .aurora-card {
+      background: white;
+      border-radius: 32px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .brand-dot {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(145deg, #667eea, #764ba2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+    .h1 {
+      font-size: 24px;
+      text-align: center;
+      color: #1a1b3a;
+      margin-bottom: 8px;
+    }
+    .center { text-align: center; }
+    .muted { color: #666; }
+    .small { font-size: 14px; }
+    .label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 16px 0 8px;
+      color: #333;
+    }
+    .input, .textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .chip {
+      background: #f0f0f0;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .chip.active {
+      background: #667eea;
+      color: white;
+    }
+    .sos-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 24px 0;
+    }
+    .sos {
+      width: 160px;
+      height: 160px;
+      background: linear-gradient(145deg, #d32f2f, #b71c1c);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(211, 47, 47, 0.3);
+    }
+    .sos-text {
+      font-size: 42px;
+      font-weight: bold;
+    }
+    .sos-sub {
+      font-size: 12px;
+    }
+    #status {
+      min-height: 20px;
+      margin: 16px 0;
+      text-align: center;
+    }
+    /* NOVA SEÇÃO: Menu de navegação */
+    .nav-menu {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+    }
+    .nav-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .nav-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .nav-btn {
+      background: #f5f5f5;
+      border: 2px solid #e0e0e0;
+      padding: 12px 8px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .nav-btn:hover {
+      background: #667eea;
+      color: white;
+      border-color: #764ba2;
+    }
+    .nav-btn.special {
+      grid-column: span 2;
+      background: #4caf50;
+      color: white;
+      border-color: #388e3c;
+    }
+    .nav-btn.special:hover {
+      background: #388e3c;
+    }
+    .footer {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="aurora-card">
+      <!-- TOPO -->
+      <div class="brand">
+        <div class="brand-dot">♀</div>
+        <div>
+          <div class="brand-title">AURORA MULHER SEGURA</div>
+          <div class="brand-sub">Botão de Pânico</div>
+        </div>
+      </div>
+
+      <!-- CONTEÚDO PRINCIPAL -->
+      <div class="content">
+        <h1 class="h1">🚨 BOTÃO DE PÂNICO</h1>
+        <p class="center muted small">Toque e segure para enviar um pedido de ajuda</p>
+
+        <!-- STATUS -->
+        <div id="status"></div>
+
+        <!-- NOME -->
+        <label class="label">👤 Seu nome</label>
+        <input id="name" class="input" placeholder="Digite seu nome" value="Maria Silva">
+
+        <!-- OCORRÊNCIAS -->
+        <label class="label">⚠️ Tipo de situação</label>
+        <div class="chips">
+          <div class="chip" data-situacao="Violência física">🔴 Violência física</div>
+          <div class="chip" data-situacao="Agressão verbal">🗣️ Agressão verbal / ameaça</div>
+          <div class="chip" data-situacao="Perseguição">👀 Perseguição / stalking</div>
+          <div class="chip" data-situacao="Sequestro">⛓️ Sequestro</div>
+          <div class="chip" data-situacao="Outros">📌 Outros</div>
+        </div>
+
+        <!-- MENSAGEM -->
+        <label class="label">💬 Mensagem (opcional)</label>
+        <textarea id="message" class="textarea" placeholder="Descreva rapidamente o que está acontecendo">Preciso de ajuda!</textarea>
+
+        <!-- GPS -->
+        <label style="display: flex; align-items: center; gap: 10px; margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 8px;">
+          <input type="checkbox" id="shareLocation" checked style="transform: scale(1.2);">
+          <span><strong>📍 Compartilhar localização exata</strong></span>
+        </label>
+
+        <!-- BOTÃO SOS -->
+        <div class="sos-wrap">
+          <div class="sos" id="sosBtn">
+            <div>
+              <div class="sos-text">SOS</div>
+              <div class="sos-sub">TOQUE E SEGURE</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== NOVA SEÇÃO: BOTÕES DE NAVEGAÇÃO ===== -->
+        <div class="nav-menu">
+          <div class="nav-title">📌 ACESSO RÁPIDO</div>
+          
+          <div class="nav-buttons">
+            <!-- Primeira linha: 2 botões -->
+            <button class="nav-btn" onclick="window.location.href='/trusted/login'" id="btnTrusted">
+              👥 Pessoa de confiança
+            </button>
+            <button class="nav-btn" onclick="window.location.href='/panel/login'" id="btnAdmin">
+              ⚙️ Admin
+            </button>
+            
+            <!-- Segunda linha: 2 botões -->
+            <button class="nav-btn" onclick="window.location.href='/health'" id="btnDiagnostico">
+              📊 Diagnóstico
+            </button>
+            <button class="nav-btn" onclick="window.location.href='/historico'" id="btnHistorico">
+              📋 Histórico
+            </button>
+            
+            <!-- Terceira linha: botão especial em largura total -->
+            <button class="nav-btn special" onclick="gerarRelatorioPDF()" id="btnRelatorio">
+              📄 GERAR RELATÓRIO PDF
+            </button>
+          </div>
+          
+          <!-- Links adicionais -->
+          <div style="display: flex; justify-content: center; gap: 15px; margin-top: 15px; font-size: 13px;">
+            <a href="/termos" style="color: #666; text-decoration: none;">📜 Termos</a>
+            <a href="/privacidade" style="color: #666; text-decoration: none;">🔒 Privacidade</a>
+            <a href="/ajuda" style="color: #666; text-decoration: none;">❓ Ajuda</a>
+          </div>
+        </div>
+
+        <!-- RODAPÉ COM DATA/HORA -->
+        <div class="footer">
+          <span>🌙 POR PTB2</span>
+          <span id="dataHora"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // ===== SISTEMA DE DATA/HORA =====
+    function atualizarDataHora() {
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, '0');
+      const minutos = agora.getMinutes().toString().padStart(2, '0');
+      const dia = agora.getDate().toString().padStart(2, '0');
+      const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
+      const ano = agora.getFullYear();
+      
+      const elemento = document.getElementById('dataHora');
+      if (elemento) {
+        elemento.textContent = `${horas}:${minutos} ${dia}/${mes}/${ano}`;
+      }
+    }
+    
+    // Atualiza a cada segundo
+    setInterval(atualizarDataHora, 1000);
+    atualizarDataHora();
+
+    // ===== SISTEMA DE CHIPS =====
+    const chips = document.querySelectorAll('.chip');
+    let situacaoSelecionada = '';
+    
+    chips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        // Remove active de todos
+        chips.forEach(c => c.classList.remove('active'));
+        // Ativa este chip
+        this.classList.add('active');
+        // Salva situação
+        situacaoSelecionada = this.textContent.replace(/[🔴🗣️👀⛓️📌]/g, '').trim();
+        document.getElementById('status').textContent = '✓ Situação: ' + situacaoSelecionada;
+        document.getElementById('status').style.color = '#4caf50';
+      });
+    });
+
+    // ===== SISTEMA SOS (HOLD) =====
+    const sosBtn = document.getElementById('sosBtn');
+    const status = document.getElementById('status');
+    let timerHold = null;
+
+    function iniciarHold(e) {
+      e.preventDefault();
+      sosBtn.style.transform = 'scale(1.1)';
+      sosBtn.style.background = 'linear-gradient(145deg, #ff9800, #f57c00)';
+      status.textContent = '⚠️ Segure para enviar SOS...';
+      status.style.color = '#ff9800';
+      
+      timerHold = setTimeout(() => {
+        enviarAlerta();
+      }, 1000);
+    }
+
+    function cancelarHold(e) {
+      e.preventDefault();
+      sosBtn.style.transform = '';
+      sosBtn.style.background = 'linear-gradient(145deg, #d32f2f, #b71c1c)';
+      if (timerHold) {
+        clearTimeout(timerHold);
+        timerHold = null;
+      }
+      if (!status.textContent.includes('ENVIADO')) {
+        status.textContent = '';
+      }
+    }
+
+    sosBtn.addEventListener('mousedown', iniciarHold);
+    sosBtn.addEventListener('mouseup', cancelarHold);
+    sosBtn.addEventListener('mouseleave', cancelarHold);
+    sosBtn.addEventListener('touchstart', iniciarHold, { passive: false });
+    sosBtn.addEventListener('touchend', cancelarHold);
+    sosBtn.addEventListener('touchcancel', cancelarHold);
+
+    // ===== FUNÇÃO DE ENVIAR ALERTA =====
+    async function enviarAlerta() {
+      try {
+        const nome = document.getElementById('name').value || 'Anônimo';
+        const mensagem = document.getElementById('message').value || '';
+        const compartilharGPS = document.getElementById('shareLocation').checked;
+        
+        status.textContent = '📤 Enviando alerta...';
+        status.style.color = '#2196f3';
+        
+        // Prepara dados
+        const dados = {
+          nome: nome,
+          situacao: situacaoSelecionada || 'Emergência',
+          mensagem: mensagem,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Simula envio (substitua pela URL real da sua API)
+        console.log('Enviando dados:', dados);
+        
+        // Simulação de sucesso
+        setTimeout(() => {
+          status.textContent = '✅ ALERTA ENVIADO COM SUCESSO!';
+          status.style.color = '#4caf50';
+          sosBtn.style.background = 'linear-gradient(145deg, #4caf50, #388e3c)';
+          
+          setTimeout(() => {
+            sosBtn.style.background = 'linear-gradient(145deg, #d32f2f, #b71c1c)';
+          }, 1500);
+        }, 1500);
+        
+      } catch (erro) {
+        console.error('Erro:', erro);
+        status.textContent = '❌ Erro ao enviar alerta';
+        status.style.color = '#f44336';
+      }
+    }
+
+    // ===== FUNÇÃO PARA GERAR PDF =====
+    function gerarRelatorioPDF() {
+      status.textContent = '📄 Gerando relatório PDF...';
+      status.style.color = '#9c27b0';
+      
+      // Aqui você implementaria a geração real do PDF
+      // Por enquanto, apenas simulamos
+      setTimeout(() => {
+        alert('📄 Relatório gerado com sucesso!\n\n' +
+              'Nome: ' + (document.getElementById('name').value || 'Não informado') + '\n' +
+              'Situação: ' + (situacaoSelecionada || 'Nenhuma') + '\n' +
+              'Data: ' + new Date().toLocaleString('pt-BR'));
+        
+        status.textContent = '✅ PDF gerado!';
+        status.style.color = '#4caf50';
+        
+        setTimeout(() => {
+          status.textContent = '';
+        }, 3000);
+      }, 1000);
+    }
+
+    // ===== VERIFICAÇÃO DOS BOTÕES =====
+    console.log('Botões de navegação:', {
+      trusted: document.getElementById('btnTrusted'),
+      admin: document.getElementById('btnAdmin'),
+      diagnostico: document.getElementById('btnDiagnostico'),
+      historico: document.getElementById('btnHistorico'),
+      relatorio: document.getElementById('btnRelatorio')
+    });
+  </script>
+</body>
+</html>

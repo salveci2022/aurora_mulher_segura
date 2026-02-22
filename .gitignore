@@ -1,41 +1,20 @@
-# ===== AMBIENTE =====
-.env
-.env.local
-.env.production
-.env.development
-
-# ===== PYTHON =====
+# .gitignore
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
+.env
 venv/
 env/
 ENV/
-env.bak/
-venv.bak/
-
-# ===== ARQUIVOS DO SISTEMA =====
-users.json
-alerts.log
-state.json
-*.log
+dist/
+build/
+*.egg-info/
+instance/
+.webassets-cache
+.DS_Store
 *.db
 *.sqlite
-
-# ===== IDE =====
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# ===== ARQUIVOS DE CACHE =====
-.DS_Store
-Thumbs.db
-*.cache
-
-# ===== ARQUIVOS DE LOG =====
+*.pdf
+!relatorio.pdf
 *.log
-logs/

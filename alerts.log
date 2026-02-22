@@ -99,3 +99,17 @@
 {"id": 99, "ts": "2026-02-19 20:18:23", "name": "MARISA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
 {"id": 100, "ts": "2026-02-19 20:18:31", "name": "MARISA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
 {"id": 101, "ts": "2026-02-19 20:18:38", "name": "MARISA", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "consent_location": false}
+{"timestamp": "2026-02-22T10:01:58-03:00", "data": {"name": "SALVECI DOS SANTOS", "situation": "Situação de risco", "message": "", "lat": null, "lng": null, "accuracy": null}, "ip": "172.24.129.61"}
+{"timestamp": "2026-02-22T10:02:15-03:00", "data": {"name": "SALVECI DOS SANTOS", "situation": "Situação de risco", "message": "", "lat": null, "lng": null, "accuracy": null}, "ip": "172.24.129.61"}
+{"timestamp": "2026-02-22T10:02:25-03:00", "data": {"name": "SALVECI DOS SANTOS", "situation": "Situação de risco", "message": "", "lat": null, "lng": null, "accuracy": null}, "ip": "172.24.129.61"}
+{"timestamp": "2026-02-22T10:03:39-03:00", "data": {"name": "SALVECI DOS SANTOS", "situation": "Perseguição / Stalking", "message": "", "lat": null, "lng": null, "accuracy": null}, "ip": "172.24.129.61"}
+{"timestamp": "2026-02-22T10:03:55-03:00", "data": {"name": "SALVECI DOS SANTOS", "situation": "Perseguição / Stalking", "message": "", "lat": null, "lng": null, "accuracy": null}, "ip": "172.24.129.61"}
+{"timestamp": "2026-02-22T10:04:03-03:00", "data": {"name": "SALVECI DOS SANTOS", "situation": "Perseguição / Stalking", "message": "", "lat": null, "lng": null, "accuracy": null}, "ip": "172.24.129.61"}
+{"id": "20260222101102_5506", "timestamp": "2026-02-22T10:11:02-03:00", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "ip": "172.24.129.61"}
+{"id": "20260222101146_2793", "timestamp": "2026-02-22T10:11:46-03:00", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "ip": "172.24.129.61"}
+{"id": "20260222101152_2953", "timestamp": "2026-02-22T10:11:52-03:00", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "ip": "172.24.129.61"}
+{"id": "20260222101257_2057", "timestamp": "2026-02-22T10:12:57-03:00", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "ip": "172.24.129.61"}
+{"id": "20260222101310_3356", "timestamp": "2026-02-22T10:13:10-03:00", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "ip": "172.24.129.61"}
+{"id": "20260222101452_5883", "timestamp": "2026-02-22T10:14:52-03:00", "name": "SALVECI DOS SANTOS", "situation": "Agressão verbal / ameaças", "message": "", "location": null, "ip": "172.24.129.61"}
+{"id": 102, "ts": "2026-02-22 15:14:20", "name": "SAMARA", "situation": "Situação de risco", "message": "", "location": {"lat": -16.020068611831192, "lon": -48.0207862494469, "accuracy_m": 102, "timestamp": "2026-02-22 15:14:20"}, "consent_location": true}
+{"id": 103, "ts": "2026-02-22 15:45:13", "name": "DIEUZA", "situation": "Emergência", "message": "", "location": {"lat": -16.02005164613734, "lon": -48.02079622757511, "accuracy_m": 98, "timestamp": "2026-02-22 15:45:13"}}

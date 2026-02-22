@@ -1,9 +1,9 @@
 /* =========================================================
-   AURORA MULHER SEGURA — panic.js (BLINDADO)
-   - Chips não travam (tipo de ocorrência)
+   AURORA MULHER SEGURA — panic.js (ALINHADO AO SEU HTML)
+   - Corrige travamento dos chips
+   - Conecta SOS (id="sosBtn") e checkbox (id="shareLoc")
+   - Reiniciar / Limpar / Sair
    - Envio com fallback de backends
-   - Localização opcional
-   - Funciona com botão SOS (click ou segurar, se existir)
 ========================================================= */
 
 const BACKENDS = [
@@ -13,24 +13,27 @@ const BACKENDS = [
 ];
 
 const API_SEND = "/api/send_alert";
-const API_LAST = "/api/last_alert";
 
 let selectedSituation = "";
 
-/* -------------------------
-   Helpers
-------------------------- */
+// -------------------------
+// Helpers
+// -------------------------
 function $(sel) { return document.querySelector(sel); }
 function $all(sel) { return Array.from(document.querySelectorAll(sel)); }
-
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+function setStatus(msg) {
+  const el = $("#status");
+  if (!el) return;
+  el.textContent = msg || "";
+}
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 9000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    return res;
+    return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(id);
   }
@@ -53,7 +56,7 @@ async function postToBackends(path, payload) {
         continue;
       }
 
-      // pode ser json ou vazio
+      // pode retornar json ou vazio
       const data = await res.json().catch(() => ({}));
       return { ok: true, base, data };
     } catch (e) {
@@ -63,84 +66,112 @@ async function postToBackends(path, payload) {
   return { ok: false, errors };
 }
 
-async function getLocation() {
+function getLocationOnce(timeoutMs = 9000) {
   return new Promise((resolve) => {
     if (!navigator.geolocation) return resolve(null);
+
+    let done = false;
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      resolve(null);
+    }, timeoutMs);
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        accuracy: pos.coords.accuracy
-      }),
-      () => resolve(null),
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      (pos) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        });
+      },
+      () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(null);
+      },
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 }
     );
   });
 }
 
-function setStatus(msg, kind = "info") {
-  const el = $("#status");
-  if (!el) return;
-  el.textContent = msg || "";
-  el.classList.remove("ok", "err", "info");
-  el.classList.add(kind);
-}
-
-/* =========================================================
-   CHIPS (TIPO DE SITUAÇÃO) — BLINDADO
-   Espera HTML assim:
-   <button class="chip" data-situation="Violência física">...</button>
-   OU apenas texto dentro do chip.
-========================================================= */
+// -------------------------
+// Chips (tipo de situação)
+// -------------------------
 function setupChips() {
-  const chipEls = $all(".chip");
+  const chipEls = $all("#chips .chip");
   if (!chipEls.length) return;
 
-  // Se já tiver um chip ativo no HTML, usa ele
   const active = chipEls.find(c => c.classList.contains("active"));
-  if (active) {
-    selectedSituation = (active.dataset.situation || active.textContent || "").trim();
-  }
+  if (active) selectedSituation = (active.textContent || "").trim();
 
   chipEls.forEach(chip => {
     chip.addEventListener("click", (ev) => {
       ev.preventDefault();
-
       chipEls.forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
-
-      selectedSituation = (chip.dataset.situation || chip.textContent || "").trim();
+      selectedSituation = (chip.textContent || "").trim();
     }, { passive: false });
   });
 }
 
-/* =========================================================
-   ENVIO DO ALERTA
-========================================================= */
+// -------------------------
+// Ações (Reiniciar / Limpar / Sair)
+// -------------------------
+function setupMiniActions() {
+  const btnRestart = $("#btnRestart");
+  const btnClear = $("#btnClear");
+  const btnExit = $("#btnExit");
+
+  if (btnRestart) btnRestart.addEventListener("click", () => location.reload());
+
+  if (btnClear) btnClear.addEventListener("click", () => {
+    const nameEl = $("#name");
+    const msgEl = $("#message");
+    if (nameEl) nameEl.value = "";
+    if (msgEl) msgEl.value = "";
+    setStatus("Campos limpos.");
+    setTimeout(() => setStatus(""), 900);
+  });
+
+  if (btnExit) btnExit.addEventListener("click", () => {
+    // não dá pra “fechar” o browser com segurança; então só volta para /panic
+    window.location.href = "/panic";
+  });
+}
+
+// -------------------------
+// Enviar alerta
+// -------------------------
 async function sendAlert() {
   const nameEl = $("#name");
   const msgEl = $("#message");
-  const shareLocEl = $("#shareLocation");
+  const shareLocEl = $("#shareLoc"); // ✅ seu HTML usa shareLoc
+  const sosBtn = $("#sosBtn");
 
   const name = (nameEl?.value || "").trim();
   const message = (msgEl?.value || "").trim();
   const shareLocation = !!(shareLocEl?.checked);
 
   if (!selectedSituation) {
-    setStatus("Selecione o tipo de situação.", "err");
+    setStatus("Selecione o tipo de situação.");
     return;
   }
 
-  setStatus("Enviando alerta…", "info");
+  if (sosBtn) sosBtn.disabled = true;
+  setStatus("Enviando alerta…");
 
   let loc = null;
   if (shareLocation) {
-    setStatus("Obtendo localização…", "info");
-    loc = await getLocation();
+    setStatus("Obtendo localização…");
+    loc = await getLocationOnce(9000);
     if (!loc) {
-      // não trava se GPS negar
-      setStatus("Localização não disponível. Enviando sem GPS…", "info");
-      await sleep(300);
+      setStatus("Sem GPS (permissão/erro). Enviando sem localização…");
+      await sleep(250);
     }
   }
 
@@ -148,88 +179,75 @@ async function sendAlert() {
     name,
     situation: selectedSituation,
     message,
-    lat: loc?.lat ?? null,
-    lng: loc?.lng ?? null,
-    accuracy: loc?.accuracy ?? null
+    lat: loc ? loc.lat : null,
+    lng: loc ? loc.lng : null,
+    accuracy: loc ? loc.accuracy : null
   };
 
   const r = await postToBackends(API_SEND, payload);
 
   if (!r.ok) {
     console.error("Falha no envio:", r.errors);
-    setStatus("Falha ao enviar. Tente novamente.", "err");
+    setStatus("❌ Falha ao enviar. Tente novamente.");
+    if (sosBtn) sosBtn.disabled = false;
     return;
   }
 
-  setStatus("✅ Alerta enviado com sucesso!", "ok");
+  setStatus("✅ Alerta enviado com sucesso!");
+  if (sosBtn) sosBtn.disabled = false;
 }
 
-/* =========================================================
-   BOTÃO SOS — CLICK ou SEGURAR (se existir)
-   - Se tiver #sosButton, usa ele
-   - Se tiver #sendBtn, também funciona
-========================================================= */
+// -------------------------
+// SOS: toque e segure (ou clique)
+// -------------------------
 function setupSOS() {
-  const sos = $("#sosButton");
-  const sendBtn = $("#sendBtn");
-
-  // Botão simples
-  if (sendBtn) {
-    sendBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      sendAlert();
-    });
-  }
-
-  // SOS (segurar opcional)
+  const sos = $("#sosBtn"); // ✅ seu HTML usa sosBtn
   if (!sos) return;
 
   let holdTimer = null;
-  let holding = false;
 
-  const HOLD_MS = 650; // rápido, sem travar
+  const HOLD_MS = 650;
+
   const startHold = (e) => {
     e.preventDefault();
-    if (holding) return;
-    holding = true;
-
-    // se quiser animar via CSS, use class "holding"
-    sos.classList.add("holding");
-
-    holdTimer = setTimeout(async () => {
-      await sendAlert();
-      stopHold();
+    if (holdTimer) return;
+    setStatus("Segure… enviando");
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      sendAlert();
     }, HOLD_MS);
   };
 
-  const stopHold = () => {
-    holding = false;
-    sos.classList.remove("holding");
-    if (holdTimer) clearTimeout(holdTimer);
-    holdTimer = null;
+  const cancelHold = () => {
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+      setStatus("");
+    }
   };
 
   // mouse
   sos.addEventListener("mousedown", startHold);
-  window.addEventListener("mouseup", stopHold);
+  sos.addEventListener("mouseup", cancelHold);
+  sos.addEventListener("mouseleave", cancelHold);
 
   // touch
   sos.addEventListener("touchstart", startHold, { passive: false });
-  window.addEventListener("touchend", stopHold);
-  window.addEventListener("touchcancel", stopHold);
+  sos.addEventListener("touchend", cancelHold, { passive: false });
+  sos.addEventListener("touchcancel", cancelHold, { passive: false });
 
-  // fallback: click normal também envia
+  // fallback: clique também envia (rápido)
   sos.addEventListener("click", (e) => {
     e.preventDefault();
-    // se não segurou, envia no clique
-    if (!holding) sendAlert();
+    if (!holdTimer) sendAlert();
   });
 }
 
-/* =========================================================
-   INIT
-========================================================= */
+// -------------------------
+// INIT
+// -------------------------
 document.addEventListener("DOMContentLoaded", () => {
   setupChips();
+  setupMiniActions();
   setupSOS();
 });

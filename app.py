@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
+from __future__ import annotations
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_file
 from flask_cors import CORS
 from datetime import datetime
 import os
@@ -8,7 +9,7 @@ from fpdf import FPDF
 import tempfile
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
-app.secret_key = "aurora_v20_ultra_estavel"
+app.secret_key = "aurora_v20_ultra_estavel_secure_2026"
 CORS(app)
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -19,6 +20,7 @@ ALERTS_FILE = BASE_DIR / "alerts.log"
 STATE_FILE = BASE_DIR / "state.json"
 
 def _ensure_files():
+    """Cria arquivos necessários se não existirem"""
     if not USERS_FILE.exists():
         USERS_FILE.write_text(json.dumps({
             "admin": {
@@ -35,6 +37,7 @@ def _ensure_files():
         STATE_FILE.write_text(json.dumps({"last_id": 0}, indent=2), encoding="utf-8")
 
 def load_users():
+    """Carrega usuários do arquivo JSON"""
     _ensure_files()
     try:
         return json.loads(USERS_FILE.read_text(encoding="utf-8"))
@@ -48,9 +51,11 @@ def load_users():
         }
 
 def save_users(data):
+    """Salva usuários no arquivo JSON"""
     USERS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def _get_next_alert_id():
+    """Gera próximo ID de alerta"""
     _ensure_files()
     try:
         st = json.loads(STATE_FILE.read_text(encoding="utf-8"))
@@ -61,11 +66,13 @@ def _get_next_alert_id():
     return st["last_id"]
 
 def log_alert(payload):
+    """Registra alerta no arquivo de log"""
     _ensure_files()
     with ALERTS_FILE.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
 def read_last_alert():
+    """Lê o último alerta do log"""
     _ensure_files()
     try:
         txt = ALERTS_FILE.read_text(encoding="utf-8").strip()
@@ -77,6 +84,7 @@ def read_last_alert():
         return None
 
 def get_all_alerts():
+    """Retorna todos os alertas"""
     alerts = []
     try:
         if ALERTS_FILE.exists():
@@ -88,27 +96,33 @@ def get_all_alerts():
     except Exception:
         return []
 
+# ===== ROTAS PRINCIPAIS =====
 @app.route('/')
 def index():
+    """Página inicial"""
     return redirect(url_for('panic_button'))
 
 @app.route('/panic')
 def panic_button():
+    """Painel da Mulher - Botão de Pânico"""
     users = load_users()
     trusted_names = [info.get("name") or username for username, info in users.items() if info.get("role") == "trusted"]
     return render_template('panic_button.html', trusted_names=trusted_names)
 
 @app.route('/api/send_alert', methods=['POST'])
 def api_send_alert():
+    """API para receber alertas SOS"""
     data = request.get_json(silent=True) or {}
     alert_id = _get_next_alert_id()
     
+    # Captura localização GPS
     lat = data.get("lat")
     lng = data.get("lng")
     location = None
     if lat and lng:
         location = {"lat": float(lat), "lng": float(lng)}
     
+    # Monta payload do alerta
     payload = {
         "id": alert_id,
         "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -117,6 +131,8 @@ def api_send_alert():
         "message": (data.get("message") or ""),
         "location": location,
     }
+    
+    # Salva alerta
     log_alert(payload)
     
     print(f"✅ Alerta #{alert_id} recebido - {payload['name']} - {payload['situation']}")
@@ -132,11 +148,13 @@ def api_send_alert():
 
 @app.route('/api/last_alert')
 def api_last_alert():
+    """API para buscar último alerta"""
     last = read_last_alert()
     return jsonify({"ok": True, "last": last})
 
 @app.route('/health')
 def health():
+    """Diagnóstico do sistema"""
     return jsonify({
         "ok": True,
         "server_time": datetime.now().isoformat(),
@@ -145,46 +163,51 @@ def health():
         "state_file_ok": STATE_FILE.exists(),
     })
 
+# ===== RELATÓRIOS EM PDF - CORRIGIDO PARA EVITAR ERROS DE ENCODING =====
 @app.route('/relatorio/pdf')
 def relatorio_pdf():
-    """Gera relatório PDF com todos os alertas"""
+    """Gera relatório PDF completo - CORRIGIDO"""
     try:
         alerts = get_all_alerts()
         
         pdf = FPDF()
         pdf.add_page()
         
+        # Cabeçalho
         pdf.set_font("Arial", "B", 16)
         pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
         pdf.set_font("Arial", "I", 12)
-        pdf.cell(200, 10, txt="Relatório de Alertas de Emergência", ln=1, align="C")
+        pdf.cell(200, 10, txt="Relatorio de Alertas de Emergencia", ln=1, align="C")
         pdf.ln(10)
         
+        # Data e hora
         pdf.set_font("Arial", "", 10)
         pdf.cell(200, 8, txt=f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
         pdf.cell(200, 8, txt=f"Total de Alertas: {len(alerts)}", ln=1)
         pdf.ln(10)
         
+        # Estatísticas - USANDO APENAS CARACTERES ASCII
         with_location = sum(1 for a in alerts if a.get('location'))
         without_location = len(alerts) - with_location
         
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(200, 10, txt="ESTATÍSTICAS", ln=1)
+        pdf.cell(200, 10, txt="ESTATISTICAS", ln=1)
         pdf.set_font("Arial", "", 10)
-        pdf.cell(200, 8, txt=f"• Alertas com GPS: {with_location}", ln=1)
-        pdf.cell(200, 8, txt=f"• Alertas sem GPS: {without_location}", ln=1)
+        pdf.cell(200, 8, txt=f"* Alertas com GPS: {with_location}", ln=1)  # Substituído • por *
+        pdf.cell(200, 8, txt=f"* Alertas sem GPS: {without_location}", ln=1)  # Substituído • por *
         pdf.ln(10)
         
+        # Tabela de alertas
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(200, 10, txt="HISTÓRICO DE ALERTAS", ln=1)
+        pdf.cell(200, 10, txt="HISTORICO DE ALERTAS", ln=1)
         pdf.ln(5)
         
         pdf.set_font("Arial", "B", 9)
         pdf.cell(25, 8, txt="ID", border=1)
         pdf.cell(40, 8, txt="DATA/HORA", border=1)
-        pdf.cell(35, 8, txt="USUÁRIA", border=1)
-        pdf.cell(45, 8, txt="SITUAÇÃO", border=1)
-        pdf.cell(45, 8, txt="LOCALIZAÇÃO", border=1)
+        pdf.cell(35, 8, txt="USUARIA", border=1)
+        pdf.cell(45, 8, txt="SITUACAO", border=1)
+        pdf.cell(45, 8, txt="LOCALIZACAO", border=1)
         pdf.ln()
         
         pdf.set_font("Arial", "", 8)
@@ -198,16 +221,18 @@ def relatorio_pdf():
             if loc:
                 loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
             else:
-                loc_str = "Não disponível"
+                loc_str = "Nao disponivel"
             pdf.cell(45, 6, txt=loc_str[:40], border=1)
             pdf.ln()
         
         pdf.ln(10)
         
+        # Rodapé
         pdf.set_font("Arial", "I", 8)
         pdf.cell(200, 8, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
-        pdf.cell(200, 8, txt="Este relatório contém informações confidenciais de segurança", ln=1, align="C")
+        pdf.cell(200, 8, txt="Este relatorio contem informacoes confidenciais de seguranca", ln=1, align="C")
         
+        # Salvar PDF temporário
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
         
@@ -220,11 +245,77 @@ def relatorio_pdf():
         
     except Exception as e:
         print(f"Erro ao gerar PDF: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-# ===== ADMIN =====
+@app.route('/relatorio/pdf/hoje')
+def relatorio_pdf_hoje():
+    """Gera PDF apenas dos alertas de hoje - CORRIGIDO"""
+    try:
+        alerts = get_all_alerts()
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_alerts = [a for a in alerts if a.get('ts', '').startswith(today)]
+        
+        pdf = FPDF()
+        pdf.add_page()
+        
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
+        pdf.set_font("Arial", "I", 12)
+        pdf.cell(200, 10, txt="Relatorio de Alertas - HOJE", ln=1, align="C")
+        pdf.ln(10)
+        
+        pdf.set_font("Arial", "", 10)
+        pdf.cell(200, 8, txt=f"Data: {datetime.now().strftime('%d/%m/%Y')}", ln=1)
+        pdf.cell(200, 8, txt=f"Alertas de Hoje: {len(today_alerts)}", ln=1)
+        pdf.ln(10)
+        
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(200, 10, txt="ALERTAS DE HOJE", ln=1)
+        pdf.ln(5)
+        
+        pdf.set_font("Arial", "B", 9)
+        pdf.cell(25, 8, txt="ID", border=1)
+        pdf.cell(40, 8, txt="HORA", border=1)
+        pdf.cell(35, 8, txt="USUARIA", border=1)
+        pdf.cell(45, 8, txt="SITUACAO", border=1)
+        pdf.cell(45, 8, txt="LOCALIZACAO", border=1)
+        pdf.ln()
+        
+        pdf.set_font("Arial", "", 8)
+        for alert in today_alerts:
+            pdf.cell(25, 6, txt=str(alert.get('id', 'N/A')), border=1)
+            pdf.cell(40, 6, txt=alert.get('ts', 'N/A').split(' ')[1], border=1)
+            pdf.cell(35, 6, txt=alert.get('name', 'N/A'), border=1)
+            pdf.cell(45, 6, txt=alert.get('situation', 'N/A'), border=1)
+            
+            loc = alert.get('location')
+            if loc:
+                loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
+            else:
+                loc_str = "Nao disponivel"
+            pdf.cell(45, 6, txt=loc_str[:40], border=1)
+            pdf.ln()
+        
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        pdf.output(temp_file.name)
+        
+        return send_file(
+            temp_file.name,
+            as_attachment=True,
+            download_name=f"relatorio_hoje_{datetime.now().strftime('%Y%m%d')}.pdf",
+            mimetype='application/pdf'
+        )
+        
+    except Exception as e:
+        print(f"Erro ao gerar PDF de hoje: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# ===== ADMIN - LOGIN E PAINEL =====
 @app.route('/panel/login', methods=['GET', 'POST'])
 def admin_login():
+    """Login do administrador"""
     users = load_users()
     error = False
     if request.method == 'POST':
@@ -241,22 +332,12 @@ def admin_login():
 
 @app.route('/panel')
 def admin_panel():
+    """Painel do administrador"""
     if session.get("role") != "admin":
         return redirect(url_for('admin_login'))
     
     users = load_users()
     trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
-    
-    # Verifica se veio parâmetro de exclusão
-    delete_param = request.args.get('delete')
-    if delete_param and delete_param.isdigit():
-        trusted_list = [info for username, info in users.items() if info.get("role") == "trusted"]
-        if int(delete_param) < len(trusted_list):
-            username_to_delete = [u for u in users.keys() if users[u].get("role") == "trusted"][int(delete_param)]
-            users.pop(username_to_delete)
-            save_users(users)
-            flash("Pessoa de confiança removida com sucesso.", "ok")
-            return redirect(url_for('admin_panel'))
     
     alerts = get_all_alerts()
     today = datetime.now().strftime('%Y-%m-%d')
@@ -272,6 +353,7 @@ def admin_panel():
 
 @app.route('/panel/add_trusted', methods=['POST'])
 def admin_add_trusted():
+    """Adiciona pessoa de confiança"""
     if session.get("role") != "admin":
         return redirect(url_for('admin_login'))
     
@@ -300,6 +382,7 @@ def admin_add_trusted():
 
 @app.route('/panel/delete_trusted', methods=['POST'])
 def admin_delete_trusted():
+    """Remove pessoa de confiança"""
     if session.get("role") != "admin":
         return redirect(url_for('admin_login'))
     
@@ -315,12 +398,14 @@ def admin_delete_trusted():
 
 @app.route('/logout_admin')
 def logout_admin():
+    """Logout do administrador"""
     session.clear()
     return redirect(url_for('admin_login'))
 
-# ===== TRUSTED =====
+# ===== PESSOA DE CONFIANÇA - LOGIN E PAINEL =====
 @app.route('/trusted/login', methods=['GET', 'POST'])
 def trusted_login():
+    """Login da pessoa de confiança"""
     users = load_users()
     error = False
     if request.method == 'POST':
@@ -337,6 +422,7 @@ def trusted_login():
 
 @app.route('/trusted/panel')
 def trusted_panel():
+    """Painel da pessoa de confiança"""
     if session.get("role") != "trusted":
         return redirect(url_for('trusted_login'))
     
@@ -348,11 +434,13 @@ def trusted_panel():
 
 @app.route('/logout_trusted')
 def logout_trusted():
+    """Logout da pessoa de confiança"""
     session.clear()
     return redirect(url_for('panic_button'))
 
 @app.route('/trusted/recover', methods=['GET', 'POST'])
 def trusted_recover():
+    """Recuperação de senha"""
     msg, err = "", ""
     if request.method == 'POST':
         u = (request.form.get("user") or "").strip().lower()
@@ -360,17 +448,18 @@ def trusted_recover():
         users = load_users()
         info = users.get(u)
         if not info or info.get("role") != "trusted":
-            err = "Usuário não encontrado."
+            err = "Usuario nao encontrado."
         elif len(new) < 4:
-            err = "Senha muito curta (mínimo 4)."
+            err = "Senha muito curta (minimo 4)."
         else:
             users[u]["password"] = new
             save_users(users)
-            msg = "Senha redefinida. Faça login."
+            msg = "Senha redefinida. Faca login."
     return render_template('trusted_recover.html', msg=msg, err=err)
 
 @app.route('/trusted/change_password', methods=['GET', 'POST'])
 def trusted_change_password():
+    """Alterar senha"""
     if session.get("role") != "trusted":
         return redirect(url_for('trusted_login'))
     
@@ -384,13 +473,14 @@ def trusted_change_password():
         if not info or info.get("password") != old:
             err = "Senha atual incorreta."
         elif len(new) < 4:
-            err = "Nova senha muito curta (mínimo 4)."
+            err = "Nova senha muito curta (minimo 4)."
         else:
             users[u]["password"] = new
             save_users(users)
             msg = "Senha alterada com sucesso."
     return render_template('trusted_change_password.html', msg=msg, err=err)
 
+# ===== INICIALIZAÇÃO =====
 if __name__ == '__main__':
     _ensure_files()
     print("=" * 60)

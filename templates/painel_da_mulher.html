@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Aurora Mulher Segura - Painel da Mulher</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    /* Ajustes específicos para o painel */
+    .status-bar {
+      background: rgba(255,79,200,0.15);
+      border: 1px solid rgba(255,79,200,0.3);
+      border-radius: 30px;
+      padding: 15px;
+      margin: 15px 0;
+      text-align: center;
+      font-weight: bold;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .contato-confianca {
+      background: linear-gradient(145deg, rgba(255,79,200,0.2), rgba(164,92,255,0.2));
+      border-radius: 20px;
+      padding: 15px;
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border-left: 5px solid #ff4fc8;
+    }
+    
+    .contato-nome {
+      background: #ff4fc8;
+      color: #0a0014;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-weight: 900;
+      font-size: 18px;
+    }
+    
+    .menu-rapido {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .menu-item {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,79,200,0.3);
+      padding: 10px 20px;
+      border-radius: 30px;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .menu-item:hover {
+      background: #ff4fc8;
+      color: #0a0014;
+    }
+    
+    .alerta-enviado {
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid #4caf50;
+      color: #4caf50;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 5px 0;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body class="aurora-bg">
+  <main class="center-wrap">
+    <section class="aurora-card">
+      
+      <!-- TOPO -->
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-dot">♀</div>
+          <div>
+            <div class="brand-title">AURORA MULHER SEGURA</div>
+            <div class="brand-sub">🚨 Painel da Mulher - SOS 24h</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="pill" id="btnReiniciar">🔄 Reiniciar</button>
+          <button class="pill" id="btnLimpar">🗑️ Limpar</button>
+          <button class="pill" id="btnSair">🚪 Sair</button>
+        </div>
+      </div>
+
+      <!-- CONTEÚDO -->
+      <div class="content">
+        <h1 class="h1">🚨 BOTÃO DE PÂNICO</h1>
+        <p class="center muted small">Toque e segure para enviar ajuda</p>
+
+        <!-- STATUS (sempre visível) -->
+        <div class="status-bar" id="statusMsg">
+          🌸 Sistema pronto - selecione uma situação
+        </div>
+
+        <!-- PESSOA DE CONFIANÇA -->
+        <div class="contato-confianca" id="contatoConfianca">
+          <div class="contato-nome" id="nomeContato">SALVECI</div>
+          <div>
+            <strong>Pessoa de confiança</strong><br>
+            <small>Será notificada em caso de alerta</small>
+          </div>
+        </div>
+
+        <!-- NOME -->
+        <label class="label">👤 Seu nome</label>
+        <input type="text" id="inputNome" class="input" value="SALVECI DOS SANTOS" placeholder="Digite seu nome">
+
+        <!-- TIPO DE SITUAÇÃO -->
+        <label class="label">⚠️ Tipo de situação</label>
+        <div class="chips" id="chipsContainer">
+          <div class="chip" data-situacao="Violência física">🔴 Violência física</div>
+          <div class="chip" data-situacao="Agressão verbal / ameaças">🗣️ Agressão verbal</div>
+          <div class="chip" data-situacao="Perseguição / Stalking">👀 Perseguição</div>
+          <div class="chip" data-situacao="Sequestro">⛓️ Sequestro</div>
+          <div class="chip" data-situacao="Situação de risco">⚠️ Situação de risco</div>
+        </div>
+
+        <!-- MENSAGEM -->
+        <label class="label">💬 Mensagem (opcional)</label>
+        <textarea id="inputMensagem" class="textarea" rows="3" placeholder="Descreva rapidamente o que está acontecendo">Preciso de ajuda urgente!</textarea>
+
+        <!-- LOCALIZAÇÃO -->
+        <label class="label" style="display: flex; align-items: center; gap: 10px; margin: 15px 0; padding: 10px; background: rgba(255,79,200,0.1); border-radius: 15px;">
+          <input type="checkbox" id="checkLocalizacao" checked style="width: 20px; height: 20px;">
+          <span><strong>📍 Compartilhar localização exata</strong></span>
+        </label>
+
+        <!-- BOTÃO SOS -->
+        <div class="sos-wrap">
+          <div class="sos" id="sosBtn">
+            <div>
+              <div class="sos-text">SOS</div>
+              <div class="sos-sub">TOQUE E SEGURE</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÚLTIMOS ALERTAS -->
+        <div id="ultimosAlertas" style="margin-top: 15px;"></div>
+
+        <!-- MENU RÁPIDO -->
+        <div class="menu-rapido">
+          <a href="/trusted/login" class="menu-item">👥 Pessoa confiança</a>
+          <a href="/panel/login" class="menu-item">⚙️ Admin</a>
+          <a href="/historico" class="menu-item">📋 Histórico</a>
+          <a href="/health" class="menu-item">📊 Diagnóstico</a>
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="center muted small" style="margin-top: 20px;">
+          <span id="dataHora"></span> • 🌸 AURORA V1.0
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ===== VARIÁVEIS GLOBAIS =====
+    let situacaoSelecionada = '';
+    let timerHold = null;
+    let isHolding = false;
+    let ultimosAlertas = [];
+
+    // Elementos DOM
+    const statusMsg = document.getElementById('statusMsg');
+    const sosBtn = document.getElementById('sosBtn');
+    const inputNome = document.getElementById('inputNome');
+    const inputMensagem = document.getElementById('inputMensagem');
+    const checkLocalizacao = document.getElementById('checkLocalizacao');
+    const chips = document.querySelectorAll('.chip');
+    const nomeContato = document.getElementById('nomeContato');
+
+    // ===== DATA E HORA =====
+    function atualizarDataHora() {
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, '0');
+      const minutos = agora.getMinutes().toString().padStart(2, '0');
+      const dia = agora.getDate().toString().padStart(2, '0');
+      const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
+      const ano = agora.getFullYear();
+      document.getElementById('dataHora').textContent = `${horas}:${minutos} ${dia}/${mes}/${ano}`;
+    }
+    setInterval(atualizarDataHora, 1000);
+    atualizarDataHora();
+
+    // ===== SISTEMA DE CHIPS =====
+    chips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        chips.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        situacaoSelecionada = this.textContent.replace(/[🔴🗣️👀⛓️⚠️]/g, '').trim();
+        statusMsg.innerHTML = `✅ Situação: ${situacaoSelecionada}`;
+        statusMsg.style.background = 'rgba(76, 175, 80, 0.2)';
+      });
+    });
+
+    // ===== FUNÇÃO DE LOCALIZAÇÃO =====
+    async function getLocalizacao() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject('GPS não suportado');
+          return;
+        }
+
+        statusMsg.innerHTML = '📍 Obtendo localização...';
+        
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const loc = {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude,
+              accuracy: position.coords.accuracy,
+              timestamp: new Date().toISOString()
+            };
+            console.log('📍 Localização obtida:', loc);
+            resolve(loc);
+          },
+          (error) => {
+            let msg = 'Erro no GPS';
+            if (error.code === 1) msg = 'Permissão negada';
+            if (error.code === 2) msg = 'Localização indisponível';
+            if (error.code === 3) msg = 'Tempo esgotado';
+            reject(msg);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      });
+    }
+
+    // ===== ENVIAR ALERTA =====
+    async function enviarAlerta() {
+      try {
+        // Validação
+        if (!situacaoSelecionada) {
+          statusMsg.innerHTML = '⚠️ Selecione o tipo de situação';
+          return;
+        }
+
+        statusMsg.innerHTML = '⏳ Preparando alerta...';
+        
+        // Dados do alerta
+        const alerta = {
+          name: inputNome.value.trim() || 'Não informado',
+          situation: situacaoSelecionada,
+          message: inputMensagem.value.trim() || '',
+          timestamp: new Date().toISOString(),
+          consent_location: checkLocalizacao.checked
+        };
+
+        // Adiciona localização se marcado
+        if (checkLocalizacao.checked) {
+          try {
+            const loc = await getLocalizacao();
+            alerta.location = loc;
+            statusMsg.innerHTML = '📍 Localização obtida, enviando...';
+          } catch (e) {
+            console.warn('⚠️ Erro GPS:', e);
+            statusMsg.innerHTML = `⚠️ ${e} - enviando sem localização`;
+          }
+        }
+
+        statusMsg.innerHTML = '📤 Enviando alerta...';
+
+        // Envia para API
+        const response = await fetch('/api/send_alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(alerta)
+        });
+
+        const result = await response.json();
+
+        if (result.ok) {
+          statusMsg.innerHTML = '✅ ALERTA ENVIADO! Pessoas de confiança notificadas';
+          statusMsg.style.background = 'rgba(76, 175, 80, 0.3)';
+          
+          // Feedback visual
+          sosBtn.style.background = 'radial-gradient(circle at 50% 45%, #4caf50, #2e7d32)';
+          setTimeout(() => {
+            sosBtn.style.background = 'radial-gradient(circle at 50% 45%, rgba(255,121,218,.95), rgba(138,36,139,.65) 55%, rgba(40,0,60,.75))';
+          }, 1500);
+
+          // Salva no histórico local
+          ultimosAlertas.unshift({
+            ...alerta,
+            id: Date.now()
+          });
+          
+          // Mostra últimos alertas
+          mostrarUltimosAlertas();
+          
+          // Vibração
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        } else {
+          throw new Error(result.message || 'Erro no servidor');
+        }
+
+      } catch (error) {
+        console.error('❌ Erro:', error);
+        statusMsg.innerHTML = '❌ Erro ao enviar alerta';
+        statusMsg.style.background = 'rgba(244, 67, 54, 0.3)';
+      }
+    }
+
+    // ===== MOSTRAR ÚLTIMOS ALERTAS =====
+    function mostrarUltimosAlertas() {
+      const div = document.getElementById('ultimosAlertas');
+      if (ultimosAlertas.length === 0) {
+        div.innerHTML = '';
+        return;
+      }
+      
+      let html = '<div class="alerta-enviado"><strong>📋 Último alerta:</strong><br>';
+      const ultimo = ultimosAlertas[0];
+      html += `${new Date(ultimo.timestamp).toLocaleString('pt-BR')} - ${ultimo.situation}`;
+      if (ultimo.location) html += ' 📍';
+      html += '</div>';
+      
+      div.innerHTML = html;
+    }
+
+    // ===== SISTEMA DE HOLD =====
+    function iniciarHold(e) {
+      e.preventDefault();
+      if (isHolding) return;
+      isHolding = true;
+      
+      sosBtn.classList.add('holding');
+      statusMsg.innerHTML = '⚠️ Segure para enviar...';
+      statusMsg.style.background = 'rgba(255, 152, 0, 0.3)';
+      
+      timerHold = setTimeout(() => {
+        enviarAlerta();
+        isHolding = false;
+      }, 1000);
+    }
+
+    function cancelarHold(e) {
+      e.preventDefault();
+      if (timerHold) {
+        clearTimeout(timerHold);
+        timerHold = null;
+      }
+      sosBtn.classList.remove('holding');
+      isHolding = false;
+      
+      if (!statusMsg.innerHTML.includes('ENVIADO')) {
+        statusMsg.innerHTML = '🌸 Alerta cancelado';
+        statusMsg.style.background = 'transparent';
+      }
+    }
+
+    // Event listeners
+    sosBtn.addEventListener('mousedown', iniciarHold);
+    sosBtn.addEventListener('mouseup', cancelarHold);
+    sosBtn.addEventListener('mouseleave', cancelarHold);
+    sosBtn.addEventListener('touchstart', iniciarHold, { passive: false });
+    sosBtn.addEventListener('touchend', cancelarHold);
+    sosBtn.addEventListener('touchcancel', cancelarHold);
+
+    // ===== BOTÕES DE AÇÃO =====
+    document.getElementById('btnReiniciar').addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      situacaoSelecionada = '';
+      inputNome.value = 'SALVECI DOS SANTOS';
+      inputMensagem.value = 'Preciso de ajuda urgente!';
+      checkLocalizacao.checked = true;
+      statusMsg.innerHTML = '🔄 Tudo reiniciado';
+      statusMsg.style.background = 'transparent';
+    });
+
+    document.getElementById('btnLimpar').addEventListener('click', () => {
+      inputMensagem.value = '';
+      statusMsg.innerHTML = '🗑️ Mensagem limpa';
+    });
+
+    document.getElementById('btnSair').addEventListener('click', () => {
+      if (confirm('Deseja sair?')) {
+        window.location.href = '/';
+      }
+    });
+
+    // ===== EDITAR PESSOA DE CONFIANÇA =====
+    nomeContato.addEventListener('dblclick', () => {
+      const novo = prompt('Nome da pessoa de confiança:', nomeContato.textContent);
+      if (novo) nomeContato.textContent = novo.toUpperCase();
+    });
+
+    console.log('✅ Painel da Mulher carregado!');
+  </script>
+</body>
+</html>

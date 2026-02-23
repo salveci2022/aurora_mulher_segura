@@ -1,754 +1,464 @@
-from flask import Flask, render_template, request, jsonify, send_file, make_response, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_cors import CORS
-import logging
 from datetime import datetime
 import os
 import json
+from pathlib import Path
 from fpdf import FPDF
 import tempfile
 
-app = Flask(__name__, 
-            static_folder='static',
-            template_folder='templates')
+app = Flask(__name__, static_folder='static', template_folder='templates')
+app.secret_key = "aurora_v20_ultra_estavel"
 CORS(app)
 
-logging.basicConfig(level=logging.DEBUG)
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
+USERS_FILE = BASE_DIR / "users.json"
+ALERTS_FILE = BASE_DIR / "alerts.log"
+STATE_FILE = BASE_DIR / "state.json"
 
-# ========== DADOS SIMULADOS ==========
-alertas_db = []
-usuarios_db = []
-contatos_confianca_db = []
+def _ensure_files():
+    if not USERS_FILE.exists():
+        USERS_FILE.write_text(json.dumps({
+            "admin": {
+                "password": "admin123",
+                "role": "admin",
+                "name": "Admin Aurora"
+            }
+        }, indent=2, ensure_ascii=False), encoding="utf-8")
+    
+    if not ALERTS_FILE.exists():
+        ALERTS_FILE.write_text("", encoding="utf-8")
+    
+    if not STATE_FILE.exists():
+        STATE_FILE.write_text(json.dumps({"last_id": 0}, indent=2), encoding="utf-8")
 
-# ========== PÁGINAS PRINCIPAIS ==========
+def load_users():
+    _ensure_files()
+    try:
+        return json.loads(USERS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {
+            "admin": {
+                "password": "admin123",
+                "role": "admin",
+                "name": "Admin Aurora"
+            }
+        }
+
+def save_users(data):
+    USERS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+
+def _get_next_alert_id():
+    _ensure_files()
+    try:
+        st = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        st = {"last_id": 0}
+    st["last_id"] = int(st.get("last_id", 0)) + 1
+    STATE_FILE.write_text(json.dumps(st, indent=2, ensure_ascii=False), encoding="utf-8")
+    return st["last_id"]
+
+def log_alert(payload):
+    _ensure_files()
+    with ALERTS_FILE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
+def read_last_alert():
+    _ensure_files()
+    try:
+        txt = ALERTS_FILE.read_text(encoding="utf-8").strip()
+        if not txt:
+            return None
+        lines = [ln for ln in txt.split("\n") if ln.strip()]
+        return json.loads(lines[-1])
+    except Exception:
+        return None
+
+def get_all_alerts():
+    alerts = []
+    try:
+        if ALERTS_FILE.exists():
+            with open(ALERTS_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.strip():
+                        alerts.append(json.loads(line))
+        return alerts
+    except Exception:
+        return []
+
+# ===== ROTAS PRINCIPAIS =====
 @app.route('/')
 def index():
-    """Página inicial - Botão de Pânico"""
-    return render_template('panic_button.html')
+    return redirect(url_for('panic_button'))
 
 @app.route('/panic')
-def panic():
-    """Redireciona para página inicial"""
-    return redirect(url_for('index'))
+def panic_button():
+    return render_template('panic_button.html')
 
-# ========== PESSOA DE CONFIANÇA ==========
-@app.route('/trusted/login')
-def trusted_login():
-    """Página de login para pessoas de confiança"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Aurora - Pessoa de Confiança</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-            .card {
-                background: white;
-                padding: 40px;
-                border-radius: 20px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                width: 350px;
-                text-align: center;
-            }
-            h1 { color: #333; margin-bottom: 30px; }
-            input {
-                width: 100%;
-                padding: 12px;
-                margin: 10px 0;
-                border: 2px solid #e0e0e0;
-                border-radius: 10px;
-                font-size: 16px;
-                box-sizing: border-box;
-            }
-            button {
-                background: #667eea;
-                color: white;
-                border: none;
-                padding: 12px 30px;
-                border-radius: 10px;
-                font-size: 16px;
-                cursor: pointer;
-                width: 100%;
-                margin-top: 20px;
-            }
-            button:hover { background: #764ba2; }
-            .link { color: #666; text-decoration: none; margin-top: 15px; display: block; }
-            .link:hover { color: #667eea; }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h1>👥 Pessoa de Confiança</h1>
-            <p>Área para contatos de emergência</p>
-            <input type="text" placeholder="Email" value="maria@email.com" disabled>
-            <input type="password" placeholder="Senha" value="********" disabled>
-            <button onclick="alert('Sistema em desenvolvimento. Em breve você poderá acessar.')">
-                Entrar (Demo)
-            </button>
-            <a href="/" class="link">← Voltar ao início</a>
-        </div>
-    </body>
-    </html>
-    """
+@app.route('/api/send_alert', methods=['POST'])
+def api_send_alert():
+    data = request.get_json(silent=True) or {}
+    alert_id = _get_next_alert_id()
+    
+    lat = data.get("lat")
+    lng = data.get("lng")
+    location = None
+    if lat and lng:
+        location = {"lat": float(lat), "lng": float(lng)}
+    
+    payload = {
+        "id": alert_id,
+        "ts": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "name": (data.get("name") or "Usuária"),
+        "situation": (data.get("situation") or "Emergência"),
+        "message": (data.get("message") or ""),
+        "location": location,
+    }
+    log_alert(payload)
+    
+    print(f"✅ Alerta #{alert_id} recebido - {payload['name']} - {payload['situation']}")
+    if location:
+        print(f"📍 Localização: {location['lat']}, {location['lng']}")
+    
+    return jsonify({
+        "ok": True,
+        "id": alert_id,
+        "message": "Alerta recebido com sucesso!",
+        "location": location
+    })
 
-@app.route('/trusted/register')
-def trusted_register():
-    """Cadastro de pessoa de confiança"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Aurora - Cadastro</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                margin: 0;
-                padding: 20px;
-            }
-            .card {
-                background: white;
-                padding: 40px;
-                border-radius: 20px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                width: 400px;
-            }
-            h1 { color: #333; text-align: center; }
-            input {
-                width: 100%;
-                padding: 12px;
-                margin: 8px 0;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                box-sizing: border-box;
-            }
-            button {
-                background: #43cea2;
-                color: white;
-                border: none;
-                padding: 12px;
-                border-radius: 8px;
-                width: 100%;
-                font-size: 16px;
-                cursor: pointer;
-                margin-top: 20px;
-            }
-            button:hover { background: #185a9d; }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h1>📝 Cadastro</h1>
-            <p>Cadastre-se como pessoa de confiança</p>
-            <input placeholder="Nome completo" value="Maria Oliveira" disabled>
-            <input placeholder="Email" value="maria@email.com" disabled>
-            <input placeholder="Telefone" value="(11) 99999-9999" disabled>
-            <input placeholder="Parentesco" value="Mãe" disabled>
-            <button onclick="alert('Cadastro em desenvolvimento')">Cadastrar (Demo)</button>
-            <p style="text-align:center; margin-top:15px"><a href="/trusted/login">Já tem cadastro?</a></p>
-        </div>
-    </body>
-    </html>
-    """
+@app.route('/api/last_alert')
+def api_last_alert():
+    last = read_last_alert()
+    return jsonify({"ok": True, "last": last})
 
-@app.route('/trusted/dashboard')
-def trusted_dashboard():
-    """Dashboard da pessoa de confiança"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Dashboard - Pessoa de Confiança</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: #f5f5f5;
-                margin: 0;
-                padding: 20px;
-            }
-            .container {
-                max-width: 1000px;
-                margin: 0 auto;
-            }
-            .header {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 20px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            .stats {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 20px;
-                margin-bottom: 20px;
-            }
-            .stat-card {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                text-align: center;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            .stat-value {
-                font-size: 36px;
-                font-weight: bold;
-                color: #667eea;
-            }
-            .alert-card {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 10px;
-                border-left: 4px solid #f44336;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>👥 Dashboard - Pessoa de Confiança</h1>
-                <p>Bem-vinda, Maria!</p>
-            </div>
-            
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-value">3</div>
-                    <div>Alertas recebidos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">2</div>
-                    <div>Pessoas vinculadas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">98%</div>
-                    <div>Tempo de resposta</div>
-                </div>
-            </div>
-            
-            <h2>Últimos alertas</h2>
-            <div class="alert-card">
-                <strong>⚠️ Alerta em 22/02/2026 16:30</strong><br>
-                Maria Silva - Localização: Rua A, 123
-            </div>
-            <div class="alert-card">
-                <strong>⚠️ Alerta em 22/02/2026 15:20</strong><br>
-                Ana Costa - Localização: Av. B, 456
-            </div>
-            
-            <p style="text-align:center; margin-top:20px">
-                <a href="/">← Voltar</a>
-            </p>
-        </div>
-    </body>
-    </html>
-    """
-
-@app.route('/trusted/alerts')
-def trusted_alerts():
-    """Histórico de alertas para pessoa de confiança"""
-    return redirect(url_for('trusted_dashboard'))
-
-# ========== ADMINISTRAÇÃO ==========
-@app.route('/panel/login')
-def admin_login():
-    """Login do administrador"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Admin - Aurora</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-            .card {
-                background: white;
-                padding: 40px;
-                border-radius: 20px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                width: 350px;
-            }
-            h1 { color: #333; text-align: center; }
-            input {
-                width: 100%;
-                padding: 12px;
-                margin: 10px 0;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                box-sizing: border-box;
-            }
-            button {
-                background: #f5576c;
-                color: white;
-                border: none;
-                padding: 12px;
-                border-radius: 8px;
-                width: 100%;
-                font-size: 16px;
-                cursor: pointer;
-            }
-            button:hover { background: #f093fb; }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h1>⚙️ Admin</h1>
-            <p>Painel administrativo</p>
-            <input type="text" placeholder="Usuário" value="admin" disabled>
-            <input type="password" placeholder="Senha" value="********" disabled>
-            <button onclick="window.location.href='/panel/dashboard'">Acessar Demo</button>
-        </div>
-    </body>
-    </html>
-    """
-
-@app.route('/panel/dashboard')
-def admin_dashboard():
-    """Dashboard do administrador"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Dashboard Admin</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: #f5f5f5;
-                margin: 0;
-                padding: 20px;
-            }
-            .container { max-width: 1200px; margin: 0 auto; }
-            .header {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 20px;
-            }
-            .grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 20px;
-                margin-bottom: 20px;
-            }
-            .card {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                text-align: center;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            .number {
-                font-size: 32px;
-                font-weight: bold;
-                color: #f5576c;
-            }
-            table {
-                width: 100%;
-                background: white;
-                border-radius: 10px;
-                padding: 20px;
-            }
-            th { text-align: left; padding: 10px; background: #f5f5f5; }
-            td { padding: 10px; border-bottom: 1px solid #eee; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>📊 Dashboard Administrativo</h1>
-                <p>Bem-vindo, Administrador</p>
-            </div>
-            
-            <div class="grid">
-                <div class="card"><div class="number">127</div>Total Alertas</div>
-                <div class="card"><div class="number">45</div>Usuários Ativos</div>
-                <div class="card"><div class="number">89</div>Contatos</div>
-                <div class="card"><div class="number">99.9%</div>Uptime</div>
-            </div>
-            
-            <h2>Últimos Alertas</h2>
-            <table>
-                <tr><th>Data</th><th>Usuário</th><th>Situação</th><th>Status</th></tr>
-                <tr><td>22/02 16:30</td><td>Maria S.</td><td>Violência física</td><td>✅ Atendido</td></tr>
-                <tr><td>22/02 15:20</td><td>Ana C.</td><td>Ameaça</td><td>⏳ Em andamento</td></tr>
-            </table>
-            
-            <p style="text-align:center; margin-top:20px"><a href="/">← Voltar</a></p>
-        </div>
-    </body>
-    </html>
-    """
-
-@app.route('/panel/users')
-def admin_users():
-    """Gerenciamento de usuários"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Usuários - Admin</title>
-        <style>
-            body { font-family: Arial; padding: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-        </style>
-    </head>
-    <body>
-        <h1>👥 Usuários Cadastrados</h1>
-        <table>
-            <tr><th>ID</th><th>Nome</th><th>Email</th><th>Status</th></tr>
-            <tr><td>1</td><td>Maria Silva</td><td>maria@email.com</td><td>Ativo</td></tr>
-            <tr><td>2</td><td>Ana Costa</td><td>ana@email.com</td><td>Ativo</td></tr>
-        </table>
-        <p><a href="/panel/dashboard">← Voltar</a></p>
-    </body>
-    </html>
-    """
-
-@app.route('/panel/settings')
-def admin_settings():
-    """Configurações do sistema"""
-    return "<h1>⚙️ Configurações</h1><p>Sistema em desenvolvimento</p><a href='/panel/dashboard'>Voltar</a>"
-
-# ========== DIAGNÓSTICO ==========
 @app.route('/health')
 def health():
-    """Status do sistema"""
     return jsonify({
-        "status": "online",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.0.0",
-        "database": "conectado",
-        "api": "funcionando",
-        "uptime": "2d 4h 30m"
+        "ok": True,
+        "server_time": datetime.now().isoformat(),
+        "users_json_ok": USERS_FILE.exists(),
+        "alerts_log_ok": ALERTS_FILE.exists(),
+        "state_file_ok": STATE_FILE.exists(),
     })
 
-@app.route('/metrics')
-def metrics():
-    """Métricas do sistema"""
-    return jsonify({
-        "alertas_hoje": 5,
-        "alertas_mes": 127,
-        "usuarios_ativos": 45,
-        "tempo_medio_resposta": "2.5s",
-        "memoria_uso": "45%",
-        "cpu_uso": "23%"
-    })
-
-@app.route('/logs')
-def logs():
-    """Logs do sistema"""
-    return jsonify({
-        "logs": [
-            {"timestamp": "2026-02-22 16:30", "level": "INFO", "message": "Alerta recebido"},
-            {"timestamp": "2026-02-22 15:20", "level": "INFO", "message": "Usuário logado"},
-            {"timestamp": "2026-02-22 14:10", "level": "WARNING", "message": "Tentativa de acesso"}
-        ]
-    })
-
-# ========== HISTÓRICO ==========
-@app.route('/historico')
-def historico():
-    """Página de histórico"""
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Histórico de Alertas</title>
-        <meta charset="utf-8">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: #f5f5f5;
-                padding: 20px;
-            }
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            h1 { color: #333; }
-            .alert-item {
-                padding: 15px;
-                border-left: 4px solid #f44336;
-                background: #f9f9f9;
-                margin-bottom: 10px;
-                border-radius: 0 5px 5px 0;
-            }
-            .date { color: #666; font-size: 14px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>📋 Histórico de Alertas</h1>
-            
-            <div class="alert-item">
-                <strong>22/02/2026 16:30</strong> - Violência física<br>
-                Maria Silva - Rua A, 123
-            </div>
-            <div class="alert-item">
-                <strong>22/02/2026 15:20</strong> - Ameaça<br>
-                Ana Costa - Av. B, 456
-            </div>
-            <div class="alert-item">
-                <strong>22/02/2026 14:10</strong> - Perseguição<br>
-                Carla Souza - Rua C, 789
-            </div>
-            
-            <p style="text-align:center; margin-top:20px">
-                <a href="/">← Voltar</a> | 
-                <a href="/relatorio/pdf/geral">📄 Gerar PDF</a>
-            </p>
-        </div>
-    </body>
-    </html>
-    """
-
-@app.route('/historico/hoje')
-def historico_hoje():
-    """Alertas de hoje"""
-    return jsonify({
-        "data": "22/02/2026",
-        "total": 5,
-        "alertas": [
-            {"hora": "16:30", "usuario": "Maria", "situacao": "Violência física"},
-            {"hora": "15:20", "usuario": "Ana", "situacao": "Ameaça"}
-        ]
-    })
-
-@app.route('/historico/estatisticas')
-def historico_estatisticas():
-    """Estatísticas do histórico"""
-    return jsonify({
-        "total_alertas": 127,
-        "por_tipo": {
-            "Violência física": 45,
-            "Ameaça": 38,
-            "Perseguição": 44
-        },
-        "media_diaria": 4.2
-    })
-
-# ========== RELATÓRIOS PDF ==========
-@app.route('/relatorio/pdf/geral')
-def relatorio_pdf_geral():
-    """Gera relatório PDF geral"""
+# ===== RELATÓRIO EM PDF =====
+@app.route('/relatorio/pdf')
+def relatorio_pdf():
+    """Gera relatório PDF com todos os alertas"""
     try:
+        alerts = get_all_alerts()
+        
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=12)
         
-        # Título
-        pdf.cell(200, 10, txt="Relatório Geral - Aurora Mulher Segura", ln=1, align="C")
-        pdf.cell(200, 10, txt=f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}", ln=1, align="C")
+        # Cabeçalho
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
+        pdf.set_font("Arial", "I", 12)
+        pdf.cell(200, 10, txt="Relatório de Alertas de Emergência", ln=1, align="C")
         pdf.ln(10)
         
-        # Conteúdo
-        pdf.cell(200, 10, txt="Total de Alertas: 127", ln=1)
-        pdf.cell(200, 10, txt="Usuários Ativos: 45", ln=1)
-        pdf.cell(200, 10, txt="Contatos de Confiança: 89", ln=1)
+        # Data e hora
+        pdf.set_font("Arial", "", 10)
+        pdf.cell(200, 8, txt=f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
+        pdf.cell(200, 8, txt=f"Total de Alertas: {len(alerts)}", ln=1)
+        pdf.ln(10)
         
-        # Salva arquivo temporário
+        # Estatísticas
+        with_location = sum(1 for a in alerts if a.get('location'))
+        without_location = len(alerts) - with_location
+        
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(200, 10, txt="ESTATÍSTICAS", ln=1)
+        pdf.set_font("Arial", "", 10)
+        pdf.cell(200, 8, txt=f"• Alertas com GPS: {with_location}", ln=1)
+        pdf.cell(200, 8, txt=f"• Alertas sem GPS: {without_location}", ln=1)
+        pdf.ln(10)
+        
+        # Tabela de alertas
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(200, 10, txt="HISTÓRICO DE ALERTAS", ln=1)
+        pdf.ln(5)
+        
+        pdf.set_font("Arial", "B", 9)
+        pdf.cell(25, 8, txt="ID", border=1)
+        pdf.cell(40, 8, txt="DATA/HORA", border=1)
+        pdf.cell(35, 8, txt="USUÁRIA", border=1)
+        pdf.cell(45, 8, txt="SITUAÇÃO", border=1)
+        pdf.cell(45, 8, txt="LOCALIZAÇÃO", border=1)
+        pdf.ln()
+        
+        pdf.set_font("Arial", "", 8)
+        for alert in alerts[-20:]:
+            pdf.cell(25, 6, txt=str(alert.get('id', 'N/A')), border=1)
+            pdf.cell(40, 6, txt=alert.get('ts', 'N/A'), border=1)
+            pdf.cell(35, 6, txt=alert.get('name', 'N/A'), border=1)
+            pdf.cell(45, 6, txt=alert.get('situation', 'N/A'), border=1)
+            
+            loc = alert.get('location')
+            if loc:
+                loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
+            else:
+                loc_str = "Não disponível"
+            pdf.cell(45, 6, txt=loc_str[:40], border=1)
+            pdf.ln()
+        
+        pdf.ln(10)
+        
+        # Rodapé
+        pdf.set_font("Arial", "I", 8)
+        pdf.cell(200, 8, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
+        pdf.cell(200, 8, txt="Este relatório contém informações confidenciais de segurança", ln=1, align="C")
+        
+        # Salvar PDF temporário
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
         
         return send_file(
             temp_file.name,
             as_attachment=True,
-            download_name=f"relatorio_geral_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
+            download_name=f"relatorio_aurora_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
             mimetype='application/pdf'
         )
+        
     except Exception as e:
-        return jsonify({"erro": str(e)})
+        print(f"Erro ao gerar PDF: {e}")
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/relatorio/pdf/mes')
-def relatorio_pdf_mes():
-    """Relatório mensal"""
-    return jsonify({"message": "Relatório mensal sendo gerado..."})
-
-@app.route('/relatorio/exportar')
-def relatorio_exportar():
-    """Exporta dados"""
-    return jsonify({
-        "dados": alertas_db,
-        "formato": "json",
-        "timestamp": datetime.now().isoformat()
-    })
-
-# ========== PÁGINAS LEGAIS ==========
-@app.route('/termos')
-def termos():
-    return "<h1>📜 Termos de Uso</h1><p>Versão 1.0 - 2026</p><a href='/'>Voltar</a>"
-
-@app.route('/privacidade')
-def privacidade():
-    return "<h1>🔒 Política de Privacidade</h1><p>Seus dados estão seguros</p><a href='/'>Voltar</a>"
-
-@app.route('/lgpd')
-def lgpd():
-    return "<h1>📋 LGPD</h1><p>Conformidade com a Lei Geral de Proteção de Dados</p><a href='/'>Voltar</a>"
-
-@app.route('/ajuda')
-def ajuda():
-    return "<h1>❓ Central de Ajuda</h1><p>Como usar o sistema</p><a href='/'>Voltar</a>"
-
-@app.route('/faq')
-def faq():
-    return "<h1>❓ Perguntas Frequentes</h1><p>1. Como enviar alerta?<br>2. Quem recebe?</p><a href='/'>Voltar</a>"
-
-@app.route('/contato')
-def contato():
-    return "<h1>📧 Contato</h1><p>Email: suporte@aurora.com</p><p>Tel: 180</p><a href='/'>Voltar</a>"
-
-# ========== EMERGÊNCIA ==========
-@app.route('/sos')
-def sos_direto():
-    """Página SOS direta"""
-    return redirect(url_for('index'))
-
-@app.route('/telefones-uteis')
-def telefones_uteis():
-    return """
-    <h1>📞 Telefones Úteis</h1>
-    <ul>
-        <li>Polícia Militar: 190</li>
-        <li>Central da Mulher: 180</li>
-        <li>Samu: 192</li>
-    </ul>
-    <a href='/'>Voltar</a>
-    """
-
-# ========== API ==========
-@app.route('/api/send_alert', methods=['POST'])
-def api_send_alert():
-    """Recebe alertas do botão SOS"""
+@app.route('/relatorio/pdf/hoje')
+def relatorio_pdf_hoje():
+    """Gera PDF apenas dos alertas de hoje"""
     try:
-        data = request.json
-        alertas_db.append({
-            "id": len(alertas_db) + 1,
-            "data": data,
-            "timestamp": datetime.now().isoformat()
-        })
-        return jsonify({"ok": True, "message": "Alerta recebido com sucesso!"})
+        alerts = get_all_alerts()
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_alerts = [a for a in alerts if a.get('ts', '').startswith(today)]
+        
+        pdf = FPDF()
+        pdf.add_page()
+        
+        pdf.set_font("Arial", "B", 16)
+        pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
+        pdf.set_font("Arial", "I", 12)
+        pdf.cell(200, 10, txt="Relatório de Alertas - HOJE", ln=1, align="C")
+        pdf.ln(10)
+        
+        pdf.set_font("Arial", "", 10)
+        pdf.cell(200, 8, txt=f"Data: {datetime.now().strftime('%d/%m/%Y')}", ln=1)
+        pdf.cell(200, 8, txt=f"Alertas de Hoje: {len(today_alerts)}", ln=1)
+        pdf.ln(10)
+        
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(200, 10, txt="ALERTAS DE HOJE", ln=1)
+        pdf.ln(5)
+        
+        pdf.set_font("Arial", "B", 9)
+        pdf.cell(25, 8, txt="ID", border=1)
+        pdf.cell(40, 8, txt="HORA", border=1)
+        pdf.cell(35, 8, txt="USUÁRIA", border=1)
+        pdf.cell(45, 8, txt="SITUAÇÃO", border=1)
+        pdf.cell(45, 8, txt="LOCALIZAÇÃO", border=1)
+        pdf.ln()
+        
+        pdf.set_font("Arial", "", 8)
+        for alert in today_alerts:
+            pdf.cell(25, 6, txt=str(alert.get('id', 'N/A')), border=1)
+            pdf.cell(40, 6, txt=alert.get('ts', 'N/A').split(' ')[1], border=1)
+            pdf.cell(35, 6, txt=alert.get('name', 'N/A'), border=1)
+            pdf.cell(45, 6, txt=alert.get('situation', 'N/A'), border=1)
+            
+            loc = alert.get('location')
+            if loc:
+                loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
+            else:
+                loc_str = "Não disponível"
+            pdf.cell(45, 6, txt=loc_str[:40], border=1)
+            pdf.ln()
+        
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        pdf.output(temp_file.name)
+        
+        return send_file(
+            temp_file.name,
+            as_attachment=True,
+            download_name=f"relatorio_hoje_{datetime.now().strftime('%Y%m%d')}.pdf",
+            mimetype='application/pdf'
+        )
+        
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
+        print(f"Erro ao gerar PDF de hoje: {e}")
+        return jsonify({"error": str(e)}), 500
 
-@app.route('/api/status')
-def api_status():
-    """Status da API"""
-    return jsonify({"status": "online", "timestamp": datetime.now().isoformat()})
+# ===== ADMIN =====
+@app.route('/panel/login', methods=['GET', 'POST'])
+def admin_login():
+    users = load_users()
+    error = False
+    if request.method == 'POST':
+        u = (request.form.get("user") or "").strip()
+        p = (request.form.get("password") or "")
+        info = users.get(u)
+        if info and info.get("role") == "admin" and info.get("password") == p:
+            session.clear()
+            session["role"] = "admin"
+            session["user"] = u
+            return redirect(url_for('admin_panel'))
+        error = True
+    return render_template('login_admin.html', error=error)
 
-@app.route('/api/historico')
-def api_historico():
-    """Retorna histórico de alertas"""
-    return jsonify({"alertas": alertas_db})
+@app.route('/panel')
+def admin_panel():
+    if session.get("role") != "admin":
+        return redirect(url_for('admin_login'))
+    
+    users = load_users()
+    trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
+    
+    alerts = get_all_alerts()
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    stats = {
+        'total': len(alerts),
+        'today': sum(1 for a in alerts if a.get('ts', '').startswith(today)),
+        'with_location': sum(1 for a in alerts if a.get('location')),
+        'without_location': sum(1 for a in alerts if not a.get('location'))
+    }
+    
+    return render_template('panel_admin.html', trusted=trusted, alerts=alerts, stats=stats)
 
-@app.route('/api/usuarios')
-def api_usuarios():
-    """Retorna lista de usuários"""
-    return jsonify({"usuarios": usuarios_db})
+@app.route('/panel/add_trusted', methods=['POST'])
+def admin_add_trusted():
+    if session.get("role") != "admin":
+        return redirect(url_for('admin_login'))
+    
+    name = (request.form.get("trusted_name") or "").strip()
+    username = (request.form.get("trusted_user") or "").strip().lower()
+    password = (request.form.get("trusted_password") or "").strip()
+    
+    if not name or not username or not password:
+        return redirect("/panel?err=Preencha+nome,+usuario+e+senha")
+    
+    users = load_users()
+    if username in users:
+        return redirect("/panel?err=Este+usuario+ja+existe")
+    
+    trusted_users = [u for u, info in users.items() if info.get("role") == "trusted"]
+    if len(trusted_users) >= 3:
+        return redirect("/panel?err=Limite+de+3+pessoas+de+confianca+atingido")
+    
+    users[username] = {
+        "password": password,
+        "role": "trusted",
+        "name": name
+    }
+    save_users(users)
+    return redirect("/panel?msg=Pessoa+de+confianca+cadastrada")
 
-# ========== TRATAMENTO DE ERROS ==========
-@app.errorhandler(404)
-def not_found(error):
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Página não encontrada</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                text-align: center;
-                padding: 50px;
-                height: 100vh;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            .container {
-                background: rgba(255,255,255,0.1);
-                padding: 40px;
-                border-radius: 20px;
-                backdrop-filter: blur(10px);
-            }
-            h1 { font-size: 48px; margin-bottom: 20px; }
-            a {
-                color: white;
-                text-decoration: none;
-                padding: 10px 20px;
-                border: 2px solid white;
-                border-radius: 5px;
-                display: inline-block;
-                margin-top: 20px;
-            }
-            a:hover { background: white; color: #667eea; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>404</h1>
-            <h2>Página não encontrada</h2>
-            <p>A página que você está procurando não existe ou foi movida.</p>
-            <a href="/">Voltar para início</a>
-        </div>
-    </body>
-    </html>
-    """, 404
+@app.route('/panel/delete_trusted', methods=['POST'])
+def admin_delete_trusted():
+    if session.get("role") != "admin":
+        return redirect(url_for('admin_login'))
+    
+    username = (request.form.get("username") or "").strip()
+    users = load_users()
+    
+    if username in users and users[username].get("role") == "trusted":
+        users.pop(username)
+        save_users(users)
+        return redirect("/panel?msg=Pessoa+removida")
+    
+    return redirect("/panel?err=Nao+foi+possivel+remover")
 
-# ========== INSTALAÇÃO DE DEPENDÊNCIAS ==========
-# Para gerar PDF, instale: pip install fpdf
+@app.route('/logout_admin')
+def logout_admin():
+    session.clear()
+    return redirect(url_for('admin_login'))
+
+# ===== TRUSTED =====
+@app.route('/trusted/login', methods=['GET', 'POST'])
+def trusted_login():
+    users = load_users()
+    error = False
+    if request.method == 'POST':
+        u = (request.form.get("user") or "").strip().lower()
+        p = (request.form.get("password") or "")
+        info = users.get(u)
+        if info and info.get("role") == "trusted" and info.get("password") == p:
+            session.clear()
+            session["role"] = "trusted"
+            session["trusted"] = u
+            return redirect(url_for('trusted_panel'))
+        error = True
+    return render_template('login_trusted.html', error=error)
+
+@app.route('/trusted/panel')
+def trusted_panel():
+    if session.get("role") != "trusted":
+        return redirect(url_for('trusted_login'))
+    
+    users = load_users()
+    u = session.get("trusted")
+    name = users.get(u, {}).get("name") or u
+    
+    return render_template('panel_trusted.html', display_name=name)
+
+@app.route('/logout_trusted')
+def logout_trusted():
+    session.clear()
+    return redirect(url_for('panic_button'))
+
+@app.route('/trusted/recover', methods=['GET', 'POST'])
+def trusted_recover():
+    msg, err = "", ""
+    if request.method == 'POST':
+        u = (request.form.get("user") or "").strip().lower()
+        new = (request.form.get("new_password") or "").strip()
+        users = load_users()
+        info = users.get(u)
+        if not info or info.get("role") != "trusted":
+            err = "Usuário não encontrado."
+        elif len(new) < 4:
+            err = "Senha muito curta (mínimo 4)."
+        else:
+            users[u]["password"] = new
+            save_users(users)
+            msg = "Senha redefinida. Faça login."
+    return render_template('trusted_recover.html', msg=msg, err=err)
+
+@app.route('/trusted/change_password', methods=['GET', 'POST'])
+def trusted_change_password():
+    if session.get("role") != "trusted":
+        return redirect(url_for('trusted_login'))
+    
+    msg, err = "", ""
+    if request.method == 'POST':
+        old = request.form.get("old_password") or ""
+        new = (request.form.get("new_password") or "").strip()
+        users = load_users()
+        u = session.get("trusted")
+        info = users.get(u)
+        if not info or info.get("password") != old:
+            err = "Senha atual incorreta."
+        elif len(new) < 4:
+            err = "Nova senha muito curta (mínimo 4)."
+        else:
+            users[u]["password"] = new
+            save_users(users)
+            msg = "Senha alterada com sucesso."
+    return render_template('trusted_change_password.html', msg=msg, err=err)
 
 if __name__ == '__main__':
-    print("="*50)
-    print("🚀 Aurora Mulher Segura - Sistema Iniciado!")
-    print("📱 Acesse: http://localhost:5000")
-    print("📝 Links disponíveis:")
-    print("   - http://localhost:5000/")
-    print("   - http://localhost:5000/trusted/login")
-    print("   - http://localhost:5000/panel/login")
-    print("   - http://localhost:5000/historico")
-    print("   - http://localhost:5000/relatorio/pdf/geral")
-    print("="*50)
-    
-    # Instala dependências se necessário
-    try:
-        from fpdf import FPDF
-    except ImportError:
-        print("⚠️ Instalando fpdf para gerar PDFs...")
-        os.system("pip install fpdf")
-    
-    app.run(debug=True, port=5000)
+    _ensure_files()
+    print("=" * 60)
+    print("🚀 AURORA MULHER SEGURA - SISTEMA INICIADO!")
+    print("=" * 60)
+    print("📱 Acesse:")
+    print("   - http://localhost:5000/panic          (Botão de Pânico)")
+    print("   - http://localhost:5000/panel/login    (Admin)")
+    print("   - http://localhost:5000/trusted/login  (Pessoa de Confiança)")
+    print("   - http://localhost:5000/relatorio/pdf  (Relatório PDF)")
+    print("   - http://localhost:5000/health         (Diagnóstico)")
+    print("=" * 60)
+    app.run(host='0.0.0.0', port=5000, debug=True)

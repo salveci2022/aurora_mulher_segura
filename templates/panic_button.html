@@ -1,85 +1,59 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<title>Aurora Mulher Segura - SOS</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨 Aurora Mulher Segura - SOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body class="aurora-bg">
+    <div class="center-wrap">
+        <div class="aurora-card">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-dot">🌸</div>
+                    <div>
+                        <div class="brand-title">AURORA</div>
+                        <div class="brand-sub">Mulher Segura</div>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <a href="/panel/login" class="pill">⚙️ Admin</a>
+                    <a href="/trusted/login" class="pill">👥 Confiança</a>
+                </div>
+            </div>
 
-<main class="center-wrap">
-<section class="aurora-card">
+            <div class="content">
+                <h1 class="h1">Botão de Pânico</h1>
+                <p class="center muted small">Toque e segure para enviar SOS</p>
 
-<!-- TOPO -->
-<div class="topbar">
-  <div class="brand">
-    <div class="brand-dot">♀</div>
-    <div>
-      <div class="brand-title">AURORA_MULHER_SEGURA</div>
-      <div class="brand-sub">Botão de Pânico</div>
+                <label class="label">Seu nome (opcional)</label>
+                <input type="text" id="name" class="input" placeholder="Digite seu nome">
+
+                <label class="label">Tipo de situação</label>
+                <div class="chips">
+                    <div class="chip" data-value="Violência física">Violência física</div>
+                    <div class="chip" data-value="Agressão verbal / ameaça">Agressão verbal / ameaça</div>
+                    <div class="chip" data-value="Perseguição / stalking">Perseguição / stalking</div>
+                    <div class="chip" data-value="Sequestro">Sequestro</div>
+                    <div class="chip" data-value="Outros">Outros</div>
+                </div>
+
+                <label class="label">Mensagem (opcional)</label>
+                <textarea id="message" class="textarea" placeholder="Digite uma mensagem adicional"></textarea>
+
+                <div class="sos-wrap">
+                    <button id="sosBtn" class="sos">
+                        <div class="sos-text">SOS</div>
+                        <div class="sos-sub">TOQUE E SEGURE</div>
+                    </button>
+                </div>
+
+                <div id="status" class="alert alert-ok center">✅ Sistema pronto</div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- CONTEÚDO -->
-<div class="content">
-
-<h1 class="h1">BOTÃO DE PÂNICO</h1>
-
-<p class="center muted small">
-Toque e segure para enviar um pedido de ajuda
-</p>
-
-<!-- STATUS -->
-<div class="alert" id="status"></div>
-
-<!-- NOME -->
-<label class="label">Seu nome</label>
-<input id="name" class="input" placeholder="Digite seu nome">
-
-<!-- OCORRÊNCIAS -->
-<label class="label">Tipo de situação</label>
-
-<div class="chips">
-  <div class="chip">Violência física</div>
-  <div class="chip">Agressão verbal / ameaça</div>
-  <div class="chip">Perseguição / stalking</div>
-  <div class="chip">Sequestro</div>
-  <div class="chip">Outros</div>
-</div>
-
-<!-- MENSAGEM -->
-<label class="label">Mensagem (opcional)</label>
-<textarea id="message" class="textarea"
-placeholder="Descreva rapidamente o que está acontecendo"></textarea>
-
-<!-- GPS -->
-<label class="label">
-<input type="checkbox" id="shareLocation" checked>
- Compartilhar localização exata
-</label>
-
-<!-- BOTÃO SOS -->
-<div class="sos-wrap">
-  <div class="sos" id="sosBtn">
-    <div>
-      <div class="sos-text">SOS</div>
-      <div class="sos-sub">TOQUE E SEGURE</div>
-    </div>
-  </div>
-</div>
-
-</div>
-
-</section>
-</main>
-
-<!-- JS -->
-<script src="/static/js/panic.js"></script>
-
+    <script src="{{ url_for('static', filename='js/panic.js') }}"></script>
 </body>
 </html>

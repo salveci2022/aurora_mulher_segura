@@ -1,68 +1,125 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin · Aurora</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Aurora Mulher Segura</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .pdf-section {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 15px;
+            border-radius: 14px;
+            margin-top: 20px;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        .pdf-btn {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        .pdf-btn-full {
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+            padding: 15px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body class="aurora-bg">
-  <main class="center-wrap">
-    <section class="aurora-card">
-      <div class="topbar">
-        <div class="brand">
-          <div class="brand-dot">♀</div>
-          <div>
-            <div class="brand-title">AURORA_MULHER_SEGURA</div>
-            <div class="brand-sub">Painel Admin</div>
-          </div>
-        </div>
-        <div class="top-actions">
-          <a class="pill" href="/panic">Painel da mulher</a>
-          <a class="pill" href="/logout_admin">Sair</a>
-        </div>
-      </div>
-
-      <div class="content">
-        <h1 class="h1">CADASTRO</h1>
-        <p class="center muted small">Cadastre até 3 pessoas de confiança.</p>
-
-        {% if msg %}<div class="alert alert-ok">{{ msg.replace('+',' ') }}</div>{% endif %}
-        {% if err %}<div class="alert alert-danger">{{ err.replace('+',' ') }}</div>{% endif %}
-
-        <div class="list">
-          {% for u, info in trusted.items() %}
-          <div class="item">
-            <div>
-              <strong>{{ info.name }}</strong>
-              <div class="badge">Usuário: {{ u }}</div>
+    <div class="center-wrap">
+        <div class="aurora-card">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-dot">⚙️</div>
+                    <div>
+                        <div class="brand-title">AURORA</div>
+                        <div class="brand-sub">Admin</div>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <a href="/panic" class="pill">🚨 SOS</a>
+                    <a href="/logout_admin" class="pill">🚪 Sair</a>
+                </div>
             </div>
-            <form method="post" action="/panel/delete_trusted" onsubmit="return confirm('Remover esta pessoa?');">
-              <input type="hidden" name="username" value="{{ u }}">
-              <button class="pill" type="submit">Remover</button>
-            </form>
-          </div>
-          {% endfor %}
-          {% if trusted|length == 0 %}
-            <div class="alert">Nenhuma pessoa cadastrada ainda.</div>
-          {% endif %}
-        </div>
 
-        <form method="post" action="/panel/add_trusted" style="margin-top:14px">
-          <label class="label">Nome</label>
-          <input class="input" name="trusted_name" placeholder="Ex: Mãe da Ana" required>
-          <label class="label">Usuário (login)</label>
-          <input class="input" name="trusted_user" placeholder="ex: maeana" required>
-          <label class="label">Senha</label>
-          <input class="input" name="trusted_password" placeholder="ex: 1234" required>
-          <button class="btn btn-primary" type="submit">Cadastrar</button>
-        </form>
+            <div class="content">
+                <h1 class="h1">Painel Admin</h1>
 
-        <div class="center small muted" style="margin-top:10px">
-          Pessoa de confiança entra em <span class="badge">/trusted/login</span>
+                {% if request.args.get('msg') %}
+                <div class="alert alert-ok center">{{ request.args.get('msg').replace('+', ' ') }}</div>
+                {% endif %}
+                {% if request.args.get('err') %}
+                <div class="alert alert-danger center">{{ request.args.get('err').replace('+', ' ') }}</div>
+                {% endif %}
+
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0;">
+                    <div class="item">
+                        <span>{{ stats.total }}</span>
+                        <span class="badge">Total Alertas</span>
+                    </div>
+                    <div class="item">
+                        <span>{{ stats.today }}</span>
+                        <span class="badge">Hoje</span>
+                    </div>
+                    <div class="item">
+                        <span>{{ stats.with_location }}</span>
+                        <span class="badge">Com GPS</span>
+                    </div>
+                    <div class="item">
+                        <span>{{ stats.without_location }}</span>
+                        <span class="badge">Sem GPS</span>
+                    </div>
+                </div>
+
+                <div class="pdf-section">
+                    <p class="small" style="margin-bottom:10px;"><strong>📄 Relatórios em PDF</strong></p>
+                    <a href="/relatorio/pdf" class="pdf-btn pdf-btn-full">📊 Relatório Completo (Todos os Alertas)</a>
+                    <a href="/relatorio/pdf/hoje" class="pdf-btn pdf-btn-full" style="background:linear-gradient(135deg,#2196f3,#1565c0);margin-top:10px;">📅 Relatório de Hoje</a>
+                </div>
+
+                <label class="label" style="margin-top:20px;">📋 Últimos Alertas</label>
+                <div class="list">
+                    {% if alerts %}
+                        {% for alerta in alerts[-10:]|reverse %}
+                        <div class="item">
+                            <div>
+                                <div>{{ alerta.ts }}</div>
+                                <div class="small">👤 {{ alerta.name }}</div>
+                                <div class="small muted">⚠️ {{ alerta.situation }}</div>
+                            </div>
+                            {% if alerta.location %}
+                            <span class="badge">📍</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="center muted small">Nenhum alerta registrado</div>
+                    {% endif %}
+                </div>
+
+                <label class="label" style="margin-top:20px;">➕ Cadastrar Pessoa de Confiança</label>
+                <form method="POST" action="/panel/add_trusted">
+                    <input type="text" name="trusted_name" class="input" placeholder="Nome completo" required>
+                    <input type="text" name="trusted_user" class="input" placeholder="Usuário (login)" required>
+                    <input type="password" name="trusted_password" class="input" placeholder="Senha" required>
+                    <button type="submit" class="btn btn-primary" style="margin-top:10px;">Cadastrar</button>
+                </form>
+            </div>
         </div>
-      </div>
-    </section>
-  </main>
+    </div>
 </body>
 </html>

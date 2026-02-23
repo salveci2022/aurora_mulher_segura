@@ -1,4 +1,3 @@
-# .gitignore
 __pycache__/
 *.pyc
 *.pyo
@@ -16,5 +15,4 @@ instance/
 *.db
 *.sqlite
 *.pdf
-!relatorio.pdf
 *.log

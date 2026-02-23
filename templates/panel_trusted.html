@@ -1,148 +1,192 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<title>Painel Confiança</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pessoa de Confiança - Aurora Mulher Segura</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .map-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 15px;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .info-box {
+            background: rgba(40, 0, 60, 0.35);
+            padding: 12px;
+            border-radius: 14px;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 98, 212, 0.28);
+        }
+        .alert-info {
+            background: rgba(255, 121, 218, 0.1);
+            padding: 15px;
+            border-radius: 14px;
+            margin-top: 15px;
+            border-left: 4px solid #ff4fc8;
+        }
+        .pdf-btn {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+    </style>
 </head>
 <body class="aurora-bg">
+    <div class="center-wrap">
+        <div class="aurora-card">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-dot">🌸</div>
+                    <div>
+                        <div class="brand-title">AURORA</div>
+                        <div class="brand-sub">Pessoa de Confiança</div>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <button onclick="testSiren()" class="pill">🔊 Sirene</button>
+                    <a href="/relatorio/pdf" class="pill pdf-btn" style="padding:7px 12px;background:linear-gradient(135deg,#4caf50,#2e7d32);">📄 PDF</a>
+                    <a href="/logout_trusted" class="pill">🚪 Sair</a>
+                </div>
+            </div>
 
-<main class="center-wrap">
-<section class="aurora-card">
+            <div class="content">
+                <h1 class="h1">Central SOS</h1>
+                <p class="center muted small">Olá, <strong>{{ display_name }}</strong></p>
 
-<!-- TOPO -->
-<div class="topbar">
-  <div class="brand">
-    <div class="brand-dot">♀</div>
-    <div>
-      <div class="brand-title">AURORA_MULHER_SEGURA</div>
-      <div class="brand-sub">Painel da Pessoa de Confiança</div>
+                <div class="info-box">
+                    <p class="small"><strong>ℹ️ Informações:</strong></p>
+                    <p class="small">• Este painel recebe alertas em tempo real</p>
+                    <p class="small">• Clique em "🔊 Sirene" para liberar o áudio</p>
+                    <p class="small">• A sirene tocará automaticamente quando chegar alerta</p>
+                    <p class="small">• O mapa atualiza automaticamente</p>
+                </div>
+
+                <div id="alertInfo">
+                    <p class="center muted small">⏳ Aguardando alertas...</p>
+                </div>
+
+                <div class="alert-info" id="locationInfo" style="display:none;">
+                    <p class="small"><strong>📍 Última Localização:</strong></p>
+                    <p class="small" id="locationText"></p>
+                    <a href="#" id="openMapLink" class="link" target="_blank" style="display:block;margin-top:8px;">🗺️ Ver no Google Maps</a>
+                </div>
+
+                <div id="mapContainer" class="map-container" style="display:none;">
+                    <iframe id="mapFrame" src="" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- CONTEÚDO -->
-<div class="content">
+    <audio id="sirenSound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
 
-<h1 class="h1">CENTRAL SOS</h1>
+    <script>
+        const siren = document.getElementById('sirenSound');
+        let sirenUnlocked = false;
+        let lastAlertId = null;
 
-<p class="center muted small">
-Olá, <strong>{{ display_name }}</strong>
-</p>
+        function testSiren() {
+            sirenUnlocked = true;
+            siren.play().catch(e => console.log('Áudio bloqueado:', e));
+            alert('🔊 Sirene testada!\n\nO áudio está liberado para alertas futuros.');
+        }
 
-<div class="alert" id="alertBox">
-  <div id="lastMeta">Nenhum alerta.</div>
-  <div id="details"></div>
-</div>
+        function playSiren() {
+            if (sirenUnlocked) {
+                siren.play().catch(e => console.log('Erro ao tocar sirene:', e));
+            }
+        }
 
-<!-- AÇÕES -->
-<div class="top-actions" style="justify-content:center; margin-top:12px">
+        function updateAlerts() {
+            fetch('/api/last_alert')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok || !data.last) {
+                        return;
+                    }
 
-  <button class="pill" id="armBtn" type="button">
-    🔊 Ativar som
-  </button>
+                    const alert = data.last;
+                    
+                    if (alert.id !== lastAlertId) {
+                        lastAlertId = alert.id;
+                        
+                        const alertInfo = document.getElementById('alertInfo');
+                        const mapContainer = document.getElementById('mapContainer');
+                        const mapFrame = document.getElementById('mapFrame');
+                        const locationInfo = document.getElementById('locationInfo');
+                        const locationText = document.getElementById('locationText');
+                        const openMapLink = document.getElementById('openMapLink');
 
-  <button class="pill" id="muteBtn" type="button">
-    🔇 Silenciar
-  </button>
+                        // Exibir informações do alerta
+                        alertInfo.innerHTML = `
+                            <div class="alert alert-danger">
+                                <p><strong>🚨 ALERTA RECEBIDO</strong></p>
+                                <p><strong>⏰ Horário:</strong> ${alert.ts}</p>
+                                <p><strong>👤 Usuária:</strong> ${alert.name}</p>
+                                <p><strong>🚨 Situação:</strong> ${alert.situation}</p>
+                                <p><strong>📝 Mensagem:</strong> ${alert.message || '—'}</p>
+                            </div>
+                        `;
 
-  <button class="pill" id="refreshBtn" type="button">
-    🔄 Atualizar
-  </button>
+                        // Exibir localização e mapa se disponível
+                        if (alert.location) {
+                            const lat = alert.location.lat;
+                            const lng = alert.location.lng;
+                            
+                            locationText.textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+                            locationInfo.style.display = 'block';
+                            
+                            openMapLink.href = `https://www.google.com/maps?q=${lat},${lng}&z=16`;
+                            
+                            mapFrame.src = `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+                            mapContainer.style.display = 'block';
+                        } else {
+                            locationInfo.style.display = 'none';
+                            mapContainer.style.display = 'none';
+                        }
 
-  <a class="pill" href="/trusted/pdf" target="_blank" rel="noopener">
-    📄 Baixar PDF
-  </a>
+                        // Tocar sirene
+                        playSiren();
+                        
+                        console.log('🚨 Novo alerta recebido!');
+                        console.log('ID:', alert.id);
+                        console.log('Usuária:', alert.name);
+                        console.log('Situação:', alert.situation);
+                        if (alert.location) {
+                            console.log('Localização:', alert.location.lat, alert.location.lng);
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Erro ao atualizar alertas:', err);
+                    setTimeout(updateAlerts, 5000);
+                });
+        }
 
-</div>
-
-</div>
-</section>
-</main>
-
-<!-- SCRIPT -->
-<script>
-
-const siren = new Audio("/static/audio/sirene.mp3");
-siren.loop = true;
-
-let armed = false;
-let muted = false;
-let lastId = 0;
-
-// ativar som
-document.getElementById("armBtn").onclick = async () => {
-  try{
-    await siren.play();
-    siren.pause();
-    armed = true;
-    alert("Som ativado");
-  }catch(e){
-    alert("Clique novamente para liberar som");
-  }
-};
-
-// silenciar
-document.getElementById("muteBtn").onclick = () => {
-  muted = !muted;
-  siren.pause();
-};
-
-// atualizar manual
-document.getElementById("refreshBtn").onclick = () => {
-  tick();
-};
-
-// buscar alertas
-async function tick(){
-
-  try{
-
-    const r = await fetch("/api/last_alert?ts=" + Date.now());
-    const j = await r.json();
-
-    if(!j.ok || !j.last) return;
-
-    const a = j.last;
-
-    document.getElementById("lastMeta").innerHTML =
-      "<strong>ID "+a.id+"</strong> - "+a.ts;
-
-    let html = "";
-    html += "Nome: " + (a.name || "") + "<br>";
-    html += "Situação: " + (a.situation || "") + "<br>";
-
-    if(a.location){
-      html += "📍 " + a.location.lat + ", " + a.location.lon +
-      " (±" + a.location.accuracy_m + "m)";
-    }
-
-    document.getElementById("details").innerHTML = html;
-
-    // novo alerta
-    if(a.id > lastId){
-      lastId = a.id;
-
-      if(armed && !muted){
-        siren.play();
-        setTimeout(()=>siren.pause(),10000);
-      }
-    }
-
-  }catch(e){
-    console.log("Erro tick",e);
-  }
-
-}
-
-// loop
-setInterval(tick, 2500);
-tick();
-
-</script>
-
+        // Atualizar a cada 3 segundos
+        setInterval(updateAlerts, 3000);
+        updateAlerts();
+    </script>
 </body>
 </html>

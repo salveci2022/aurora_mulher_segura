@@ -60,45 +60,21 @@
             font-weight: bold;
             color: #ffd0f0;
         }
-        .trusted-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-        }
-        .trusted-item {
-            background: rgba(20, 0, 28, 0.5);
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-            position: relative;
+        .trusted-names {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 8px 0;
         }
         .trusted-name {
+            background: rgba(20, 0, 28, 0.5);
+            border-radius: 10px;
+            padding: 10px 15px;
             font-weight: bold;
-            font-size: 13px;
             color: #ffd0f0;
-            margin-bottom: 5px;
-        }
-        .trusted-delete {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(244, 67, 54, 0.8);
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        .trusted-delete:hover {
-            background: rgba(244, 67, 54, 1);
-            transform: scale(1.1);
+            white-space: nowrap;
+            min-width: 120px;
+            text-align: center;
         }
         .trusted-empty {
             text-align: center;
@@ -167,12 +143,9 @@
                         <span class="small muted">{{ trusted_names|length }} / 3</span>
                     </div>
                     {% if trusted_names and trusted_names|length > 0 %}
-                        <div class="trusted-grid">
+                        <div class="trusted-names">
                             {% for name in trusted_names %}
-                            <div class="trusted-item">
-                                <button class="trusted-delete" onclick="deleteTrusted('{{ loop.index0 }}')" title="Excluir">✕</button>
-                                <div class="trusted-name">{{ name }}</div>
-                            </div>
+                            <div class="trusted-name">{{ name }}</div>
                             {% endfor %}
                         </div>
                         <button class="trusted-add-btn" onclick="window.location.href='/panel/login'">
@@ -208,8 +181,8 @@
                 <div class="info-box" style="margin-top: 15px;">
                     <p class="small"><strong>ℹ️ Informações:</strong></p>
                     <p class="small">• O alerta será enviado para todas as pessoas acima</p>
-                    <p class="small">• Clique no ✕ para excluir uma pessoa</p>
-                    <p class="small">• Limite: 3 pessoas de confiança</p>
+                    <p class="small">• A localização GPS será enviada junto com o alerta</p>
+                    <p class="small">• A sirene tocará automaticamente no painel da pessoa de confiança</p>
                 </div>
             </div>
         </div>
@@ -218,13 +191,6 @@
     <script src="{{ url_for('static', filename='js/panic.js') }}"></script>
     <script>
         let ultimoAlerta = null;
-
-        function deleteTrusted(index) {
-            if (confirm('Deseja realmente excluir esta pessoa de confiança?')) {
-                // Redireciona para o painel admin para exclusão
-                window.location.href = '/panel/login?delete=' + index;
-            }
-        }
 
         function reenviarAlerta() {
             if (!ultimoAlerta) {

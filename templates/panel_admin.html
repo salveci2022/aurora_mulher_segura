@@ -39,6 +39,41 @@
             padding: 15px;
             font-size: 14px;
         }
+        .trusted-list {
+            background: rgba(40, 0, 60, 0.35);
+            padding: 15px;
+            border-radius: 14px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 98, 212, 0.28);
+        }
+        .trusted-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(20, 0, 28, 0.5);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .trusted-name {
+            font-weight: bold;
+            color: #ffd0f0;
+        }
+        .trusted-delete {
+            background: rgba(244, 67, 54, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .trusted-delete:hover {
+            background: rgba(244, 67, 54, 1);
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="aurora-bg">
@@ -113,6 +148,20 @@
                     {% endif %}
                 </div>
 
+                <label class="label" style="margin-top:20px;">👥 Pessoas de Confiança Cadastradas</label>
+                <div class="trusted-list">
+                    {% if trusted %}
+                        {% for username, info in trusted.items() %}
+                        <div class="trusted-item">
+                            <div class="trusted-name">{{ info.name }}</div>
+                            <button class="trusted-delete" onclick="deleteTrusted('{{ username }}')">✕</button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="center muted small">Nenhuma pessoa cadastrada</div>
+                    {% endif %}
+                </div>
+
                 <label class="label" style="margin-top:20px;">➕ Cadastrar Pessoa de Confiança</label>
                 <form method="POST" action="/panel/add_trusted">
                     <input type="text" name="trusted_name" class="input" placeholder="Nome completo" required>
@@ -123,5 +172,32 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        function deleteTrusted(username) {
+            if (confirm('Deseja realmente excluir esta pessoa de confiança?')) {
+                // Envia para o servidor
+                fetch('/panel/delete_trusted', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'username=' + encodeURIComponent(username)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Recarrega a página
+                        window.location.reload();
+                    } else {
+                        alert('Erro ao excluir a pessoa de confiança');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao excluir a pessoa de confiança');
+                });
+            }
+        }
+    </script>
 </body>
 </html>

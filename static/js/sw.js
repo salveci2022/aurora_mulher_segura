@@ -1,9 +1,13 @@
+// ============================================
+// AURORA - SERVICE WORKER (MODO OFFLINE)
+// ============================================
 const CACHE_NAME = 'aurora-cache-v1';
 const urlsToCache = [
     '/',
     '/panic',
     '/static/css/style.css',
-    '/static/js/panic.js'
+    '/static/js/panic.js',
+    '/static/audio/sirene.mp3'
 ];
 
 self.addEventListener('install', event => {

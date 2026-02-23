@@ -8,20 +8,13 @@ Sistema de botão de pânico para segurança feminina com localização GPS em t
 - ✅ Envio de alerta com localização GPS em tempo real
 - ✅ Sirene automática no painel da pessoa de confiança
 - ✅ Mapa integrado com Google Maps
-- ✅ Área para pessoas de confiança
-- ✅ Painel administrativo
 - ✅ Histórico de alertas
-- ✅ Login seguro (admin e pessoas de confiança)
+- ✅ Relatórios em PDF
+- ✅ Diagnóstico do sistema
+- ✅ PWA (Progressive Web App) para uso offline
 
 ## 📱 Como Usar
 
-1. Acesse http://localhost:5000/panic
-2. Selecione o tipo de situação
-3. Toque e segure no botão SOS
-4. Aguarde confirmação
-
-## 🔧 Instalação
-
-```bash
-pip install -r requirements.txt
-python app.py
+1. **Acesse o sistema**
+   ```bash
+   http://localhost:5000/panic

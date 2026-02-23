@@ -228,69 +228,6 @@ def relatorio_pdf():
         print(f"Erro ao gerar PDF: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/relatorio/pdf/hoje')
-def relatorio_pdf_hoje():
-    """Gera PDF apenas dos alertas de hoje"""
-    try:
-        alerts = get_all_alerts()
-        today = datetime.now().strftime('%Y-%m-%d')
-        today_alerts = [a for a in alerts if a.get('ts', '').startswith(today)]
-        
-        pdf = FPDF()
-        pdf.add_page()
-        
-        pdf.set_font("Arial", "B", 16)
-        pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
-        pdf.set_font("Arial", "I", 12)
-        pdf.cell(200, 10, txt="Relatório de Alertas - HOJE", ln=1, align="C")
-        pdf.ln(10)
-        
-        pdf.set_font("Arial", "", 10)
-        pdf.cell(200, 8, txt=f"Data: {datetime.now().strftime('%d/%m/%Y')}", ln=1)
-        pdf.cell(200, 8, txt=f"Alertas de Hoje: {len(today_alerts)}", ln=1)
-        pdf.ln(10)
-        
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(200, 10, txt="ALERTAS DE HOJE", ln=1)
-        pdf.ln(5)
-        
-        pdf.set_font("Arial", "B", 9)
-        pdf.cell(25, 8, txt="ID", border=1)
-        pdf.cell(40, 8, txt="HORA", border=1)
-        pdf.cell(35, 8, txt="USUÁRIA", border=1)
-        pdf.cell(45, 8, txt="SITUAÇÃO", border=1)
-        pdf.cell(45, 8, txt="LOCALIZAÇÃO", border=1)
-        pdf.ln()
-        
-        pdf.set_font("Arial", "", 8)
-        for alert in today_alerts:
-            pdf.cell(25, 6, txt=str(alert.get('id', 'N/A')), border=1)
-            pdf.cell(40, 6, txt=alert.get('ts', 'N/A').split(' ')[1], border=1)
-            pdf.cell(35, 6, txt=alert.get('name', 'N/A'), border=1)
-            pdf.cell(45, 6, txt=alert.get('situation', 'N/A'), border=1)
-            
-            loc = alert.get('location')
-            if loc:
-                loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
-            else:
-                loc_str = "Não disponível"
-            pdf.cell(45, 6, txt=loc_str[:40], border=1)
-            pdf.ln()
-        
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-        pdf.output(temp_file.name)
-        
-        return send_file(
-            temp_file.name,
-            as_attachment=True,
-            download_name=f"relatorio_hoje_{datetime.now().strftime('%Y%m%d')}.pdf",
-            mimetype='application/pdf'
-        )
-        
-    except Exception as e:
-        print(f"Erro ao gerar PDF de hoje: {e}")
-        return jsonify({"error": str(e)}), 500
-
 # ===== ADMIN =====
 @app.route('/panel/login', methods=['GET', 'POST'])
 def admin_login():
@@ -328,49 +265,6 @@ def admin_panel():
     
     return render_template('panel_admin.html', trusted=trusted, alerts=alerts, stats=stats)
 
-@app.route('/panel/add_trusted', methods=['POST'])
-def admin_add_trusted():
-    if session.get("role") != "admin":
-        return redirect(url_for('admin_login'))
-    
-    name = (request.form.get("trusted_name") or "").strip()
-    username = (request.form.get("trusted_user") or "").strip().lower()
-    password = (request.form.get("trusted_password") or "").strip()
-    
-    if not name or not username or not password:
-        return redirect("/panel?err=Preencha+nome,+usuario+e+senha")
-    
-    users = load_users()
-    if username in users:
-        return redirect("/panel?err=Este+usuario+ja+existe")
-    
-    trusted_users = [u for u, info in users.items() if info.get("role") == "trusted"]
-    if len(trusted_users) >= 3:
-        return redirect("/panel?err=Limite+de+3+pessoas+de+confianca+atingido")
-    
-    users[username] = {
-        "password": password,
-        "role": "trusted",
-        "name": name
-    }
-    save_users(users)
-    return redirect("/panel?msg=Pessoa+de+confianca+cadastrada")
-
-@app.route('/panel/delete_trusted', methods=['POST'])
-def admin_delete_trusted():
-    if session.get("role") != "admin":
-        return redirect(url_for('admin_login'))
-    
-    username = (request.form.get("username") or "").strip()
-    users = load_users()
-    
-    if username in users and users[username].get("role") == "trusted":
-        users.pop(username)
-        save_users(users)
-        return redirect("/panel?msg=Pessoa+removida")
-    
-    return redirect("/panel?err=Nao+foi+possivel+remover")
-
 @app.route('/logout_admin')
 def logout_admin():
     session.clear()
@@ -407,47 +301,7 @@ def trusted_panel():
 @app.route('/logout_trusted')
 def logout_trusted():
     session.clear()
-    return redirect(url_for('panic_button'))
-
-@app.route('/trusted/recover', methods=['GET', 'POST'])
-def trusted_recover():
-    msg, err = "", ""
-    if request.method == 'POST':
-        u = (request.form.get("user") or "").strip().lower()
-        new = (request.form.get("new_password") or "").strip()
-        users = load_users()
-        info = users.get(u)
-        if not info or info.get("role") != "trusted":
-            err = "Usuário não encontrado."
-        elif len(new) < 4:
-            err = "Senha muito curta (mínimo 4)."
-        else:
-            users[u]["password"] = new
-            save_users(users)
-            msg = "Senha redefinida. Faça login."
-    return render_template('trusted_recover.html', msg=msg, err=err)
-
-@app.route('/trusted/change_password', methods=['GET', 'POST'])
-def trusted_change_password():
-    if session.get("role") != "trusted":
-        return redirect(url_for('trusted_login'))
-    
-    msg, err = "", ""
-    if request.method == 'POST':
-        old = request.form.get("old_password") or ""
-        new = (request.form.get("new_password") or "").strip()
-        users = load_users()
-        u = session.get("trusted")
-        info = users.get(u)
-        if not info or info.get("password") != old:
-            err = "Senha atual incorreta."
-        elif len(new) < 4:
-            err = "Nova senha muito curta (mínimo 4)."
-        else:
-            users[u]["password"] = new
-            save_users(users)
-            msg = "Senha alterada com sucesso."
-    return render_template('trusted_change_password.html', msg=msg, err=err)
+    return redirect(url_for('trusted_login'))
 
 if __name__ == '__main__':
     _ensure_files()

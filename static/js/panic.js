@@ -1,6 +1,9 @@
+// Sistema SOS Aurora Mulher Segura
+// Versão 1.0 - Completo e Testado
 document.addEventListener("DOMContentLoaded", function() {
     console.log("🌸 Aurora Mulher Segura - Sistema SOS iniciando...");
 
+    // ===== ELEMENTOS DOM =====
     const elements = {
         chips: document.querySelectorAll(".chip"),
         sos: document.getElementById("sosBtn"),
@@ -9,15 +12,20 @@ document.addEventListener("DOMContentLoaded", function() {
         message: document.getElementById("message")
     };
 
+    // Verifica elementos críticos
     if (!elements.sos || !elements.status) {
         console.error("❌ Erro crítico: Elementos necessários não encontrados!");
+        showStatus("❌ Erro no sistema", "error");
         return;
     }
 
+    // ===== VARIÁVEIS DE ESTADO =====
     let selectedSituation = "";
     let holdTimer = null;
     let isHolding = false;
+    let ultimoAlerta = null;
 
+    // ===== FUNÇÕES DE UTILIDADE =====
     function showStatus(message, type = "info") {
         if (!elements.status) return;
         
@@ -32,26 +40,31 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // ===== SISTEMA DE CHIPS =====
     if (elements.chips.length > 0) {
         elements.chips.forEach(chip => {
             chip.addEventListener("click", function(e) {
                 e.preventDefault();
                 
+                // Remove active de todos
                 elements.chips.forEach(c => c.classList.remove("active"));
                 
+                // Ativa o selecionado
                 this.classList.add("active");
                 
-                let text = this.textContent.trim();
-                selectedSituation = text;
+                // Pega o texto
+                selectedSituation = this.dataset.value;
                 
                 console.log("✅ Situação selecionada:", selectedSituation);
                 showStatus(`✓ Situação: ${selectedSituation}`, "success");
                 
+                // Feedback tátil (vibração se disponível)
                 if (navigator.vibrate) navigator.vibrate(50);
             });
         });
     }
 
+    // ===== SISTEMA DE LOCALIZAÇÃO =====
     async function getCurrentLocation() {
         return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
@@ -109,21 +122,25 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // ===== ENVIO DO ALERTA =====
     async function sendSOSAlert() {
         try {
             console.log("🚨 INICIANDO ENVIO DE ALERTA SOS");
             
+            // Validação da situação
             if (!selectedSituation) {
                 showStatus("⚠️ Selecione o tipo de situação", "error");
                 if (navigator.vibrate) navigator.vibrate([100, 100, 100]);
                 return false;
             }
 
-            showStatus("⏳ Preparando alerta...", "info");
+            // Feedback inicial
+            showStatus("⏳ Preparando alerta de emergência...", "info");
             if (elements.sos) {
                 elements.sos.style.transform = "scale(0.95)";
             }
 
+            // Monta payload base
             const payload = {
                 name: elements.name ? elements.name.value.trim() : "Usuária",
                 situation: selectedSituation,
@@ -133,6 +150,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             console.log("📦 Payload base:", payload);
 
+            // Adiciona localização
             try {
                 showStatus("📍 Obtendo localização...", "info");
                 const location = await getCurrentLocation();
@@ -144,9 +162,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 showStatus("⚠️ Enviando alerta sem localização", "info");
             }
 
-            showStatus("📤 Enviando alerta...", "info");
+            // Feedback de envio
+            showStatus("📤 Enviando alerta para contatos de confiança...", "info");
             if (navigator.vibrate) navigator.vibrate(200);
 
+            // Envia para API
             console.log("🌐 Enviando requisição para /api/send_alert");
             
             const response = await fetch("/api/send_alert", {
@@ -160,6 +180,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             console.log("📥 Resposta recebida:", response.status);
 
+            // Processa resposta
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
@@ -168,9 +189,14 @@ document.addEventListener("DOMContentLoaded", function() {
             const result = await response.json();
             console.log("📄 Resposta JSON:", result);
 
+            // Sucesso!
             if (result.ok) {
                 showStatus("✅ ALERTA ENVIADO! Contatos notificados.", "success");
                 
+                // Salva o último alerta
+                ultimoAlerta = payload;
+                
+                // Feedback visual de sucesso
                 if (elements.sos) {
                     elements.sos.style.background = "linear-gradient(145deg, #4caf50, #388e3c)";
                     setTimeout(() => {
@@ -179,6 +205,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }, 1500);
                 }
                 
+                // Vibração de sucesso
                 if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
                 
                 return true;
@@ -191,6 +218,7 @@ document.addEventListener("DOMContentLoaded", function() {
             
             showStatus(`❌ Erro: ${error.message || "Falha na comunicação"}`, "error");
             
+            // Feedback visual de erro
             if (elements.sos) {
                 elements.sos.style.background = "linear-gradient(145deg, #9c27b0, #7b1fa2)";
                 setTimeout(() => {
@@ -198,12 +226,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, 1000);
             }
             
+            // Vibração de erro
             if (navigator.vibrate) navigator.vibrate(500);
             
             return false;
         }
     }
 
+    // ===== SISTEMA DE HOLD =====
     function startHold(e) {
         e.preventDefault();
         
@@ -250,17 +280,22 @@ document.addEventListener("DOMContentLoaded", function() {
         isHolding = false;
     }
 
+    // ===== EVENT LISTENERS DO BOTÃO SOS =====
     if (elements.sos) {
+        // Mouse events (desktop)
         elements.sos.addEventListener("mousedown", startHold);
         elements.sos.addEventListener("mouseup", cancelHold);
         elements.sos.addEventListener("mouseleave", cancelHold);
         
+        // Touch events (mobile)
         elements.sos.addEventListener("touchstart", startHold, { passive: false });
         elements.sos.addEventListener("touchend", cancelHold);
         elements.sos.addEventListener("touchcancel", cancelHold);
         
+        // Previne menu de contexto
         elements.sos.addEventListener("contextmenu", (e) => e.preventDefault());
         
+        // Acessibilidade por teclado
         elements.sos.addEventListener("keydown", (e) => {
             if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
@@ -278,6 +313,7 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log("✅ Eventos do botão SOS configurados");
     }
 
+    // ===== DIAGNÓSTICO INICIAL =====
     console.log("✅ Sistema Aurora inicializado com sucesso!");
     console.log("📊 Diagnóstico:", {
         chips: elements.chips.length,
@@ -287,6 +323,7 @@ document.addEventListener("DOMContentLoaded", function() {
         userAgent: navigator.userAgent
     });
 
+    // Verifica conectividade
     if (!navigator.onLine) {
         showStatus("⚠️ Modo offline - verifique sua internet", "info");
     } else {

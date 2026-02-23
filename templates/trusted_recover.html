@@ -1,43 +1,51 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Confiança · Recuperar</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confiança · Recuperar</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#7a00ff">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="aurora-bg">
-  <main class="center-wrap">
-    <section class="aurora-card">
-      <div class="topbar">
-        <div class="brand">
-          <div class="brand-dot">♀</div>
-          <div>
-            <div class="brand-title">AURORA_MULHER_SEGURA</div>
-            <div class="brand-sub">Recuperar senha</div>
-          </div>
+    <div class="center-wrap">
+        <div class="aurora-card">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-dot">🌸</div>
+                    <div>
+                        <div class="brand-title">AURORA</div>
+                        <div class="brand-sub">Recuperar Senha</div>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <a href="/trusted/login" class="pill">← Login</a>
+                </div>
+            </div>
+
+            <div class="content">
+                <h1 class="h1">Recuperar senha</h1>
+                <p class="center muted small">Informe usuário e defina nova senha.</p>
+
+                {% if msg %}
+                <div class="alert alert-ok center">{{ msg }}</div>
+                {% endif %}
+                {% if err %}
+                <div class="alert alert-danger center">{{ err }}</div>
+                {% endif %}
+
+                <form method="POST" action="/trusted/recover">
+                    <label class="label">Usuário</label>
+                    <input type="text" name="user" class="input" placeholder="samara123" required>
+
+                    <label class="label">Nova senha</label>
+                    <input type="password" name="new_password" class="input" required>
+
+                    <button type="submit" class="btn btn-primary">Redefinir</button>
+                </form>
+            </div>
         </div>
-        <div class="top-actions">
-          <a class="pill" href="/trusted/login">Login</a>
-        </div>
-      </div>
-
-      <div class="content">
-        <h1 class="h1">RECUPERAR SENHA</h1>
-        <p class="center muted small">Informe usuário e defina nova senha.</p>
-
-        {% if msg %}<div class="alert alert-ok">{{ msg }}</div>{% endif %}
-        {% if err %}<div class="alert alert-danger">{{ err }}</div>{% endif %}
-
-        <form method="post">
-          <label class="label">Usuário</label>
-          <input class="input" name="user" required>
-          <label class="label">Nova senha</label>
-          <input class="input" type="password" name="new_password" required>
-          <button class="btn btn-primary" type="submit">Redefinir</button>
-        </form>
-      </div>
-    </section>
-  </main>
+    </div>
 </body>
 </html>

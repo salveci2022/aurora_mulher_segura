@@ -4,7 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🚨 Aurora Mulher Segura - SOS</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#7a00ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aurora">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-action {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-reenviar {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        .btn-limpar {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+            color: white;
+        }
+        .btn-sair {
+            background: linear-gradient(135deg, #f44336, #c62828);
+            color: white;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+    </style>
 </head>
 <body class="aurora-bg">
     <div class="center-wrap">
@@ -30,7 +68,7 @@
                 <label class="label">Seu nome (opcional)</label>
                 <input type="text" id="name" class="input" placeholder="Digite seu nome">
 
-                <label class="label">Tipo de situação</label>
+                <label class="label">Tipo de situação (clique para selecionar)</label>
                 <div class="chips">
                     <div class="chip" data-value="Violência física">Violência física</div>
                     <div class="chip" data-value="Agressão verbal / ameaça">Agressão verbal / ameaça</div>
@@ -50,10 +88,67 @@
                 </div>
 
                 <div id="status" class="alert alert-ok center">✅ Sistema pronto</div>
+
+                <!-- Botões de Ação -->
+                <div class="action-buttons">
+                    <button class="btn-action btn-reenviar" onclick="reenviarAlerta()">📤 Reenviar</button>
+                    <button class="btn-action btn-limpar" onclick="limparFormulario()">🧹 Limpar</button>
+                    <button class="btn-action btn-sair" onclick="sairSistema()">🚪 Sair</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/panic.js') }}"></script>
+    <script>
+        let ultimoAlerta = null;
+
+        function reenviarAlerta() {
+            if (!ultimoAlerta) {
+                alert('⚠️ Nenhum alerta para reenviar');
+                return;
+            }
+
+            if (confirm('Deseja reenviar o último alerta?')) {
+                // Reenvia o último alerta
+                fetch('/api/send_alert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ultimoAlerta)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        alert('✅ Alerta reenviado com sucesso!');
+                    } else {
+                        alert('❌ Erro ao reenviar alerta');
+                    }
+                })
+                .catch(err => {
+                    alert('❌ Erro ao reenviar alerta');
+                });
+            }
+        }
+
+        function limparFormulario() {
+            document.getElementById('name').value = '';
+            document.getElementById('message').value = '';
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            document.getElementById('status').textContent = '✅ Sistema pronto';
+            document.getElementById('status').className = 'alert alert-ok center';
+            ultimoAlerta = null;
+        }
+
+        function sairSistema() {
+            if (confirm('Deseja realmente sair do sistema de emergência?')) {
+                window.location.href = '/';
+            }
+        }
+
+        // Função para salvar o último alerta
+        function salvarUltimoAlerta(alerta) {
+            ultimoAlerta = alerta;
+        }
+    </script>
 </body>
 </html>

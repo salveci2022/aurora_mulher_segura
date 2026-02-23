@@ -1,18 +1,48 @@
+# Arquivos de cache e temporários
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Arquivo de ambiente
 .env
-venv/
 env/
+venv/
 ENV/
+
+# Build e distribuição
 dist/
 build/
 *.egg-info/
-instance/
-.webassets-cache
-.DS_Store
-*.db
-*.sqlite
-*.pdf
+
+# Arquivos de log
 *.log
+*.log.*
+
+# Arquivos de configuração do IDE
+.vscode/
+.idea/
+
+# Arquivos de teste
+tests/
+test_*.py
+*_test.py
+
+# Arquivos de dados temporários
+data/
+alerts.log
+state.json
+users.json
+
+# Arquivos de imagem temporários
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Arquivos de PDF temporários
+*.pdf
+
+# Arquivos de cache do navegador
+webcache/
+.cache/

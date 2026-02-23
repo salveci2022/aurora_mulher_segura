@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pessoa de Confiança - Aurora Mulher Segura</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#7a00ff">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .map-container {
@@ -12,7 +14,6 @@
             margin-top: 15px;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .map-container iframe {
             width: 100%;
@@ -26,29 +27,42 @@
             margin-top: 10px;
             border: 1px solid rgba(255, 98, 212, 0.28);
         }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-action {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-reenviar {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        .btn-limpar {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+            color: white;
+        }
+        .btn-sair {
+            background: linear-gradient(135deg, #f44336, #c62828);
+            color: white;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
         .alert-info {
             background: rgba(255, 121, 218, 0.1);
             padding: 15px;
             border-radius: 14px;
             margin-top: 15px;
             border-left: 4px solid #ff4fc8;
-        }
-        .pdf-btn {
-            background: linear-gradient(135deg, #4caf50, #2e7d32);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s;
-        }
-        .pdf-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
         }
     </style>
 </head>
@@ -65,8 +79,7 @@
                 </div>
                 <div class="top-actions">
                     <button onclick="testSiren()" class="pill">🔊 Sirene</button>
-                    <a href="/relatorio/pdf" class="pill pdf-btn" style="padding:7px 12px;background:linear-gradient(135deg,#4caf50,#2e7d32);">📄 PDF</a>
-                    <a href="/logout_trusted" class="pill">🚪 Sair</a>
+                    <a href="/relatorio/pdf" class="pill" style="background:linear-gradient(135deg,#4caf50,#2e7d32);">📄 PDF</a>
                 </div>
             </div>
 
@@ -95,6 +108,13 @@
                 <div id="mapContainer" class="map-container" style="display:none;">
                     <iframe id="mapFrame" src="" frameborder="0"></iframe>
                 </div>
+
+                <!-- Botões de Ação -->
+                <div class="action-buttons">
+                    <button class="btn-action btn-reenviar" onclick="reenviarAlerta()">📤 Reenviar</button>
+                    <button class="btn-action btn-limpar" onclick="limparAlerta()">🧹 Limpar</button>
+                    <button class="btn-action btn-sair" onclick="sairSistema()">🚪 Sair</button>
+                </div>
             </div>
         </div>
     </div>
@@ -105,6 +125,7 @@
         const siren = document.getElementById('sirenSound');
         let sirenUnlocked = false;
         let lastAlertId = null;
+        let alertaAtual = null;
 
         function testSiren() {
             sirenUnlocked = true;
@@ -130,6 +151,7 @@
                     
                     if (alert.id !== lastAlertId) {
                         lastAlertId = alert.id;
+                        alertaAtual = alert;
                         
                         const alertInfo = document.getElementById('alertInfo');
                         const mapContainer = document.getElementById('mapContainer');
@@ -182,6 +204,50 @@
                     console.error('Erro ao atualizar alertas:', err);
                     setTimeout(updateAlerts, 5000);
                 });
+        }
+
+        function reenviarAlerta() {
+            if (!alertaAtual) {
+                alert('⚠️ Nenhum alerta para reenviar');
+                return;
+            }
+
+            if (confirm('Deseja reenviar o último alerta para as pessoas de confiança?')) {
+                // Reenvia o alerta
+                fetch('/api/send_alert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(alertaAtual)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        alert('✅ Alerta reenviado com sucesso!');
+                    } else {
+                        alert('❌ Erro ao reenviar alerta');
+                    }
+                })
+                .catch(err => {
+                    alert('❌ Erro ao reenviar alerta');
+                });
+            }
+        }
+
+        function limparAlerta() {
+            const alertInfo = document.getElementById('alertInfo');
+            const mapContainer = document.getElementById('mapContainer');
+            const locationInfo = document.getElementById('locationInfo');
+
+            alertInfo.innerHTML = '<p class="center muted small">⏳ Aguardando alertas...</p>';
+            mapContainer.style.display = 'none';
+            locationInfo.style.display = 'none';
+            alertaAtual = null;
+        }
+
+        function sairSistema() {
+            if (confirm('Deseja realmente sair do painel da pessoa de confiança?')) {
+                window.location.href = '/trusted/login';
+            }
         }
 
         // Atualizar a cada 3 segundos

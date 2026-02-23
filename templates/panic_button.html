@@ -42,6 +42,86 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
+        .trusted-list {
+            background: rgba(40, 0, 60, 0.35);
+            padding: 15px;
+            border-radius: 14px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 98, 212, 0.28);
+        }
+        .trusted-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .trusted-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffd0f0;
+        }
+        .trusted-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .trusted-item {
+            background: rgba(20, 0, 28, 0.5);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            position: relative;
+        }
+        .trusted-name {
+            font-weight: bold;
+            font-size: 13px;
+            color: #ffd0f0;
+            margin-bottom: 5px;
+        }
+        .trusted-delete {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(244, 67, 54, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .trusted-delete:hover {
+            background: rgba(244, 67, 54, 1);
+            transform: scale(1.1);
+        }
+        .trusted-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+        }
+        .trusted-add-btn {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .trusted-add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
     </style>
 </head>
 <body class="aurora-bg">
@@ -80,6 +160,35 @@
                 <label class="label">Mensagem (opcional)</label>
                 <textarea id="message" class="textarea" placeholder="Digite uma mensagem adicional"></textarea>
 
+                <!-- Lista de Pessoas de Confiança -->
+                <div class="trusted-list">
+                    <div class="trusted-header">
+                        <div class="trusted-title">👥 Pessoas de Confiança</div>
+                        <span class="small muted">{{ trusted_names|length }} / 3</span>
+                    </div>
+                    {% if trusted_names and trusted_names|length > 0 %}
+                        <div class="trusted-grid">
+                            {% for name in trusted_names %}
+                            <div class="trusted-item">
+                                <button class="trusted-delete" onclick="deleteTrusted('{{ loop.index0 }}')" title="Excluir">✕</button>
+                                <div class="trusted-name">{{ name }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button class="trusted-add-btn" onclick="window.location.href='/panel/login'">
+                            ➕ Adicionar/Substituir Pessoa
+                        </button>
+                    {% else %}
+                        <div class="trusted-empty">
+                            <p>⚠️ Nenhuma pessoa cadastrada</p>
+                            <p class="small muted">Clique abaixo para cadastrar</p>
+                            <button class="trusted-add-btn" onclick="window.location.href='/panel/login'">
+                                ➕ Cadastrar Pessoa de Confiança
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
                 <div class="sos-wrap">
                     <button id="sosBtn" class="sos">
                         <div class="sos-text">SOS</div>
@@ -95,6 +204,13 @@
                     <button class="btn-action btn-limpar" onclick="limparFormulario()">🧹 Limpar</button>
                     <button class="btn-action btn-sair" onclick="sairSistema()">🚪 Sair</button>
                 </div>
+
+                <div class="info-box" style="margin-top: 15px;">
+                    <p class="small"><strong>ℹ️ Informações:</strong></p>
+                    <p class="small">• O alerta será enviado para todas as pessoas acima</p>
+                    <p class="small">• Clique no ✕ para excluir uma pessoa</p>
+                    <p class="small">• Limite: 3 pessoas de confiança</p>
+                </div>
             </div>
         </div>
     </div>
@@ -103,6 +219,13 @@
     <script>
         let ultimoAlerta = null;
 
+        function deleteTrusted(index) {
+            if (confirm('Deseja realmente excluir esta pessoa de confiança?')) {
+                // Redireciona para o painel admin para exclusão
+                window.location.href = '/panel/login?delete=' + index;
+            }
+        }
+
         function reenviarAlerta() {
             if (!ultimoAlerta) {
                 alert('⚠️ Nenhum alerta para reenviar');
@@ -110,7 +233,6 @@
             }
 
             if (confirm('Deseja reenviar o último alerta?')) {
-                // Reenvia o último alerta
                 fetch('/api/send_alert', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -143,11 +265,6 @@
             if (confirm('Deseja realmente sair do sistema de emergência?')) {
                 window.location.href = '/';
             }
-        }
-
-        // Função para salvar o último alerta
-        function salvarUltimoAlerta(alerta) {
-            ultimoAlerta = alerta;
         }
     </script>
 </body>

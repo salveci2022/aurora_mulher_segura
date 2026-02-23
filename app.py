@@ -88,14 +88,15 @@ def get_all_alerts():
     except Exception:
         return []
 
-# ===== ROTAS PRINCIPAIS =====
 @app.route('/')
 def index():
     return redirect(url_for('panic_button'))
 
 @app.route('/panic')
 def panic_button():
-    return render_template('panic_button.html')
+    users = load_users()
+    trusted_names = [info.get("name") or username for username, info in users.items() if info.get("role") == "trusted"]
+    return render_template('panic_button.html', trusted_names=trusted_names)
 
 @app.route('/api/send_alert', methods=['POST'])
 def api_send_alert():
@@ -144,7 +145,6 @@ def health():
         "state_file_ok": STATE_FILE.exists(),
     })
 
-# ===== RELATÓRIO EM PDF =====
 @app.route('/relatorio/pdf')
 def relatorio_pdf():
     """Gera relatório PDF com todos os alertas"""
@@ -154,20 +154,17 @@ def relatorio_pdf():
         pdf = FPDF()
         pdf.add_page()
         
-        # Cabeçalho
         pdf.set_font("Arial", "B", 16)
         pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
         pdf.set_font("Arial", "I", 12)
         pdf.cell(200, 10, txt="Relatório de Alertas de Emergência", ln=1, align="C")
         pdf.ln(10)
         
-        # Data e hora
         pdf.set_font("Arial", "", 10)
         pdf.cell(200, 8, txt=f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
         pdf.cell(200, 8, txt=f"Total de Alertas: {len(alerts)}", ln=1)
         pdf.ln(10)
         
-        # Estatísticas
         with_location = sum(1 for a in alerts if a.get('location'))
         without_location = len(alerts) - with_location
         
@@ -178,7 +175,6 @@ def relatorio_pdf():
         pdf.cell(200, 8, txt=f"• Alertas sem GPS: {without_location}", ln=1)
         pdf.ln(10)
         
-        # Tabela de alertas
         pdf.set_font("Arial", "B", 12)
         pdf.cell(200, 10, txt="HISTÓRICO DE ALERTAS", ln=1)
         pdf.ln(5)
@@ -208,12 +204,10 @@ def relatorio_pdf():
         
         pdf.ln(10)
         
-        # Rodapé
         pdf.set_font("Arial", "I", 8)
         pdf.cell(200, 8, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
         pdf.cell(200, 8, txt="Este relatório contém informações confidenciais de segurança", ln=1, align="C")
         
-        # Salvar PDF temporário
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
         
@@ -253,6 +247,17 @@ def admin_panel():
     users = load_users()
     trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
     
+    # Verifica se veio parâmetro de exclusão
+    delete_param = request.args.get('delete')
+    if delete_param and delete_param.isdigit():
+        trusted_list = [info for username, info in users.items() if info.get("role") == "trusted"]
+        if int(delete_param) < len(trusted_list):
+            username_to_delete = [u for u in users.keys() if users[u].get("role") == "trusted"][int(delete_param)]
+            users.pop(username_to_delete)
+            save_users(users)
+            flash("Pessoa de confiança removida com sucesso.", "ok")
+            return redirect(url_for('admin_panel'))
+    
     alerts = get_all_alerts()
     today = datetime.now().strftime('%Y-%m-%d')
     
@@ -264,6 +269,49 @@ def admin_panel():
     }
     
     return render_template('panel_admin.html', trusted=trusted, alerts=alerts, stats=stats)
+
+@app.route('/panel/add_trusted', methods=['POST'])
+def admin_add_trusted():
+    if session.get("role") != "admin":
+        return redirect(url_for('admin_login'))
+    
+    name = (request.form.get("trusted_name") or "").strip()
+    username = (request.form.get("trusted_user") or "").strip().lower()
+    password = (request.form.get("trusted_password") or "").strip()
+    
+    if not name or not username or not password:
+        return redirect("/panel?err=Preencha+nome,+usuario+e+senha")
+    
+    users = load_users()
+    if username in users:
+        return redirect("/panel?err=Este+usuario+ja+existe")
+    
+    trusted_users = [u for u, info in users.items() if info.get("role") == "trusted"]
+    if len(trusted_users) >= 3:
+        return redirect("/panel?err=Limite+de+3+pessoas+de+confianca+atingido")
+    
+    users[username] = {
+        "password": password,
+        "role": "trusted",
+        "name": name
+    }
+    save_users(users)
+    return redirect("/panel?msg=Pessoa+de+confianca+cadastrada")
+
+@app.route('/panel/delete_trusted', methods=['POST'])
+def admin_delete_trusted():
+    if session.get("role") != "admin":
+        return redirect(url_for('admin_login'))
+    
+    username = (request.form.get("username") or "").strip()
+    users = load_users()
+    
+    if username in users and users[username].get("role") == "trusted":
+        users.pop(username)
+        save_users(users)
+        return redirect("/panel?msg=Pessoa+removida")
+    
+    return redirect("/panel?err=Nao+foi+possivel+remover")
 
 @app.route('/logout_admin')
 def logout_admin():
@@ -301,7 +349,47 @@ def trusted_panel():
 @app.route('/logout_trusted')
 def logout_trusted():
     session.clear()
-    return redirect(url_for('trusted_login'))
+    return redirect(url_for('panic_button'))
+
+@app.route('/trusted/recover', methods=['GET', 'POST'])
+def trusted_recover():
+    msg, err = "", ""
+    if request.method == 'POST':
+        u = (request.form.get("user") or "").strip().lower()
+        new = (request.form.get("new_password") or "").strip()
+        users = load_users()
+        info = users.get(u)
+        if not info or info.get("role") != "trusted":
+            err = "Usuário não encontrado."
+        elif len(new) < 4:
+            err = "Senha muito curta (mínimo 4)."
+        else:
+            users[u]["password"] = new
+            save_users(users)
+            msg = "Senha redefinida. Faça login."
+    return render_template('trusted_recover.html', msg=msg, err=err)
+
+@app.route('/trusted/change_password', methods=['GET', 'POST'])
+def trusted_change_password():
+    if session.get("role") != "trusted":
+        return redirect(url_for('trusted_login'))
+    
+    msg, err = "", ""
+    if request.method == 'POST':
+        old = request.form.get("old_password") or ""
+        new = (request.form.get("new_password") or "").strip()
+        users = load_users()
+        u = session.get("trusted")
+        info = users.get(u)
+        if not info or info.get("password") != old:
+            err = "Senha atual incorreta."
+        elif len(new) < 4:
+            err = "Nova senha muito curta (mínimo 4)."
+        else:
+            users[u]["password"] = new
+            save_users(users)
+            msg = "Senha alterada com sucesso."
+    return render_template('trusted_change_password.html', msg=msg, err=err)
 
 if __name__ == '__main__':
     _ensure_files()

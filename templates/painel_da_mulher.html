@@ -269,7 +269,8 @@
         if (checkLocalizacao.checked) {
           try {
             const loc = await getLocalizacao();
-            alerta.location = loc;
+            alerta.lat = loc.lat;
+            alerta.lng = loc.lon;
             statusMsg.innerHTML = '📍 Localização obtida, enviando...';
           } catch (e) {
             console.warn('⚠️ Erro GPS:', e);

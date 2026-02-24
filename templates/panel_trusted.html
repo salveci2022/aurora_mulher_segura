@@ -360,3 +360,27 @@
     </script>
 </body>
 </html>
+<script>
+let lastAlertId = null;
+let sirene = new Audio("/static/sirene.mp3");
+
+setInterval(async ()=>{
+    try{
+        const r = await fetch("/api/check_alert");
+        const j = await r.json();
+        if(j.alert && j.alert.id !== lastAlertId){
+            lastAlertId = j.alert.id;
+            sirene.play();
+            let msg = "🚨 ALERTA RECEBIDO\n" + j.alert.situation;
+            if(j.alert.location){
+                const lat = j.alert.location.lat;
+                const lng = j.alert.location.lng;
+                const mapUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}`;
+                msg += "\n📍 " + lat + ", " + lng;
+                msg += "\nMapa: " + mapUrl;
+            }
+            alert(msg);
+        }
+    }catch(e){}
+},2000);
+</script>

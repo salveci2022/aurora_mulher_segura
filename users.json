@@ -4,19 +4,9 @@
     "role": "admin",
     "name": "Admin Aurora"
   },
-  "samara123": {
+  "karol3609": {
     "password": "36092745",
     "role": "trusted",
-    "name": "SAMARA"
-  },
-  "salveci123": {
-    "password": "36092745",
-    "role": "trusted",
-    "name": "salveci"
-  },
-  "carlos3609": {
-    "password": "36092745",
-    "role": "trusted",
-    "name": "CARLOS"
+    "name": "KAROL"
   }
 }

@@ -173,11 +173,7 @@ def relatorio_pdf():
         # Pega todos os alertas
         alerts = get_all_alerts()
         
-        # Configura para Unicode
         pdf = FPDF()
-        pdf.add_font('DejaVu', '', 'DejaVuSansCondensed.ttf', uni=True)
-        pdf.set_font('DejaVu', size=10)
-        
         pdf.add_page()
         
         # Cabeçalho

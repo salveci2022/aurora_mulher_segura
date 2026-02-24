@@ -14,6 +14,7 @@
             margin-top: 15px;
             border-radius: 14px;
             overflow: hidden;
+            display: none;
         }
         .map-container iframe {
             width: 100%;
@@ -59,6 +60,104 @@
             font-size: 12px;
             color: #ffd0f0;
         }
+        .alert-button {
+            width: 100%;
+            height: 150px;
+            border-radius: 50%;
+            margin-top: 20px;
+            background: linear-gradient(145deg, #388e3c, #1b5e20);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.5s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 0 14px rgba(255, 79, 200, 0.1), 0 0 0 32px rgba(164, 92, 255, 0.07), 0 20px 70px rgba(0, 0, 0, 0.55);
+        }
+        .alert-button::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+            transform: scale(0);
+            transition: transform 0.5s;
+        }
+        .alert-button.active {
+            background: linear-gradient(145deg, #d32f2f, #b71c1c);
+            animation: pulse 1.5s infinite;
+        }
+        .alert-button.active::before {
+            transform: scale(1);
+        }
+        .alert-button .status {
+            font-size: 28px;
+            margin-top: 10px;
+        }
+        .alert-button .message {
+            font-size: 18px;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-action {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-reenviar {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        .btn-limpar {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+            color: white;
+        }
+        .btn-sair {
+            background: linear-gradient(135deg, #f44336, #c62828);
+            color: white;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .map-button {
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .map-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
     </style>
 </head>
 <body class="aurora-bg">
@@ -75,7 +174,7 @@
                 <div class="top-actions">
                     <button onclick="testSiren()" class="pill">🔊 Sirene</button>
                     <a href="/relatorio/pdf" class="pdf-btn">📄 PDF</a>
-                    <a href="/logout_trusted" class="pill">🚪 Sair</a>
+                    <button onclick="sairSistema()" class="pill">🚪 Sair</button>
                 </div>
             </div>
 
@@ -83,16 +182,13 @@
                 <h1 class="h1">Central SOS</h1>
                 <p class="center muted small">Olá, <strong>{{ display_name }}</strong></p>
 
-                <div class="info-box">
-                    <p class="small"><strong>ℹ️ Informações:</strong></p>
-                    <p class="small">• Este painel recebe alertas em tempo real</p>
-                    <p class="small">• Clique em "🔊 Sirene" para liberar o áudio</p>
-                    <p class="small">• A sirene tocará automaticamente quando chegar alerta</p>
-                    <p class="small">• O mapa atualiza automaticamente</p>
-                </div>
-
                 <div id="sirenStatus" class="siren-status">
                     🔊 Sirene: <span id="sirenStatusText">Desativada</span>
+                </div>
+
+                <div id="alertButton" class="alert-button">
+                    <div class="status">🚨 AGUARDANDO ALERTA</div>
+                    <div class="message">Nenhum alerta recebido</div>
                 </div>
 
                 <div id="alertInfo">
@@ -102,11 +198,18 @@
                 <div class="alert-info" id="locationInfo" style="display:none;">
                     <p class="small"><strong>📍 Última Localização:</strong></p>
                     <p class="small" id="locationText"></p>
-                    <a href="#" id="openMapLink" class="link" target="_blank" style="display:block;margin-top:8px;">🗺️ Ver no Google Maps</a>
+                    <button id="openMapBtn" class="map-button">🗺️ Ver no Google Maps</button>
                 </div>
 
-                <div id="mapContainer" class="map-container" style="display:none;">
+                <div id="mapContainer" class="map-container">
                     <iframe id="mapFrame" src="" frameborder="0"></iframe>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="action-buttons">
+                    <button class="btn-action btn-reenviar" onclick="reenviarAlerta()">📤 Reenviar</button>
+                    <button class="btn-action btn-limpar" onclick="limparAlerta()">🧹 Limpar</button>
+                    <button class="btn-action btn-sair" onclick="sairSistema()">🚪 Sair</button>
                 </div>
             </div>
         </div>
@@ -118,6 +221,8 @@
         const siren = document.getElementById('sirenSound');
         let sirenUnlocked = false;
         let lastAlertId = null;
+        let alertaAtual = null;
+        const alertButton = document.getElementById('alertButton');
 
         function testSiren() {
             sirenUnlocked = true;
@@ -144,13 +249,14 @@
                     
                     if (alert.id !== lastAlertId) {
                         lastAlertId = alert.id;
+                        alertaAtual = alert;
                         
                         const alertInfo = document.getElementById('alertInfo');
                         const mapContainer = document.getElementById('mapContainer');
                         const mapFrame = document.getElementById('mapFrame');
                         const locationInfo = document.getElementById('locationInfo');
                         const locationText = document.getElementById('locationText');
-                        const openMapLink = document.getElementById('openMapLink');
+                        const openMapBtn = document.getElementById('openMapBtn');
 
                         // Exibir informações do alerta
                         alertInfo.innerHTML = `
@@ -163,6 +269,13 @@
                             </div>
                         `;
 
+                        // Atualizar botão de alerta
+                        alertButton.className = 'alert-button active';
+                        alertButton.innerHTML = `
+                            <div class="status">🚨 ALERTA RECEBIDO</div>
+                            <div class="message">${alert.name} - ${alert.situation}</div>
+                        `;
+
                         // Exibir localização e mapa se disponível
                         if (alert.location) {
                             const lat = alert.location.lat;
@@ -171,13 +284,12 @@
                             locationText.textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
                             locationInfo.style.display = 'block';
                             
-                            openMapLink.href = `https://www.google.com/maps?q=${lat},${lng}&z=16`;
-                            
-                            mapFrame.src = `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
-                            mapContainer.style.display = 'block';
+                            openMapBtn.onclick = () => {
+                                mapContainer.style.display = 'block';
+                                mapFrame.src = `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+                            };
                         } else {
                             locationInfo.style.display = 'none';
-                            mapContainer.style.display = 'none';
                         }
 
                         // Tocar sirene
@@ -196,6 +308,56 @@
                     console.error('Erro ao atualizar alertas:', err);
                     setTimeout(updateAlerts, 5000);
                 });
+        }
+
+        function reenviarAlerta() {
+            if (!alertaAtual) {
+                alert('⚠️ Nenhum alerta para reenviar');
+                return;
+            }
+
+            if (confirm('Deseja reenviar o último alerta?')) {
+                // Reenvia o alerta
+                fetch('/api/send_alert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(alertaAtual)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) {
+                        alert('✅ Alerta reenviado com sucesso!');
+                    } else {
+                        alert('❌ Erro ao reenviar alerta');
+                    }
+                })
+                .catch(err => {
+                    alert('❌ Erro ao reenviar alerta');
+                });
+            }
+        }
+
+        function limparAlerta() {
+            const alertInfo = document.getElementById('alertInfo');
+            const locationInfo = document.getElementById('locationInfo');
+            const mapContainer = document.getElementById('mapContainer');
+            const alertButton = document.getElementById('alertButton');
+
+            alertInfo.innerHTML = '<p class="center muted small">⏳ Aguardando alertas...</p>';
+            locationInfo.style.display = 'none';
+            mapContainer.style.display = 'none';
+            alertButton.className = 'alert-button';
+            alertButton.innerHTML = `
+                <div class="status">🚨 AGUARDANDO ALERTA</div>
+                <div class="message">Nenhum alerta recebido</div>
+            `;
+            alertaAtual = null;
+        }
+
+        function sairSistema() {
+            if (confirm('Deseja realmente sair do painel da pessoa de confiança?')) {
+                window.location.href = '/trusted/login';
+            }
         }
 
         // Atualizar a cada 3 segundos

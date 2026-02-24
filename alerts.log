@@ -4,3 +4,18 @@
 {"id": 4, "ts": "2026-02-22 20:40:09", "name": "carlos", "situation": "Violência física", "message": "", "location": {"lat": -16.02008581131627, "lng": -48.0206459426026}}
 {"id": 5, "ts": "2026-02-22 20:43:42", "name": "carlos", "situation": "Agressão verbal / ameaça", "message": "", "location": {"lat": -16.02009771963316, "lng": -48.020719951908134}}
 {"id": 6, "ts": "2026-02-22 21:07:36", "name": "MARISA", "situation": "Agressão verbal / ameaça", "message": "", "location": {"lat": -16.020140693873493, "lng": -48.02063770099165}}
+{"id": 7, "ts": "2026-02-23 23:15:32", "name": "MARINA", "situation": "Violência física", "message": "", "location": {"lat": -16.020084136381207, "lng": -48.020763083996464}}
+{"id": 8, "ts": "2026-02-23 23:15:32", "name": "MARINA", "situation": "Violência física", "message": "", "location": {"lat": -16.020084136381207, "lng": -48.020763083996464}}
+{"id": 9, "ts": "2026-02-23 23:16:23", "name": "MARINA", "situation": "Violência física", "message": "", "location": {"lat": -16.020266893001857, "lng": -48.02065083353341}}
+{"id": 10, "ts": "2026-02-23 23:16:37", "name": "MARINA", "situation": "Agressão verbal / ameaça", "message": "", "location": {"lat": -16.020235030939293, "lng": -48.02064709154228}}
+{"id": 11, "ts": "2026-02-23 23:17:19", "name": "MARINA", "situation": "Sequestro", "message": "", "location": {"lat": -16.020229903899143, "lng": -48.02064750082508}}
+{"id": 12, "ts": "2026-02-23 23:35:14", "name": "marisa", "situation": "Agressão verbal / ameaça", "message": "", "location": {"lat": -16.02009465524249, "lng": -48.02064374108938}}
+{"id": 13, "ts": "2026-02-23 23:35:14", "name": "marisa", "situation": "Agressão verbal / ameaça", "message": "", "location": {"lat": -16.02009465524249, "lng": -48.02064374108938}}
+{"id": 14, "ts": "2026-02-23 23:46:09", "name": "carlos", "situation": "Violência física", "message": "", "location": {"lat": -16.020142136502916, "lng": -48.020711900306594}}
+{"id": 15, "ts": "2026-02-23 23:46:25", "name": "carlos", "situation": "Violência física", "message": "", "location": null}
+{"id": 16, "ts": "2026-02-23 23:47:12", "name": "carlos", "situation": "Violência física", "message": "", "location": {"lat": -16.020214844011882, "lng": -48.020710759701196}}
+{"id": 17, "ts": "2026-02-23 23:47:28", "name": "carlos", "situation": "Violência física", "message": "", "location": null}
+{"id": 18, "ts": "2026-02-23 23:48:08", "name": "carlos", "situation": "Violência física", "message": "", "location": {"lat": -16.020212511902614, "lng": -48.020723989943185}}
+{"id": 18, "ts": "2026-02-23 23:48:08", "name": "carlos", "situation": "Violência física", "message": "", "location": {"lat": -16.020212511902614, "lng": -48.020723989943185}}
+{"id": 18, "ts": "2026-02-23 23:48:08", "name": "carlos", "situation": "Violência física", "message": "", "location": {"lat": -16.020212511902614, "lng": -48.020723989943185}}
+{"id": 19, "ts": "2026-02-24 00:18:03", "name": "carlos", "situation": "Violência física", "message": "", "location": null}

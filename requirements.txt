@@ -1,5 +1,4 @@
-flask
-flask-cors
-gunicorn
-fpdf
-pytz
+Flask==3.0.3
+gunicorn==22.0.0
+flask-cors==4.0.0
+fpdf==1.7.2

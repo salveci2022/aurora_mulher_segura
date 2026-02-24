@@ -60,51 +60,45 @@
             font-size: 12px;
             color: #ffd0f0;
         }
+        /* CORREÇÃO DO BOTÃO REDONDO */
         .alert-button {
             width: 100%;
-            height: 150px;
-            border-radius: 50%;
+            height: 230px; /* Mantém a mesma altura do botão da mulher */
+            border-radius: 999px; /* Garante redondidade */
             margin-top: 20px;
-            background: linear-gradient(145deg, #388e3c, #1b5e20);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
+            background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
+            display: grid;
+            place-items: center;
+            text-align: center;
             color: white;
             font-size: 18px;
             font-weight: bold;
-            text-align: center;
             transition: all 0.5s;
             position: relative;
             overflow: hidden;
             box-shadow: 0 0 0 14px rgba(255, 79, 200, 0.1), 0 0 0 32px rgba(164, 92, 255, 0.07), 0 20px 70px rgba(0, 0, 0, 0.55);
-        }
-        .alert-button::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
-            transform: scale(0);
-            transition: transform 0.5s;
-        }
-        .alert-button.active {
-            background: linear-gradient(145deg, #d32f2f, #b71c1c);
-            animation: pulse 1.5s infinite;
-        }
-        .alert-button.active::before {
-            transform: scale(1);
+            user-select: none;
         }
         .alert-button .status {
             font-size: 28px;
             margin-top: 10px;
+            letter-spacing: 0.18em;
+            font-weight: 1000;
+            color: #180013;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
         }
         .alert-button .message {
             font-size: 18px;
             margin-top: 5px;
             font-weight: normal;
+        }
+        .alert-button.active {
+            background: radial-gradient(circle at 50% 45%, rgba(255, 79, 200, 0.95), rgba(182, 28, 28, 0.65) 55%, rgba(40, 0, 60, 0.75));
+            animation: pulse 1.5s infinite;
+        }
+        .alert-button.active .status {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
         }
         @keyframes pulse {
             0% { transform: scale(1); }

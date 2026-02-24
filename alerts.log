@@ -21,3 +21,5 @@
 {"id": 19, "ts": "2026-02-24 00:18:03", "name": "carlos", "situation": "Violência física", "message": "", "location": null}
 {"id": 20, "ts": "2026-02-24 00:33:21", "name": "maria", "situation": "Violência física", "message": "", "location": {"lat": -16.020031820522544, "lng": -48.020724449759655}}
 {"id": 21, "ts": "2026-02-24 00:33:21", "name": "maria", "situation": "Violência física", "message": "", "location": {"lat": -16.020031820522544, "lng": -48.020724449759655}}
+{"id": 22, "ts": "2026-02-24 10:45:41", "name": "MARCIA", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lng": -48.0207862494469}}
+{"id": 23, "ts": "2026-02-24 10:45:41", "name": "MARCIA", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lng": -48.0207862494469}}

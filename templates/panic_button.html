@@ -98,6 +98,64 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
         }
+        .pdf-button {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .pdf-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        .sos-button {
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            margin-top: 20px;
+            background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
+            display: grid;
+            place-items: center;
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.5s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 0 14px rgba(255, 79, 200, 0.1), 0 0 0 32px rgba(164, 92, 255, 0.07), 0 20px 70px rgba(0, 0, 0, 0.55);
+            user-select: none;
+        }
+        .sos-button .sos-text {
+            font-size: 44px;
+            letter-spacing: 0.18em;
+            font-weight: 1000;
+            color: #180013;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+        .sos-button .sos-sub {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 1000;
+            letter-spacing: 0.08em;
+            color: #220019;
+        }
+        .sos-button.holding {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            70% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="aurora-bg">
@@ -162,8 +220,13 @@
                     {% endif %}
                 </div>
 
+                <!-- Botão PDF -->
+                <button class="pdf-button" onclick="window.location.href='/relatorio/pdf'">
+                    📄 Baixar Relatório Completo
+                </button>
+
                 <div class="sos-wrap">
-                    <button id="sosBtn" class="sos">
+                    <button id="sosBtn" class="sos-button">
                         <div class="sos-text">SOS</div>
                         <div class="sos-sub">TOQUE E SEGURE</div>
                     </button>

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_file
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session, send_file, make_response
 from flask_cors import CORS
 from datetime import datetime
 import os
@@ -22,6 +22,17 @@ STATIC_DIR = BASE_DIR / "static"
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
 STATE_FILE = BASE_DIR / "state.json"
+
+# ===== EVITAR CACHE PARA ARQUIVOS ESTÁTICOS =====
+@app.before_request
+def before_request():
+    # Para evitar cache
+    if request.path.startswith('/static/'):
+        response = make_response()
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 
 def _ensure_files():
     """Cria arquivos necessários se não existirem"""
@@ -170,7 +181,6 @@ def health():
 def relatorio_pdf():
     """Gera relatório PDF com todos os alertas - CORRIGIDO"""
     try:
-        # Pega todos os alertas
         alerts = get_all_alerts()
         
         pdf = FPDF()
@@ -180,7 +190,7 @@ def relatorio_pdf():
         pdf.set_font("Arial", "B", 16)
         pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
         pdf.set_font("Arial", "I", 12)
-        pdf.cell(200, 10, txt="Relatório de Alertas de Emergência", ln=1, align="C")
+        pdf.cell(200, 10, txt="Relatorio de Alertas de Emergencia", ln=1, align="C")
         pdf.ln(10)
         
         # Data e hora no horário do Brasil
@@ -196,23 +206,23 @@ def relatorio_pdf():
         without_location = len(alerts) - with_location
         
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(200, 10, txt="ESTATÍSTICAS", ln=1)
+        pdf.cell(200, 10, txt="ESTATISTICAS", ln=1)
         pdf.set_font("Arial", "", 10)
-        pdf.cell(200, 8, txt=f"• Alertas com GPS: {with_location}", ln=1)
-        pdf.cell(200, 8, txt=f"• Alertas sem GPS: {without_location}", ln=1)
+        pdf.cell(200, 8, txt=f"* Alertas com GPS: {with_location}", ln=1)
+        pdf.cell(200, 8, txt=f"* Alertas sem GPS: {without_location}", ln=1)
         pdf.ln(10)
         
         # Tabela de alertas
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(200, 10, txt="HISTÓRICO DE ALERTAS", ln=1)
+        pdf.cell(200, 10, txt="HISTORICO DE ALERTAS", ln=1)
         pdf.ln(5)
         
         pdf.set_font("Arial", "B", 9)
         pdf.cell(25, 8, txt="ID", border=1)
         pdf.cell(40, 8, txt="DATA/HORA", border=1)
-        pdf.cell(35, 8, txt="USUÁRIA", border=1)
-        pdf.cell(45, 8, txt="SITUAÇÃO", border=1)
-        pdf.cell(45, 8, txt="LOCALIZAÇÃO", border=1)
+        pdf.cell(35, 8, txt="USUARIA", border=1)
+        pdf.cell(45, 8, txt="SITUACAO", border=1)
+        pdf.cell(45, 8, txt="LOCALIZACAO", border=1)
         pdf.ln()
         
         pdf.set_font("Arial", "", 8)
@@ -221,7 +231,6 @@ def relatorio_pdf():
             ts = alert.get('ts', '')
             if ts:
                 try:
-                    # Converte o horário para o formato correto
                     dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
                     dt_br = dt.replace(tzinfo=pytz.utc).astimezone(BR_TZ)
                     formatted_ts = dt_br.strftime("%d/%m/%Y %H:%M:%S")
@@ -239,7 +248,7 @@ def relatorio_pdf():
             if loc:
                 loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
             else:
-                loc_str = "Não disponível"
+                loc_str = "Nao disponivel"
             pdf.cell(45, 6, txt=loc_str[:40], border=1)
             pdf.ln()
         
@@ -248,7 +257,7 @@ def relatorio_pdf():
         # Rodapé
         pdf.set_font("Arial", "I", 8)
         pdf.cell(200, 8, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
-        pdf.cell(200, 8, txt="Este relatório contém informações confidenciais de segurança", ln=1, align="C")
+        pdf.cell(200, 8, txt="Este relatorio contem informacoes confidenciais de seguranca", ln=1, align="C")
         
         # Salvar PDF temporário
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
@@ -263,6 +272,8 @@ def relatorio_pdf():
         
     except Exception as e:
         print(f"Erro ao gerar PDF: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ===== ADMIN =====
@@ -392,13 +403,13 @@ def trusted_recover():
         users = load_users()
         info = users.get(u)
         if not info or info.get("role") != "trusted":
-            err = "Usuário não encontrado."
+            err = "Usuario nao encontrado."
         elif len(new) < 4:
-            err = "Senha muito curta (mínimo 4)."
+            err = "Senha muito curta (minimo 4)."
         else:
             users[u]["password"] = new
             save_users(users)
-            msg = "Senha redefinida. Faça login."
+            msg = "Senha redefinida. Faca login."
     return render_template('trusted_recover.html', msg=msg, err=err)
 
 @app.route('/trusted/change_password', methods=['GET', 'POST'])
@@ -416,7 +427,7 @@ def trusted_change_password():
         if not info or info.get("password") != old:
             err = "Senha atual incorreta."
         elif len(new) < 4:
-            err = "Nova senha muito curta (mínimo 4)."
+            err = "Nova senha muito curta (minimo 4)."
         else:
             users[u]["password"] = new
             save_users(users)

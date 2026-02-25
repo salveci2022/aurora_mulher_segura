@@ -8,299 +8,430 @@
   <meta charset="utf-8">
   <title>Aurora - Botão de Pânico</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    /* ESTILOS AURORA - BASEADO NO DRIVER SHIELD */
-    :root {
-      --aurora-pink: #ff4fc8;
-      --aurora-purple: #a45cff;
-      --aurora-bg: #0a0014;
+    /* MESMO ESTILO DO PAINEL DA MULHER E PANEL_TRUSTED */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
     }
     
-    /* Ajustes gerais para mobile */
-    @media (max-width: 768px) {
-      .container {
-        padding: 10px;
-      }
-      
-      .card {
-        padding: 20px;
-        margin-bottom: 10px;
-      }
-      
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-      
-      .row {
-        width: 100%;
-        justify-content: space-between;
-      }
-      
-      .btn.small {
-        padding: 12px 10px;
-        font-size: 14px;
-        flex: 1;
-        text-align: center;
-      }
-      
-      /* Força grid de uma coluna no mobile */
-      .grid {
-        grid-template-columns: 1fr !important;
-        gap: 15px;
-      }
-      
-      /* Botão de Pânico maior no celular */
-      .sos-btn {
-        width: 220px !important;
-        height: 220px !important;
-        font-size: 42px !important;
-      }
-      
-      /* Texto de localização mais legível */
-      #locTxt {
-        font-size: 14px;
-        word-break: break-word;
-      }
-      
-      /* Botões de situação maiores */
-      .situation-btn {
-        font-size: 16px !important;
-        padding: 16px !important;
-        min-height: 65px !important;
-      }
-    }
-    
-    /* Estilos para os botões de situação (baseado no motorista) */
-    .situation-btn {
-      transition: all 0.2s;
-      font-size: 15px;
-      text-align: left;
-      min-height: 55px;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      opacity: 0.85;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      border-radius: 12px;
-      padding: 12px;
-      width: 100%;
-      color: white;
-    }
-    
-    .situation-btn.active {
-      transform: scale(1.02);
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.7), 0 4px 8px rgba(0,0,0,0.4);
-      opacity: 1 !important;
-    }
-    
-    .situation-btn:active {
-      transform: scale(0.98);
-      opacity: 0.9;
-    }
-    
-    /* Grid de situações */
-    .situation-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin: 20px 0;
-    }
-    
-    /* Cores das situações */
-    .situation-btn[data-value="Assédio"] {
-      background: #c44536;
-    }
-    
-    .situation-btn[data-value="Violência"] {
-      background: #c44536;
-    }
-    
-    .situation-btn[data-value="Perseguição"] {
-      background: #c44536;
-    }
-    
-    .situation-btn[data-value="Emergência médica"] {
-      background: #2a9d8f;
-    }
-    
-    .situation-btn[data-value="Local suspeito"] {
-      background: #4a6fa5;
-    }
-    
-    .situation-btn[data-value="Outro"] {
-      background: #6c757d;
-      grid-column: span 2;
-    }
-    
-    /* Em telas muito pequenas, uma coluna */
-    @media (max-width: 480px) {
-      .situation-grid {
-        grid-template-columns: 1fr !important;
-      }
-      
-      .situation-btn[data-value="Outro"] {
-        grid-column: span 1;
-      }
-      
-      .situation-btn {
-        font-size: 16px;
-        padding: 16px !important;
-        min-height: 60px;
-      }
-      
-      .sos-btn {
-        width: 200px !important;
-        height: 200px !important;
-        font-size: 38px !important;
-      }
-    }
-    
-    /* Melhorias gerais de toque */
-    .btn, .situation-btn, .sos-btn, select, input {
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    /* Evita zoom automático em inputs no iOS */
-    select, input, textarea {
-      font-size: 16px !important;
-    }
-    
-    /* Container do botão SOS */
-    .sos-wrap {
+    body {
+      background: linear-gradient(135deg, #1a0033, #2d005a);
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
     }
     
-    /* Botão SOS */
+    .painel-principal {
+      max-width: 480px;
+      width: 100%;
+      background: linear-gradient(145deg, #2d005a, #1a0033);
+      border-radius: 40px;
+      padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,79,200,0.3);
+    }
+    
+    /* HEADER */
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(255,79,200,0.3);
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .brand-dot {
+      width: 45px;
+      height: 45px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,121,218,0.9), rgba(164,92,255,0.75));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 0 25px rgba(255,79,200,0.5);
+    }
+    
+    .brand-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .brand-sub {
+      font-size: 12px;
+      color: #cdb7e6;
+    }
+    
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .pill {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,79,200,0.3);
+      padding: 8px 16px;
+      border-radius: 30px;
+      color: white;
+      text-decoration: none;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .pill:hover {
+      background: rgba(255,79,200,0.3);
+    }
+    
+    /* TÍTULO */
+    .h1 {
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    
+    .center {
+      text-align: center;
+    }
+    
+    .muted {
+      color: #cdb7e6;
+    }
+    
+    .small {
+      font-size: 14px;
+    }
+    
+    /* SEÇÃO DE SITUAÇÃO */
+    .section-title {
+      color: #ffb0f0;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .situation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .situation-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,79,200,0.2);
+      border-radius: 20px;
+      padding: 16px 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+    }
+    
+    .situation-btn:hover {
+      background: rgba(255,79,200,0.15);
+      border-color: #ff4fc8;
+      transform: translateY(-2px);
+    }
+    
+    .situation-btn.active {
+      background: linear-gradient(145deg, rgba(255,79,200,0.25), rgba(164,92,255,0.25));
+      border-color: #ff4fc8;
+      box-shadow: 0 0 20px rgba(255,79,200,0.3);
+    }
+    
+    .situation-btn span {
+      font-size: 20px;
+    }
+    
+    /* CAMPOS DE INPUT */
+    .campo {
+      margin-bottom: 20px;
+    }
+    
+    .campo label {
+      display: block;
+      color: #cdb7e6;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .input, textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255,79,200,0.3);
+      border-radius: 20px;
+      padding: 15px 18px;
+      color: white;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    
+    .input:focus, textarea:focus {
+      outline: none;
+      border-color: #ff4fc8;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    
+    select.input {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff4fc8'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+      background-size: 20px;
+    }
+    
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    
+    /* BOTÃO SOS */
+    .sos-container {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0 20px;
+    }
+    
     .sos-btn {
       width: 200px;
       height: 200px;
-      border-radius: 999px;
-      font-size: 38px;
-      font-weight: 1000;
-      border: 0;
+      background: radial-gradient(circle at 50% 45%, rgba(255,79,200,0.95), rgba(164,92,255,0.8) 55%, rgba(40,0,60,0.9));
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
       cursor: pointer;
-      color: #fff;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.18), transparent 50%),
-                  linear-gradient(135deg, var(--aurora-pink), var(--aurora-purple));
-      box-shadow: 0 28px 80px rgba(0,0,0,.65);
+      box-shadow: 0 0 0 10px rgba(255,79,200,0.2), 0 0 0 20px rgba(164,92,255,0.1), 0 20px 40px rgba(0,0,0,0.6);
+      border: 4px solid rgba(255,255,255,0.2);
       transition: all 0.3s;
+      font-weight: bold;
+    }
+    
+    .sos-btn span {
+      font-size: 48px;
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    
+    .sos-btn small {
+      font-size: 14px;
+      letter-spacing: 1px;
+      margin-top: 5px;
+      color: rgba(255,255,255,0.9);
     }
     
     .sos-btn.sent {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
+      background: radial-gradient(circle at 50% 45%, #4caf50, #2e7d32);
+      box-shadow: 0 0 0 10px rgba(76,175,80,0.2), 0 0 0 20px rgba(76,175,80,0.1);
     }
     
     .sos-btn:active {
       transform: scale(0.95);
     }
     
-    /* Nome da usuária */
-    .user-name {
-      background: rgba(255,255,255,0.1);
+    /* STATUS */
+    .status-box {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,79,200,0.3);
+      border-radius: 30px;
       padding: 15px;
-      border-radius: 16px;
-      margin: 15px 0;
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--aurora-pink);
+      margin: 20px 0;
       text-align: center;
+      color: white;
+      font-size: 14px;
+    }
+    
+    /* LOCALIZAÇÃO */
+    .location-box {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,79,200,0.3);
+      border-radius: 20px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    
+    .location-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffb0f0;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    #locTxt {
+      background: rgba(0,0,0,0.3);
+      border-radius: 16px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #a0e0ff;
+      word-break: break-all;
+    }
+    
+    #locHint {
+      color: #cdb7e6;
+      font-size: 12px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    
+    /* RODAPÉ */
+    .rodape {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 2px solid rgba(255,79,200,0.3);
+      color: #cdb7e6;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    /* UTILITÁRIOS */
+    hr {
+      border: none;
+      border-top: 1px solid rgba(255,79,200,0.3);
+      margin: 15px 0;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="card">
-      <div class="header">
-        <div class="title" style="color: #ff4fc8;">🌸 Aurora Mulher Segura</div>
-        <div class="row">
-          <button class="btn small" onclick="goFull()">⛶ Tela cheia</button>
-          <button class="btn small" onclick="location.reload()">🔄 Atualizar</button>
-          <a class="btn small" href="/">Sair</a>
+  <div class="painel-principal">
+    <!-- TOPO -->
+    <div class="topo">
+      <div class="brand">
+        <div class="brand-dot">🌸</div>
+        <div>
+          <div class="brand-title">AURORA</div>
+          <div class="brand-sub">Mulher Segura</div>
         </div>
       </div>
-
-      <div class="grid">
-        <div class="card">
-          <div class="title" style="font-size:18px; color: #ff4fc8;">🚨 Situação</div>
-          
-          <!-- Select original oculto (mantido para compatibilidade com backend) -->
-          <select id="situationSelect" style="display: none;">
-            <option value="Assédio">Assédio</option>
-            <option value="Violência">Violência</option>
-            <option value="Perseguição">Perseguição</option>
-            <option value="Emergência médica">Emergência médica</option>
-            <option value="Local suspeito">Local suspeito</option>
-            <option value="Outro">Outro</option>
-          </select>
-
-          <!-- Botões visíveis de situação -->
-          <div class="situation-grid">
-            <button type="button" class="situation-btn active" data-value="Assédio">
-              🚫 Assédio
-            </button>
-            <button type="button" class="situation-btn" data-value="Violência">
-              👊 Violência
-            </button>
-            <button type="button" class="situation-btn" data-value="Perseguição">
-              👀 Perseguição
-            </button>
-            <button type="button" class="situation-btn" data-value="Emergência médica">
-              🏥 Emergência médica
-            </button>
-            <button type="button" class="situation-btn" data-value="Local suspeito">
-              ⚠️ Local suspeito
-            </button>
-            <button type="button" class="situation-btn" data-value="Outro">
-              ❓ Outro
-            </button>
-          </div>
-
-          <!-- Nome da usuária (pré-selecionado das pessoas de confiança) -->
-          <label>Seu nome</label>
-          <select id="userNameSelect" class="input">
-            {% for name in trusted_names %}
-              <option value="{{ name }}">{{ name }}</option>
-            {% endfor %}
-            <option value="Outro">Outro (escrever abaixo)</option>
-          </select>
-          
-          <input id="customNameInput" class="input" style="margin-top: 10px; display: none;" placeholder="Digite seu nome">
-
-          <!-- Mensagem opcional -->
-          <label>Mensagem (opcional)</label>
-          <textarea id="messageInput" class="input" rows="2" placeholder="Descreva a situação..."></textarea>
-        </div>
-
-        <div class="card">
-          <div class="title" style="font-size:18px; color: #ff4fc8;">🚨 Botão de Pânico</div>
-
-          <div class="sos-wrap">
-            <button id="sosBtn" class="sos-btn" onclick="enviar()">SOS</button>
-          </div>
-
-          <div id="status" class="notice" style="text-align: center; margin: 15px 0;">
-            Clique em <b>SOS</b> para enviar alerta com localização.
-          </div>
-
-          <hr>
-
-          <div class="title" style="font-size:18px; color: #ff4fc8;">📍 Localização</div>
-          <div class="notice" id="locTxt">Aguardando localização…</div>
-          <div class="notice" style="margin-top:8px; font-size:14px; color: #cdb7e6;" id="locHint">
-            Dica: ative o GPS e permita o acesso à localização.
-          </div>
-        </div>
+      <div class="top-actions">
+        <button class="pill" onclick="goFull()">⛶</button>
+        <button class="pill" onclick="location.reload()">↻</button>
+        <a class="pill" href="/">✕</a>
       </div>
+    </div>
+
+    <!-- TÍTULO -->
+    <h1 class="h1">🚨 BOTÃO DE PÂNICO</h1>
+    <p class="center muted small">Toque no botão SOS para enviar alerta</p>
+
+    <!-- SITUAÇÃO -->
+    <div class="section-title">
+      <span>⚠️</span> SITUAÇÃO
+    </div>
+    
+    <!-- Select oculto para compatibilidade -->
+    <select id="situationSelect" style="display: none;">
+      <option value="Assédio">Assédio</option>
+      <option value="Violência">Violência</option>
+      <option value="Perseguição">Perseguição</option>
+      <option value="Emergência médica">Emergência médica</option>
+      <option value="Local suspeito">Local suspeito</option>
+      <option value="Outro">Outro</option>
+    </select>
+
+    <div class="situation-grid">
+      <button type="button" class="situation-btn active" data-value="Assédio">
+        <span>🚫</span> Assédio
+      </button>
+      <button type="button" class="situation-btn" data-value="Violência">
+        <span>👊</span> Violência
+      </button>
+      <button type="button" class="situation-btn" data-value="Perseguição">
+        <span>👀</span> Perseguição
+      </button>
+      <button type="button" class="situation-btn" data-value="Emergência médica">
+        <span>🏥</span> Emergência médica
+      </button>
+      <button type="button" class="situation-btn" data-value="Local suspeito">
+        <span>⚠️</span> Local suspeito
+      </button>
+      <button type="button" class="situation-btn" data-value="Outro">
+        <span>❓</span> Outro
+      </button>
+    </div>
+
+    <!-- NOME -->
+    <div class="campo">
+      <label>👤 SEU NOME</label>
+      <select id="userNameSelect" class="input">
+        {% for name in trusted_names %}
+          <option value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+        <option value="Outro">Outro (digitar abaixo)</option>
+      </select>
+      <input id="customNameInput" class="input" style="margin-top: 10px; display: none;" placeholder="Digite seu nome">
+    </div>
+
+    <!-- MENSAGEM -->
+    <div class="campo">
+      <label>💬 MENSAGEM (OPCIONAL)</label>
+      <textarea id="messageInput" rows="2" placeholder="Descreva a situação..."></textarea>
+    </div>
+
+    <!-- BOTÃO SOS -->
+    <div class="sos-container">
+      <button id="sosBtn" class="sos-btn" onclick="enviar()">
+        <span>SOS</span>
+        <small>TOQUE</small>
+      </button>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-box" id="status">
+      🌸 Sistema pronto
+    </div>
+
+    <hr>
+
+    <!-- LOCALIZAÇÃO -->
+    <div class="location-title">
+      <span>📍</span> LOCALIZAÇÃO
+    </div>
+    <div class="location-box">
+      <div id="locTxt">Aguardando GPS...</div>
+      <div id="locHint">Ative o GPS e permita o acesso à localização</div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="rodape">
+      <span>🌸 POR PTB2</span>
+      <span id="dataHora"></span>
     </div>
   </div>
 
@@ -310,7 +441,20 @@
       if (el.requestFullscreen) el.requestFullscreen();
     }
 
-    // ===== LOCALIZAÇÃO - MESMA TECNOLOGIA DO DRIVER SHIELD =====
+    // ===== DATA E HORA =====
+    function atualizarDataHora() {
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, '0');
+      const minutos = agora.getMinutes().toString().padStart(2, '0');
+      const dia = agora.getDate().toString().padStart(2, '0');
+      const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
+      const ano = agora.getFullYear();
+      document.getElementById('dataHora').textContent = `${horas}:${minutos} ${dia}/${mes}/${ano}`;
+    }
+    setInterval(atualizarDataHora, 1000);
+    atualizarDataHora();
+
+    // ===== LOCALIZAÇÃO =====
     let lastPos = null;
     let watchId = null;
 
@@ -320,46 +464,49 @@
 
     function startLocation() {
       if (!navigator.geolocation) {
-        setLocText('❌ Geolocalização não disponível neste dispositivo.');
+        setLocText('❌ GPS não disponível');
         return;
       }
 
-      // Limpa watch anterior se existir
-      if (watchId != null) {
-        try { navigator.geolocation.clearWatch(watchId); } catch (e) { }
-      }
+      if (watchId) navigator.geolocation.clearWatch(watchId);
 
-      watchId = navigator.geolocation.watchPosition((pos) => {
-        lastPos = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          acc: pos.coords.accuracy
-        };
-        setLocText(`📍 Lat: ${lastPos.lat.toFixed(6)} | Lng: ${lastPos.lng.toFixed(6)} (precisão: ~${Math.round(lastPos.acc)}m)`);
-      }, (err) => {
-        let msg = '⚠️ Permita o acesso à localização no navegador/celular.';
-        if (err.code === 1) msg = '❌ Permissão negada. Ative a localização nas configurações.';
-        else if (err.code === 2) msg = '❌ Posição indisponível. Verifique o GPS.';
-        else if (err.code === 3) msg = '⏳ Timeout. Tente novamente.';
-        setLocText(msg);
-      }, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 5000
-      });
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          lastPos = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            acc: pos.coords.accuracy
+          };
+          
+          let cor = lastPos.acc <= 10 ? '#4caf50' : lastPos.acc <= 30 ? '#4caf50' : lastPos.acc <= 50 ? '#ff9800' : '#f44336';
+          setLocText(`Lat: ${lastPos.lat.toFixed(6)} | Lng: ${lastPos.lng.toFixed(6)} | ±${lastPos.acc.toFixed(0)}m`);
+          
+          if (lastPos.acc <= 10) document.getElementById('locHint').innerHTML = '✅ GPS EXCELENTE!';
+          else if (lastPos.acc <= 30) document.getElementById('locHint').innerHTML = '✅ GPS BOM';
+          else if (lastPos.acc <= 50) document.getElementById('locHint').innerHTML = '⚠️ GPS MÉDIO - Tente área aberta';
+          else document.getElementById('locHint').innerHTML = '❌ GPS RUIM - Vá para área aberta';
+        },
+        (err) => {
+          let msg = '⚠️ Permita o GPS';
+          if (err.code === 1) msg = '❌ Permissão negada';
+          else if (err.code === 2) msg = '❌ Sinal indisponível';
+          else if (err.code === 3) msg = '⏳ Timeout';
+          setLocText(msg);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
     }
 
-    // Inicia localização ao carregar
     startLocation();
 
     // ===== GERENCIAMENTO DE NOME =====
     document.getElementById('userNameSelect').addEventListener('change', function() {
       const customInput = document.getElementById('customNameInput');
-      if (this.value === 'Outro') {
-        customInput.style.display = 'block';
-      } else {
-        customInput.style.display = 'none';
-      }
+      customInput.style.display = this.value === 'Outro' ? 'block' : 'none';
     });
 
     function getSelectedName() {
@@ -373,76 +520,47 @@
     // ===== GERENCIAMENTO DE SITUAÇÃO =====
     document.querySelectorAll('.situation-btn').forEach(btn => {
       btn.addEventListener('click', function() {
-        // Remove active de todos
         document.querySelectorAll('.situation-btn').forEach(b => {
           b.classList.remove('active');
-          b.style.opacity = '0.85';
         });
-
-        // Ativa o clicado
         this.classList.add('active');
-        this.style.opacity = '1';
-
-        // Atualiza o select oculto
         document.getElementById('situationSelect').value = this.dataset.value;
-
-        // Feedback tátil (se suportado)
-        if (navigator.vibrate) {
-          navigator.vibrate(20);
-        }
+        if (navigator.vibrate) navigator.vibrate(20);
       });
-    });
-
-    // Garantir que o primeiro botão esteja ativo
-    window.addEventListener('load', function() {
-      const primeiroBotao = document.querySelector('.situation-btn');
-      if (primeiroBotao) {
-        setTimeout(() => {
-          primeiroBotao.click();
-        }, 100);
-      }
-
-      // Verificar permissão de localização
-      if (navigator.permissions) {
-        navigator.permissions.query({ name: 'geolocation' }).then(result => {
-          if (result.state === 'denied') {
-            setLocText('❌ Permissão negada. Ative nas configurações.');
-          }
-        });
-      }
     });
 
     // ===== ENVIO DO ALERTA =====
     async function enviar() {
       const btn = document.getElementById('sosBtn');
+      const status = document.getElementById('status');
+      
       btn.disabled = true;
-
-      const situation = document.getElementById('situationSelect').value;
-      const name = getSelectedName();
-      const message = document.getElementById('messageInput').value;
-
-      // Feedback visual imediato
       btn.classList.add('sent');
-      btn.textContent = 'ENVIANDO...';
-      document.getElementById('status').textContent = '⏳ Enviando alerta...';
+      btn.innerHTML = '<span>✓</span><small>ENVIANDO</small>';
+      status.textContent = '⏳ Enviando alerta...';
 
-      // Tenta pegar uma posição mais recente no momento do SOS (igual ao Driver Shield)
-      await new Promise((resolve) => {
-        if (!navigator.geolocation) { resolve(); return; }
-        navigator.geolocation.getCurrentPosition((pos) => {
-          lastPos = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            acc: pos.coords.accuracy
-          };
-          resolve();
-        }, () => resolve(), { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
-      });
+      // Pega posição atual
+      if (navigator.geolocation) {
+        await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              lastPos = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                acc: pos.coords.accuracy
+              };
+              resolve();
+            },
+            () => resolve(),
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        });
+      }
 
       const payload = {
-        name: name,
-        situation: situation,
-        message: message,
+        name: getSelectedName(),
+        situation: document.getElementById('situationSelect').value,
+        message: document.getElementById('messageInput').value,
         lat: lastPos ? lastPos.lat : null,
         lng: lastPos ? lastPos.lng : null,
         accuracy: lastPos ? lastPos.acc : null
@@ -455,29 +573,35 @@
           body: JSON.stringify(payload)
         });
 
-        const j = await res.json();
+        const data = await res.json();
 
-        if (j.ok) {
-          btn.textContent = '✅ ENVIADO';
-          document.getElementById('status').textContent = '✅ Alerta enviado com sucesso!';
+        if (data.ok) {
+          status.textContent = '✅ ALERTA ENVIADO!';
+          btn.innerHTML = '<span>✓</span><small>ENVIADO</small>';
         } else {
-          btn.classList.remove('sent');
-          btn.textContent = '❌ FALHA';
-          document.getElementById('status').textContent = '❌ Falha ao enviar alerta.';
+          throw new Error('Erro no servidor');
         }
       } catch (e) {
+        status.textContent = '❌ Erro ao enviar';
         btn.classList.remove('sent');
-        btn.textContent = '❌ ERRO';
-        document.getElementById('status').textContent = '❌ Erro de conexão. Tente novamente.';
+        btn.innerHTML = '<span>SOS</span><small>TOQUE</small>';
       }
 
-      // Volta ao normal após alguns segundos
       setTimeout(() => {
         btn.disabled = false;
         btn.classList.remove('sent');
-        btn.textContent = 'SOS';
-        document.getElementById('status').textContent = 'Clique em SOS para enviar alerta com localização.';
-      }, 5000);
+        btn.innerHTML = '<span>SOS</span><small>TOQUE</small>';
+        status.textContent = '🌸 Sistema pronto';
+      }, 3000);
+    }
+
+    // Verificar permissão de localização
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        if (result.state === 'denied') {
+          setLocText('❌ Permissão negada');
+        }
+      });
     }
   </script>
 </body>

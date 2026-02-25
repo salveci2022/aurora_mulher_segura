@@ -26,7 +26,6 @@ STATE_FILE = BASE_DIR / "state.json"
 # ===== EVITAR CACHE PARA ARQUIVOS ESTÁTICOS =====
 @app.before_request
 def before_request():
-    # Para evitar cache
     if request.path.startswith('/static/'):
         response = make_response()
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -179,7 +178,7 @@ def health():
 # ===== RELATÓRIOS EM PDF - CORRIGIDO =====
 @app.route('/relatorio/pdf')
 def relatorio_pdf():
-    """Gera relatório PDF com todos os alertas - CORRIGIDO"""
+    """Gera relatório PDF com todos os alertas"""
     try:
         alerts = get_all_alerts()
         
@@ -208,8 +207,8 @@ def relatorio_pdf():
         pdf.set_font("Arial", "B", 12)
         pdf.cell(200, 10, txt="ESTATÍSTICAS", ln=1)
         pdf.set_font("Arial", "", 10)
-        pdf.cell(200, 8, txt=f"• Alertas com GPS: {with_location}", ln=1)
-        pdf.cell(200, 8, txt=f"• Alertas sem GPS: {without_location}", ln=1)
+        pdf.cell(200, 8, txt=f"* Alertas com GPS: {with_location}", ln=1)
+        pdf.cell(200, 8, txt=f"* Alertas sem GPS: {without_location}", ln=1)
         pdf.ln(10)
         
         # Tabela de alertas
@@ -227,7 +226,6 @@ def relatorio_pdf():
         
         pdf.set_font("Arial", "", 8)
         for alert in alerts[-20:]:
-            # Formata o horário corretamente
             ts = alert.get('ts', '')
             if ts:
                 try:
@@ -248,7 +246,7 @@ def relatorio_pdf():
             if loc:
                 loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
             else:
-                loc_str = "Não disponível"
+                loc_str = "Nao disponivel"
             pdf.cell(45, 6, txt=loc_str[:40], border=1)
             pdf.ln()
         
@@ -257,9 +255,8 @@ def relatorio_pdf():
         # Rodapé
         pdf.set_font("Arial", "I", 8)
         pdf.cell(200, 8, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
-        pdf.cell(200, 8, txt="Este relatório contém informações confidenciais de segurança", ln=1, align="C")
+        pdf.cell(200, 8, txt="Este relatorio contem informacoes confidenciais de seguranca", ln=1, align="C")
         
-        # Salvar PDF temporário
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
         
@@ -401,13 +398,13 @@ def trusted_recover():
         users = load_users()
         info = users.get(u)
         if not info or info.get("role") != "trusted":
-            err = "Usuário não encontrado."
+            err = "Usuario nao encontrado."
         elif len(new) < 4:
-            err = "Senha muito curta (mínimo 4)."
+            err = "Senha muito curta (minimo 4)."
         else:
             users[u]["password"] = new
             save_users(users)
-            msg = "Senha redefinida. Faça login."
+            msg = "Senha redefinida. Faca login."
     return render_template('trusted_recover.html', msg=msg, err=err)
 
 @app.route('/trusted/change_password', methods=['GET', 'POST'])
@@ -425,7 +422,7 @@ def trusted_change_password():
         if not info or info.get("password") != old:
             err = "Senha atual incorreta."
         elif len(new) < 4:
-            err = "Nova senha muito curta (mínimo 4)."
+            err = "Nova senha muito curta (minimo 4)."
         else:
             users[u]["password"] = new
             save_users(users)

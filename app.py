@@ -24,14 +24,13 @@ ALERTS_FILE = BASE_DIR / "alerts.log"
 STATE_FILE = BASE_DIR / "state.json"
 
 # ===== EVITAR CACHE PARA ARQUIVOS ESTÁTICOS =====
-@app.before_request
-def before_request():
-    if request.path.startswith('/static/'):
-        response = make_response()
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        return response
+@app.after_request
+def add_header(response):
+    if 'Cache-Control' not in response.headers:
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+    return response
 
 def _ensure_files():
     """Cria arquivos necessários se não existirem"""
@@ -121,6 +120,11 @@ def panic_button():
     trusted_names = [info.get("name") or username for username, info in users.items() if info.get("role") == "trusted"]
     return render_template('panic_button.html', trusted_names=trusted_names)
 
+@app.route('/painel-da-mulher')
+def painel_da_mulher():
+    """Painel da mulher - versão melhorada"""
+    return render_template('painel_da_mulher.html')
+
 @app.route('/api/send_alert', methods=['POST'])
 def api_send_alert():
     data = request.get_json(silent=True) or {}
@@ -132,6 +136,8 @@ def api_send_alert():
     location = None
     if lat and lng:
         location = {"lat": float(lat), "lng": float(lng)}
+    elif data.get("location"):
+        location = data.get("location")
     
     # Formata horário no fuso horário do Brasil
     now_br = datetime.now(BR_TZ)
@@ -150,7 +156,7 @@ def api_send_alert():
     
     print(f"✅ Alerta #{alert_id} recebido - {payload['name']} - {payload['situation']}")
     if location:
-        print(f"📍 Localização: {location['lat']}, {location['lng']}")
+        print(f"📍 Localização: {location.get('lat', location.get('latitude'))}, {location.get('lng', location.get('longitude'))}")
     
     return jsonify({
         "ok": True,
@@ -167,15 +173,17 @@ def api_last_alert():
 @app.route('/health')
 def health():
     now_br = datetime.now(BR_TZ)
+    alerts = get_all_alerts()
     return jsonify({
         "ok": True,
         "server_time": now_br.isoformat(),
+        "total_alertas": len(alerts),
         "users_json_ok": USERS_FILE.exists(),
         "alerts_log_ok": ALERTS_FILE.exists(),
         "state_file_ok": STATE_FILE.exists(),
     })
 
-# ===== RELATÓRIOS EM PDF - CORRIGIDO =====
+# ===== RELATÓRIOS EM PDF =====
 @app.route('/relatorio/pdf')
 def relatorio_pdf():
     """Gera relatório PDF com todos os alertas"""
@@ -217,37 +225,28 @@ def relatorio_pdf():
         pdf.ln(5)
         
         pdf.set_font("Arial", "B", 9)
-        pdf.cell(25, 8, txt="ID", border=1)
-        pdf.cell(40, 8, txt="DATA/HORA", border=1)
+        pdf.cell(20, 8, txt="ID", border=1)
+        pdf.cell(45, 8, txt="DATA/HORA", border=1)
         pdf.cell(35, 8, txt="USUARIA", border=1)
-        pdf.cell(45, 8, txt="SITUACAO", border=1)
-        pdf.cell(45, 8, txt="LOCALIZACAO", border=1)
+        pdf.cell(50, 8, txt="SITUACAO", border=1)
+        pdf.cell(40, 8, txt="LOCALIZACAO", border=1)
         pdf.ln()
         
         pdf.set_font("Arial", "", 8)
         for alert in alerts[-20:]:
-            ts = alert.get('ts', '')
-            if ts:
-                try:
-                    dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
-                    dt_br = dt.replace(tzinfo=pytz.utc).astimezone(BR_TZ)
-                    formatted_ts = dt_br.strftime("%d/%m/%Y %H:%M:%S")
-                except:
-                    formatted_ts = ts
-            else:
-                formatted_ts = "N/A"
-                
-            pdf.cell(25, 6, txt=str(alert.get('id', 'N/A')), border=1)
-            pdf.cell(40, 6, txt=formatted_ts, border=1)
-            pdf.cell(35, 6, txt=alert.get('name', 'N/A'), border=1)
-            pdf.cell(45, 6, txt=alert.get('situation', 'N/A'), border=1)
+            pdf.cell(20, 6, txt=str(alert.get('id', 'N/A')), border=1)
+            pdf.cell(45, 6, txt=alert.get('ts', 'N/A'), border=1)
+            pdf.cell(35, 6, txt=alert.get('name', 'N/A')[:15], border=1)
+            pdf.cell(50, 6, txt=alert.get('situation', 'N/A')[:20], border=1)
             
             loc = alert.get('location')
             if loc:
-                loc_str = f"{loc.get('lat', 'N/A')}, {loc.get('lng', 'N/A')}"
+                lat = loc.get('lat', loc.get('latitude', 'N/A'))
+                lng = loc.get('lng', loc.get('longitude', 'N/A'))
+                loc_str = f"{lat}, {lng}"[:20]
             else:
                 loc_str = "Nao disponivel"
-            pdf.cell(45, 6, txt=loc_str[:40], border=1)
+            pdf.cell(40, 6, txt=loc_str, border=1)
             pdf.ln()
         
         pdf.ln(10)
@@ -255,7 +254,6 @@ def relatorio_pdf():
         # Rodapé
         pdf.set_font("Arial", "I", 8)
         pdf.cell(200, 8, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
-        pdf.cell(200, 8, txt="Este relatorio contem informacoes confidenciais de seguranca", ln=1, align="C")
         
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
@@ -429,16 +427,47 @@ def trusted_change_password():
             msg = "Senha alterada com sucesso."
     return render_template('trusted_change_password.html', msg=msg, err=err)
 
+# ===== HISTÓRICO =====
+@app.route('/historico')
+def historico():
+    """Página de histórico de alertas"""
+    alerts = get_all_alerts()
+    return render_template('historico.html', alerts=alerts)
+
+# ===== TERMOS =====
+@app.route('/termos')
+def termos():
+    return render_template('legal.html')
+
+@app.route('/privacidade')
+def privacidade():
+    return render_template('legal.html')
+
+@app.route('/lgpd')
+def lgpd():
+    return render_template('legal.html')
+
+# ===== FAVICON =====
+@app.route('/favicon.ico')
+def favicon():
+    return redirect(url_for('static', filename='favicon.ico'))
+
 if __name__ == '__main__':
     _ensure_files()
     print("=" * 60)
     print("🚀 AURORA MULHER SEGURA - SISTEMA INICIADO!")
     print("=" * 60)
     print("📱 Acesse:")
-    print("   - http://localhost:5000/panic          (Botão de Pânico)")
-    print("   - http://localhost:5000/panel/login    (Admin)")
-    print("   - http://localhost:5000/trusted/login  (Pessoa de Confiança)")
-    print("   - http://localhost:5000/relatorio/pdf  (Relatório PDF)")
-    print("   - http://localhost:5000/health         (Diagnóstico)")
+    print("   - http://localhost:5000/                (Página inicial)")
+    print("   - http://localhost:5000/panic           (Botão de Pânico)")
+    print("   - http://localhost:5000/panel/login     (Admin)")
+    print("   - http://localhost:5000/trusted/login   (Pessoa de Confiança)")
+    print("   - http://localhost:5000/historico       (Histórico)")
+    print("   - http://localhost:5000/relatorio/pdf   (Relatório PDF)")
+    print("   - http://localhost:5000/health          (Diagnóstico)")
     print("=" * 60)
+    print(f"📁 Alertas salvos em: {ALERTS_FILE}")
+    print(f"👥 Usuários salvos em: {USERS_FILE}")
+    print("=" * 60)
+    
     app.run(host='0.0.0.0', port=5000, debug=True)

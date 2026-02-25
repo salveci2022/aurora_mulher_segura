@@ -23,3 +23,7 @@
 {"id": 21, "ts": "2026-02-24 00:33:21", "name": "maria", "situation": "Violência física", "message": "", "location": {"lat": -16.020031820522544, "lng": -48.020724449759655}}
 {"id": 22, "ts": "2026-02-24 10:45:41", "name": "MARCIA", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lng": -48.0207862494469}}
 {"id": 23, "ts": "2026-02-24 10:45:41", "name": "MARCIA", "situation": "Violência física", "message": "", "location": {"lat": -16.020068611831192, "lng": -48.0207862494469}}
+{"id": 24, "ts": "2026-02-25 01:18:06", "name": "DIEUZA", "situation": "Violência física", "message": "", "location": {"lat": -16.020052733972502, "lng": -48.02078973506904}}
+{"id": 25, "ts": "2026-02-25 01:19:07", "name": "DIEUZA", "situation": "Perseguição / stalking", "message": "", "location": {"lat": -16.020042785366737, "lng": -48.02078850565691}}
+{"id": 26, "ts": "2026-02-25 01:34:58", "name": "SALVECI DOS SANTOS", "situation": "Violência física", "message": "", "location": {"lat": -16.020046037823402, "lng": -48.02076972104165}}
+{"id": 27, "ts": "2026-02-25 01:41:40", "name": "DIEUZA", "situation": "Agressão verbal / ameaça", "message": "", "location": {"lat": -16.020079880201955, "lng": -48.020772945849814}}

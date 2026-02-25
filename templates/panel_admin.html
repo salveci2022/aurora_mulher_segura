@@ -8,6 +8,28 @@
     <meta name="theme-color" content="#7a00ff">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: rgba(255,79,200,0.1);
+            border: 1px solid rgba(255,79,200,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff4fc8;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #cdb7e6;
+        }
         .pdf-section {
             background: rgba(76, 175, 80, 0.1);
             padding: 15px;
@@ -74,11 +96,32 @@
             background: rgba(244, 67, 54, 1);
             transform: scale(1.1);
         }
+        .alerta-item {
+            background: rgba(255,79,200,0.1);
+            border-left: 5px solid #ff4fc8;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+        }
+        .alertas-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        .badge {
+            background: rgba(255,79,200,0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body class="aurora-bg">
     <div class="center-wrap">
-        <div class="aurora-card">
+        <div class="aurora-card" style="max-width: 600px;">
             <div class="topbar">
                 <div class="brand">
                     <div class="brand-dot">⚙️</div>
@@ -103,65 +146,76 @@
                 <div class="alert alert-danger center">{{ request.args.get('err').replace('+', ' ') }}</div>
                 {% endif %}
 
-                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0;">
-                    <div class="item">
-                        <span>{{ stats.total }}</span>
-                        <span class="badge">Total Alertas</span>
+                <!-- ESTATÍSTICAS CORRIGIDAS -->
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.total }}</div>
+                        <div class="stat-label">Total Alertas</div>
                     </div>
-                    <div class="item">
-                        <span>{{ stats.today }}</span>
-                        <span class="badge">Hoje</span>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.today }}</div>
+                        <div class="stat-label">Alertas Hoje</div>
                     </div>
-                    <div class="item">
-                        <span>{{ stats.with_location }}</span>
-                        <span class="badge">Com GPS</span>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.with_location }}</div>
+                        <div class="stat-label">Com GPS</div>
                     </div>
-                    <div class="item">
-                        <span>{{ stats.without_location }}</span>
-                        <span class="badge">Sem GPS</span>
+                    <div class="stat-box">
+                        <div class="stat-number">{{ stats.without_location }}</div>
+                        <div class="stat-label">Sem GPS</div>
                     </div>
                 </div>
 
+                <!-- SEÇÃO PDF -->
                 <div class="pdf-section">
                     <p class="small" style="margin-bottom:10px;"><strong>📄 Relatórios em PDF</strong></p>
                     <a href="/relatorio/pdf" class="pdf-btn pdf-btn-full">📊 Relatório Completo (Todos os Alertas)</a>
-                    <a href="/relatorio/pdf/hoje" class="pdf-btn pdf-btn-full" style="background:linear-gradient(135deg,#2196f3,#1565c0);margin-top:10px;">📅 Relatório de Hoje</a>
                 </div>
 
+                <!-- ÚLTIMOS ALERTAS -->
                 <label class="label" style="margin-top:20px;">📋 Últimos Alertas</label>
-                <div class="list">
+                <div class="alertas-list">
                     {% if alerts %}
                         {% for alerta in alerts[-10:]|reverse %}
-                        <div class="item">
-                            <div>
-                                <div>{{ alerta.ts }}</div>
-                                <div class="small">👤 {{ alerta.name }}</div>
-                                <div class="small muted">⚠️ {{ alerta.situation }}</div>
+                        <div class="alerta-item">
+                            <div style="display:flex;justify-content:space-between;">
+                                <span class="badge">ID {{ alerta.id }}</span>
+                                <span class="badge">{{ alerta.ts }}</span>
                             </div>
+                            <div style="margin-top:5px;"><strong>{{ alerta.name }}</strong></div>
+                            <div>⚠️ {{ alerta.situation }}</div>
+                            {% if alerta.message %}
+                                <div class="small muted">{{ alerta.message }}</div>
+                            {% endif %}
                             {% if alerta.location %}
-                            <span class="badge">📍</span>
+                                <div class="small" style="color:#4caf50;">📍 Localização recebida</div>
                             {% endif %}
                         </div>
                         {% endfor %}
                     {% else %}
-                    <div class="center muted small">Nenhum alerta registrado</div>
+                    <div class="center muted small" style="padding:20px;">Nenhum alerta registrado</div>
                     {% endif %}
                 </div>
 
+                <!-- PESSOAS DE CONFIANÇA -->
                 <label class="label" style="margin-top:20px;">👥 Pessoas de Confiança Cadastradas</label>
                 <div class="trusted-list">
                     {% if trusted %}
                         {% for username, info in trusted.items() %}
                         <div class="trusted-item">
-                            <div class="trusted-name">{{ info.name }}</div>
+                            <div>
+                                <div class="trusted-name">{{ info.name }}</div>
+                                <div class="small muted">@{{ username }}</div>
+                            </div>
                             <button class="trusted-delete" onclick="deleteTrusted('{{ username }}')">✕</button>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div class="center muted small">Nenhuma pessoa cadastrada</div>
+                        <div class="center muted small" style="padding:15px;">Nenhuma pessoa cadastrada</div>
                     {% endif %}
                 </div>
 
+                <!-- CADASTRO DE NOVA PESSOA -->
                 <label class="label" style="margin-top:20px;">➕ Cadastrar Pessoa de Confiança</label>
                 <form method="POST" action="/panel/add_trusted">
                     <input type="text" name="trusted_name" class="input" placeholder="Nome completo" required>
@@ -169,6 +223,14 @@
                     <input type="password" name="trusted_password" class="input" placeholder="Senha" required>
                     <button type="submit" class="btn btn-primary" style="margin-top:10px;">Cadastrar</button>
                 </form>
+
+                <!-- INFORMAÇÕES -->
+                <div class="info-box" style="margin-top:20px;">
+                    <p class="small"><strong>ℹ️ Informações:</strong></p>
+                    <p class="small">• Máximo de 3 pessoas de confiança</p>
+                    <p class="small">• A senha deve ter no mínimo 4 caracteres</p>
+                    <p class="small">• O usuário é único no sistema</p>
+                </div>
             </div>
         </div>
     </div>
@@ -176,7 +238,6 @@
     <script>
         function deleteTrusted(username) {
             if (confirm('Deseja realmente excluir esta pessoa de confiança?')) {
-                // Envia para o servidor
                 fetch('/panel/delete_trusted', {
                     method: 'POST',
                     headers: {
@@ -186,7 +247,6 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        // Recarrega a página
                         window.location.reload();
                     } else {
                         alert('Erro ao excluir a pessoa de confiança');

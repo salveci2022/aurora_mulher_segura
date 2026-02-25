@@ -130,29 +130,23 @@ def api_send_alert():
     data = request.get_json(silent=True) or {}
     alert_id = _get_next_alert_id()
     
-    # CORREÇÃO DA LOCALIZAÇÃO - ACEITA VÁRIOS FORMATOS
     location = None
     
-    # Verificar vários formatos possíveis de localização
     if data.get("location"):
-        # Se veio como objeto location
         location = data.get("location")
     elif data.get("lat") and data.get("lng"):
-        # Se veio como lat/lng separados
         location = {
             "lat": float(data.get("lat")),
             "lng": float(data.get("lng")),
             "accuracy": data.get("accuracy")
         }
     elif data.get("latitude") and data.get("longitude"):
-        # Se veio como latitude/longitude
         location = {
             "lat": float(data.get("latitude")),
             "lng": float(data.get("longitude")),
             "accuracy": data.get("accuracy")
         }
     
-    # Garantir que tem lat/lng no objeto location
     if location:
         if 'lat' not in location and 'latitude' in location:
             location['lat'] = location['latitude']
@@ -161,16 +155,14 @@ def api_send_alert():
         if 'lng' not in location and 'lon' in location:
             location['lng'] = location['lon']
     
-    # Formata horário no fuso horário do Brasil
     now_br = datetime.now(BR_TZ)
     formatted_time = now_br.strftime("%Y-%m-%d %H:%M:%S")
-    formatted_time_br = now_br.strftime("%d/%m/%Y %H:%M:%S")  # Formato brasileiro
+    formatted_time_br = now_br.strftime("%d/%m/%Y %H:%M:%S")
     
-    # Monta payload do alerta
     payload = {
         "id": alert_id,
         "ts": formatted_time,
-        "ts_br": formatted_time_br,  # Formato brasileiro para exibição
+        "ts_br": formatted_time_br,
         "name": (data.get("name") or "Usuária"),
         "situation": (data.get("situation") or "Emergência"),
         "message": (data.get("message") or ""),
@@ -211,6 +203,28 @@ def health():
         "state_file_ok": STATE_FILE.exists(),
     })
 
+# ===== ROTA DE DIAGNÓSTICO =====
+@app.route('/diagnostico-alertas')
+def diagnostico_alertas():
+    """Mostra todos os alertas em formato texto"""
+    alerts = get_all_alerts()
+    if not alerts:
+        return "Nenhum alerta encontrado!"
+    
+    html = "<h1>📋 Alertas no sistema</h1>"
+    html += f"<p>Total: {len(alerts)} alertas</p>"
+    html += "<hr>"
+    for a in alerts:
+        html += f"<p><strong>ID {a.get('id')}</strong> - {a.get('ts_br', a.get('ts'))}</p>"
+        html += f"<p>👤 {a.get('name')} - ⚠️ {a.get('situation')}</p>"
+        if a.get('location'):
+            loc = a.get('location')
+            html += f"<p>📍 {loc.get('lat')}, {loc.get('lng')} (±{loc.get('accuracy')}m)</p>"
+        else:
+            html += f"<p>📍 Sem localização</p>"
+        html += "<hr>"
+    return html
+
 # ===== ROTA DE TESTE PDF =====
 @app.route('/teste-pdf')
 def teste_pdf():
@@ -239,7 +253,7 @@ def teste_pdf():
         traceback.print_exc()
         return f"Erro ao gerar PDF: {str(e)}"
 
-# ===== RELATÓRIOS EM PDF CORRIGIDO (SEM ERRO DE CARACTERES) =====
+# ===== RELATÓRIOS EM PDF =====
 @app.route('/relatorio/pdf')
 def relatorio_pdf():
     """Gera relatório PDF com todos os alertas"""
@@ -249,12 +263,10 @@ def relatorio_pdf():
         pdf = FPDF()
         pdf.add_page()
         
-        # Configurar fonte para UTF-8 (usando Arial que suporta acentos)
         pdf.set_auto_page_break(auto=True, margin=15)
         
-        # Título principal
         pdf.set_font("Arial", "B", 20)
-        pdf.set_text_color(255, 79, 200)  # Rosa
+        pdf.set_text_color(255, 79, 200)
         pdf.cell(190, 15, txt="AURORA MULHER SEGURA", ln=1, align="C")
         
         pdf.set_font("Arial", "B", 16)
@@ -262,7 +274,6 @@ def relatorio_pdf():
         pdf.cell(190, 10, txt="Relatorio de Alertas de Emergencia", ln=1, align="C")
         pdf.ln(10)
         
-        # Data e hora
         now_br = datetime.now(BR_TZ)
         formatted_time = now_br.strftime("%d/%m/%Y as %H:%M:%S")
         pdf.set_font("Arial", "", 12)
@@ -271,7 +282,6 @@ def relatorio_pdf():
         pdf.cell(190, 8, txt=f"Total de Alertas: {len(alerts)}", ln=1)
         pdf.ln(10)
         
-        # Estatísticas (sem caracteres especiais)
         with_location = sum(1 for a in alerts if a.get('location'))
         without_location = len(alerts) - with_location
         
@@ -284,46 +294,39 @@ def relatorio_pdf():
         pdf.cell(190, 8, txt=f"* Alertas sem localizacao: {without_location}", ln=1)
         pdf.ln(10)
         
-        # Lista de alertas
         if alerts:
             pdf.set_font("Arial", "B", 14)
             pdf.set_text_color(255, 79, 200)
             pdf.cell(190, 10, txt="HISTORICO DE ALERTAS", ln=1)
             pdf.ln(5)
             
-            # Ordenar do mais recente para o mais antigo
             alerts_ordenados = sorted(alerts, key=lambda x: x.get('id', 0), reverse=True)
             
-            for alert in alerts_ordenados[:50]:  # Mostrar últimos 50
+            for alert in alerts_ordenados[:50]:
                 pdf.set_font("Arial", "B", 11)
                 pdf.set_text_color(0, 0, 0)
                 
-                # Usar formato brasileiro se disponível
                 ts_display = alert.get('ts_br', alert.get('ts', 'N/A'))
                 pdf.cell(190, 8, txt=f"ID {alert.get('id', 'N/A')} - {ts_display}", ln=1)
                 
                 pdf.set_font("Arial", "", 11)
                 
-                # Nome (truncar se muito longo)
                 nome = alert.get('name', 'Nao informado')
                 if len(nome) > 30:
                     nome = nome[:30] + "..."
                 pdf.cell(190, 6, txt=f"   Nome: {nome}", ln=1)
                 
-                # Situação
                 situacao = alert.get('situation', 'Emergencia')
                 if len(situacao) > 40:
                     situacao = situacao[:40] + "..."
                 pdf.cell(190, 6, txt=f"   Situacao: {situacao}", ln=1)
                 
-                # Mensagem (se existir)
                 if alert.get('message'):
                     msg = alert.get('message', '')
                     if len(msg) > 50:
                         msg = msg[:50] + "..."
                     pdf.cell(190, 6, txt=f"   Mensagem: {msg}", ln=1)
                 
-                # Localização
                 if alert.get('location'):
                     loc = alert.get('location')
                     lat = loc.get('lat', 'N/A')
@@ -341,7 +344,7 @@ def relatorio_pdf():
                 else:
                     pdf.cell(190, 6, txt="   Localizacao: Nao compartilhada", ln=1)
                 
-                pdf.cell(190, 2, txt="", ln=1)  # Espaço
+                pdf.cell(190, 2, txt="", ln=1)
                 pdf.ln(2)
         else:
             pdf.set_font("Arial", "I", 12)
@@ -350,14 +353,12 @@ def relatorio_pdf():
         
         pdf.ln(10)
         
-        # Rodapé
         pdf.set_y(-30)
         pdf.set_font("Arial", "I", 8)
         pdf.set_text_color(150, 150, 150)
         pdf.cell(190, 5, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
         pdf.cell(190, 5, txt="Este relatorio contem informacoes confidenciais de seguranca", ln=1, align="C")
         
-        # Salvar arquivo
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
         
@@ -571,7 +572,8 @@ if __name__ == '__main__':
     print("   - http://localhost:5000/historico       (Histórico)")
     print("   - http://localhost:5000/relatorio/pdf   (Relatório PDF)")
     print("   - http://localhost:5000/teste-pdf       (Teste PDF)")
-    print("   - http://localhost:5000/health          (Diagnóstico)")
+    print("   - http://localhost:5000/diagnostico-alertas (Diagnóstico)")
+    print("   - http://localhost:5000/health          (Health)")
     print("=" * 60)
     print(f"📁 Alertas salvos em: {ALERTS_FILE}")
     print(f"👥 Usuários salvos em: {USERS_FILE}")

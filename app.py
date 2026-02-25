@@ -26,6 +26,7 @@ STATE_FILE = BASE_DIR / "state.json"
 # ===== EVITAR CACHE PARA ARQUIVOS ESTÁTICOS =====
 @app.before_request
 def before_request():
+    # Para evitar cache
     if request.path.startswith('/static/'):
         response = make_response()
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"

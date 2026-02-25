@@ -12,115 +12,45 @@
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 20px;
+        /* Estilos específicos para o design moderno */
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            color: #ffffff;
         }
-        .btn-action {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
+        .aurora-card {
+            background: linear-gradient(135deg, #2d005a, #1a0033);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
         }
-        .btn-reenviar {
-            background: linear-gradient(135deg, #ff9800, #f57c00);
-            color: white;
+        .topbar {
+            background: rgba(20, 0, 28, 0.55);
+            border-bottom: 1px solid rgba(255, 98, 212, 0.18);
         }
-        .btn-limpar {
-            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-            color: white;
+        .brand-dot {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 121, 218, 0.9), rgba(164, 92, 255, 0.75));
+            box-shadow: 0 0 18px rgba(255, 79, 200, 0.35);
         }
-        .btn-sair {
-            background: linear-gradient(135deg, #f44336, #c62828);
-            color: white;
+        .input, .textarea {
+            background: rgba(10, 0, 20, 0.55);
+            border: 1px solid rgba(255, 98, 212, 0.30);
+            color: #ffffff;
         }
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .trusted-list {
-            background: rgba(40, 0, 60, 0.35);
-            padding: 15px;
-            border-radius: 14px;
-            margin-top: 15px;
-            border: 1px solid rgba(255, 98, 212, 0.28);
-        }
-        .trusted-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .trusted-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffd0f0;
-        }
-        .trusted-names {
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding: 8px 0;
-        }
-        .trusted-name {
-            background: rgba(20, 0, 28, 0.5);
-            border-radius: 10px;
-            padding: 10px 15px;
-            font-weight: bold;
-            color: #ffd0f0;
-            white-space: nowrap;
-            min-width: 120px;
-            text-align: center;
-        }
-        .trusted-empty {
-            text-align: center;
-            padding: 20px;
-            color: var(--muted);
-        }
-        .trusted-add-btn {
-            display: block;
-            width: 100%;
+        .chips {
+            gap: 8px;
             margin-top: 10px;
-            padding: 10px;
-            background: linear-gradient(135deg, #4caf50, #2e7d32);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
         }
-        .trusted-add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        .chip {
+            background: rgba(18, 0, 30, 0.55);
+            border: 1px solid rgba(255, 98, 212, 0.30);
         }
-        .pdf-button {
-            background: linear-gradient(135deg, #4caf50, #2e7d32);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s;
-            width: 100%;
-        }
-        .pdf-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        .chip.active {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.35), rgba(164, 92, 255, 0.18));
+            border-color: rgba(255, 121, 218, 0.55);
         }
         .sos-button {
             width: 230px;
             height: 230px;
             border-radius: 50%;
-            margin-top: 20px;
             background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
             display: grid;
             place-items: center;
@@ -155,6 +85,36 @@
             0% { transform: scale(1); }
             70% { transform: scale(1.02); }
             100% { transform: scale(1); }
+        }
+        .action-buttons {
+            margin-top: 20px;
+        }
+        .btn-action {
+            padding: 12px;
+            border-radius: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 14px;
+        }
+        .btn-reenviar {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+        .btn-limpar {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+        }
+        .btn-sair {
+            background: linear-gradient(135deg, #f44336, #c62828);
+        }
+        .info-box {
+            margin-top: 15px;
+        }
+        .info-box p {
+            margin: 8px 0;
+            font-size: 13px;
+        }
+        .info-box .small {
+            font-size: 12px;
         }
     </style>
 </head>

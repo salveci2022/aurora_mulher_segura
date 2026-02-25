@@ -189,7 +189,7 @@ def relatorio_pdf():
         pdf.set_font("Arial", "B", 16)
         pdf.cell(200, 10, txt="AURORA MULHER SEGURA", ln=1, align="C")
         pdf.set_font("Arial", "I", 12)
-        pdf.cell(200, 10, txt="Relatório de Alertas de Emergência", ln=1, align="C")
+        pdf.cell(200, 10, txt="Relatorio de Alertas de Emergencia", ln=1, align="C")
         pdf.ln(10)
         
         # Data e hora no horário do Brasil
@@ -205,7 +205,7 @@ def relatorio_pdf():
         without_location = len(alerts) - with_location
         
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(200, 10, txt="ESTATÍSTICAS", ln=1)
+        pdf.cell(200, 10, txt="ESTATISTICAS", ln=1)
         pdf.set_font("Arial", "", 10)
         pdf.cell(200, 8, txt=f"* Alertas com GPS: {with_location}", ln=1)
         pdf.cell(200, 8, txt=f"* Alertas sem GPS: {without_location}", ln=1)
@@ -213,15 +213,15 @@ def relatorio_pdf():
         
         # Tabela de alertas
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(200, 10, txt="HISTÓRICO DE ALERTAS", ln=1)
+        pdf.cell(200, 10, txt="HISTORICO DE ALERTAS", ln=1)
         pdf.ln(5)
         
         pdf.set_font("Arial", "B", 9)
         pdf.cell(25, 8, txt="ID", border=1)
         pdf.cell(40, 8, txt="DATA/HORA", border=1)
-        pdf.cell(35, 8, txt="USUÁRIA", border=1)
-        pdf.cell(45, 8, txt="SITUAÇÃO", border=1)
-        pdf.cell(45, 8, txt="LOCALIZAÇÃO", border=1)
+        pdf.cell(35, 8, txt="USUARIA", border=1)
+        pdf.cell(45, 8, txt="SITUACAO", border=1)
+        pdf.cell(45, 8, txt="LOCALIZACAO", border=1)
         pdf.ln()
         
         pdf.set_font("Arial", "", 8)

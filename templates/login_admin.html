@@ -16,7 +16,7 @@
                     <div class="brand-dot">⚙️</div>
                     <div>
                         <div class="brand-title">AURORA</div>
-                        <div class="brand-sub">Admin Login</div>
+                        <div class="brand-sub">Admin</div>
                     </div>
                 </div>
                 <div class="top-actions">
@@ -29,21 +29,26 @@
                 <p class="center muted small">Usuário padrão: admin · Senha: admin123</p>
 
                 {% if error %}
-                <div class="alert alert-danger center">Usuário ou senha inválidos.</div>
+                <div class="alert alert-danger">
+                    Usuário ou senha inválidos. Tente novamente.
+                </div>
                 {% endif %}
 
                 <form method="POST" action="/panel/login">
                     <label class="label">Usuário</label>
-                    <input type="text" name="user" class="input" placeholder="admin" required>
-
+                    <input type="text" name="user" class="input" placeholder="Digite seu usuário" value="admin" required>
+                    
                     <label class="label">Senha</label>
-                    <input type="password" name="password" class="input" placeholder="admin123" required>
-
-                    <button type="submit" class="btn btn-primary">Entrar</button>
+                    <input type="password" name="password" class="input" placeholder="Digite sua senha" value="admin123" required>
+                    
+                    <button type="submit" class="btn-primary">Entrar</button>
                 </form>
 
-                <div style="text-align:center;margin-top:15px;">
-                    <a href="/health" class="link">Diagnóstico</a>
+                <div class="info-box">
+                    <p class="small"><strong>ℹ️ Informações:</strong></p>
+                    <p class="small">• Gerencie as pessoas de confiança</p>
+                    <p class="small">• Acesse o relatório completo de alertas</p>
+                    <p class="small">• Atualize configurações do sistema</p>
                 </div>
             </div>
         </div>

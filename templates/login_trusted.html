@@ -16,7 +16,7 @@
                     <div class="brand-dot">🌸</div>
                     <div>
                         <div class="brand-title">AURORA</div>
-                        <div class="brand-sub">Login Confiança</div>
+                        <div class="brand-sub">Pessoa de Confiança</div>
                     </div>
                 </div>
                 <div class="top-actions">
@@ -25,27 +25,29 @@
             </div>
 
             <div class="content">
-                <h1 class="h1">Pessoa de Confiança</h1>
+                <h1 class="h1">Login Confiança</h1>
                 <p class="center muted small">Acesse o painel para acompanhar alertas</p>
 
                 {% if error %}
-                <div class="alert alert-danger center">Usuário ou senha inválidos.</div>
+                <div class="alert alert-danger">
+                    Usuário ou senha inválidos. Tente novamente.
+                </div>
                 {% endif %}
 
                 <form method="POST" action="/trusted/login">
                     <label class="label">Usuário</label>
-                    <input type="text" name="user" class="input" placeholder="samara123" required>
-
+                    <input type="text" name="user" class="input" placeholder="Digite seu usuário" required>
+                    
                     <label class="label">Senha</label>
-                    <input type="password" name="password" class="input" placeholder="36092745" required>
-
-                    <button type="submit" class="btn btn-primary">Entrar no Painel</button>
+                    <input type="password" name="password" class="input" placeholder="Digite sua senha" required>
+                    
+                    <button type="submit" class="btn-primary">Entrar no Painel</button>
                 </form>
 
-                <div style="text-align:center;margin-top:15px;">
-                    <a href="/trusted/recover" class="link">Esqueci a senha</a>
-                    <span style="margin:0 10px;color:var(--muted)">·</span>
-                    <a href="/panel/login" class="link">Admin</a>
+                <div class="info-box">
+                    <p class="small"><strong>ℹ️ Informações:</strong></p>
+                    <p class="small">• Acesse o painel para acompanhar alertas em tempo real</p>
+                    <p class="small">• O sistema notifica automaticamente quando chega um alerta</p>
                 </div>
             </div>
         </div>

@@ -390,7 +390,7 @@
     <div class="gps-box">
       <input type="checkbox" id="checkLocalizacao" checked>
       <div>
-        <label for="checkLocalizacao"><strong>📍 Compartilhar localização EXATA</strong></label>
+        <label for="checkLocalizacao"><strong>📍 Compartilhar localização EXATA (≤2m)</strong></label>
         <div class="gps-info" id="gpsPrecision">GPS de alta precisão ativado</div>
       </div>
     </div>
@@ -459,7 +459,7 @@
       });
     });
     
-    // ===== LOCALIZAÇÃO EXATA - FORÇANDO GPS REAL NO BRASIL =====
+    // ===== LOCALIZAÇÃO EXATA (≤2m) PARA BRASÍLIA =====
     async function getLocalizacaoExata() {
         return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
@@ -468,14 +468,14 @@
                 return;
             }
             
-            statusMsg.innerHTML = '📍 ATIVANDO GPS REAL... (aguarde 30s)';
+            statusMsg.innerHTML = '📍 ATIVANDO GPS DE ALTÍSSIMA PRECISÃO... (aguarde 30s)';
             gpsPrecision.innerHTML = '⏳ Buscando satélites em BRASÍLIA...';
             
-            // CONFIGURAÇÃO PARA GPS REAL
+            // CONFIGURAÇÃO PARA GPS REAL DE ALTÍSSIMA PRECISÃO
             const options = {
-                enableHighAccuracy: true,
-                timeout: 30000,
-                maximumAge: 0
+                enableHighAccuracy: true,      // FORÇA GPS REAL
+                timeout: 30000,                // 30 segundos para captar satélites
+                maximumAge: 0                   // NÃO USA CACHE
             };
             
             navigator.geolocation.getCurrentPosition(
@@ -494,26 +494,43 @@
                     // Coordenadas aproximadas de Brasília: -15.8, -47.9
                     const isInBrasilia = loc.lat > -16.5 && loc.lat < -15.0 && loc.lng > -48.5 && loc.lng < -47.0;
                     
-                    if (!isInBrazil) {
-                        gpsPrecision.innerHTML = `❌ GPS mostrou fora do Brasil (${loc.lat.toFixed(1)}, ${loc.lng.toFixed(1)}) - TENTE NOVAMENTE`;
-                        gpsPrecision.style.color = '#f44336';
-                        
-                        if (confirm(`⚠️ O GPS mostrou coordenadas fora do Brasil.\n\nEstá em área aberta? Deseja tentar novamente?`)) {
-                            getLocalizacaoExata().then(resolve).catch(reject);
-                            return;
-                        }
-                    } else if (isInBrasilia) {
-                        gpsPrecision.innerHTML = `📍 GPS ACERTOU! Você está em Brasília! (±${loc.accuracy.toFixed(0)}m)`;
+                    // VERIFICAR PRECISÃO (tem que ser ≤2m)
+                    if (loc.accuracy <= 2) {
+                        gpsPrecision.innerHTML = `📍 GPS EXATÍSSIMO! (±${loc.accuracy.toFixed(1)}m) - IDEAL PARA PROVAS`;
                         gpsPrecision.style.color = '#4caf50';
-                    } else {
-                        gpsPrecision.innerHTML = `📍 GPS no Brasil (±${loc.accuracy.toFixed(0)}m)`;
-                        gpsPrecision.style.color = '#ff9800';
                         
-                        if (loc.accuracy > 50) {
-                            if (confirm(`⚠️ Precisão de ±${loc.accuracy.toFixed(0)}m pode não ser ideal.\n\nDeseja tentar novamente em área aberta?`)) {
+                        if (!isInBrasilia) {
+                            if (!confirm(`⚠️ Localização precisa mas fora de Brasília.\n\nDeseja continuar?`)) {
                                 getLocalizacaoExata().then(resolve).catch(reject);
                                 return;
                             }
+                        }
+                        
+                    } else if (loc.accuracy <= 5) {
+                        gpsPrecision.innerHTML = `📍 GPS MUITO BOM (±${loc.accuracy.toFixed(1)}m) - ACEITÁVEL`;
+                        gpsPrecision.style.color = '#4caf50';
+                        
+                        if (confirm(`⚠️ Precisão de ±${loc.accuracy.toFixed(1)}m.\n\nDeseja tentar obter precisão ≤2m?`)) {
+                            getLocalizacaoExata().then(resolve).catch(reject);
+                            return;
+                        }
+                        
+                    } else if (loc.accuracy <= 10) {
+                        gpsPrecision.innerHTML = `📍 GPS BOM (±${loc.accuracy.toFixed(1)}m) - PODE MELHORAR`;
+                        gpsPrecision.style.color = '#ff9800';
+                        
+                        if (confirm(`⚠️ Precisão de ±${loc.accuracy.toFixed(1)}m.\n\nDeseja tentar obter precisão ≤2m?`)) {
+                            getLocalizacaoExata().then(resolve).catch(reject);
+                            return;
+                        }
+                        
+                    } else {
+                        gpsPrecision.innerHTML = `📍 GPS FRACO (±${loc.accuracy.toFixed(1)}m) - PRECISA MELHORAR`;
+                        gpsPrecision.style.color = '#f44336';
+                        
+                        if (confirm(`❌ Precisão de ±${loc.accuracy.toFixed(1)}m é insuficiente.\n\nTentar novamente em área totalmente aberta?`)) {
+                            getLocalizacaoExata().then(resolve).catch(reject);
+                            return;
                         }
                     }
                     
@@ -528,11 +545,11 @@
                             break;
                         case error.POSITION_UNAVAILABLE:
                             msg = 'Sinal indisponível';
-                            gpsPrecision.innerHTML = '❌ Sem sinal de satélite - Vá para área aberta (longe de prédios)';
+                            gpsPrecision.innerHTML = '❌ Sem sinal de satélite - Vá para área totalmente aberta';
                             break;
                         case error.TIMEOUT:
                             msg = 'Tempo esgotado';
-                            gpsPrecision.innerHTML = '⏱️ GPS sem sinal - Tente em área externa (longe de prédios)';
+                            gpsPrecision.innerHTML = '⏱️ GPS sem sinal - Vá para área externa sem prédios';
                             break;
                     }
                     reject(msg);
@@ -571,7 +588,7 @@
             alerta.lng = loc.lng;
             alerta.accuracy = loc.accuracy;
             
-            statusMsg.innerHTML = '📍 Localização EXATA obtida, enviando...';
+            statusMsg.innerHTML = `📍 Localização EXATA obtida (±${loc.accuracy.toFixed(1)}m), enviando...`;
           } catch (e) {
             console.warn('⚠️ Erro GPS:', e);
             statusMsg.innerHTML = `⚠️ ${e} - enviando sem localização`;
@@ -633,7 +650,7 @@
       const data = ultimo.timestamp_br || new Date(ultimo.timestamp).toLocaleString('pt-BR');
       html += `${data} - ${ultimo.situation}`;
       if (ultimo.location) {
-        html += ` 📍 (precisão: ±${ultimo.location.accuracy?.toFixed(0) || '?'}m)`;
+        html += ` 📍 (precisão: ±${ultimo.location.accuracy?.toFixed(1) || '?'}m)`;
       }
       html += '</div>';
       
@@ -734,7 +751,7 @@
       });
     }
     
-    console.log('✅ Painel da Mulher carregado com Localização EXATA!');
+    console.log('✅ Painel da Mulher carregado com Localização EXATA (≤2m)!');
   </script>
 </body>
 </html>

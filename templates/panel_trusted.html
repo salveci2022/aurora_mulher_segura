@@ -41,11 +41,13 @@
             border-radius: 20px;
             padding: 20px;
             margin: 15px 0;
+            transition: all 0.5s;
         }
         
         #alertBox.novo {
-            background: rgba(255,152,0,0.2);
+            background: rgba(255,152,0,0.3);
             border-color: #ff9800;
+            box-shadow: 0 0 30px rgba(255,152,0,0.5);
             animation: brilho 1s infinite;
         }
         
@@ -53,6 +55,31 @@
             0% { box-shadow: 0 0 10px #ff9800; }
             50% { box-shadow: 0 0 30px #ff9800; }
             100% { box-shadow: 0 0 10px #ff9800; }
+        }
+        
+        .mapa-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2196f3, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 15px 0;
+            display: none; /* Escondido por padrão */
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(33,150,243,0.3);
+            transition: all 0.3s;
+        }
+        
+        .mapa-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33,150,243,0.5);
+        }
+        
+        .mapa-btn.visivel {
+            display: block; /* Mostrar quando tiver localização */
         }
         
         .acoes-grid {
@@ -81,26 +108,27 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
         
-        .mapa-btn {
-            width: 100%;
-            padding: 12px;
-            background: #2196f3;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 10px 0;
-            display: none;
-        }
-        
         .loc-info {
             background: rgba(0,0,0,0.3);
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
-            margin-top: 10px;
-            font-family: monospace;
+            margin-top: 15px;
+            border-left: 4px solid #ff4fc8;
         }
+        
+        .coordenadas {
+            font-family: monospace;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        
+        .precisao-excelente { color: #4caf50; font-weight: bold; }
+        .precisao-boa { color: #4caf50; }
+        .precisao-media { color: #ff9800; }
+        .precisao-ruim { color: #f44336; }
     </style>
 </head>
 <body class="aurora-bg">
@@ -123,13 +151,18 @@
                 <h1 class="h1">CENTRAL DE ALERTAS</h1>
                 <p class="center muted small">Olá, <strong>{{ display_name }}</strong></p>
 
+                <!-- BOTÃO DA SIRENE -->
                 <div class="sirene-btn" id="sireneBtn">
                     <span>🔔</span>
                     <small style="font-size:14px;">SIRENE</small>
                 </div>
 
-                <button class="mapa-btn" id="mapaBtn">📍 ABRIR LOCALIZAÇÃO NO MAPA</button>
+                <!-- BOTÃO DO MAPA - CORRIGIDO -->
+                <button class="mapa-btn" id="mapaBtn">
+                    📍 ABRIR LOCALIZAÇÃO NO MAPA
+                </button>
 
+                <!-- ÁREA DO ALERTA -->
                 <div id="alertBox">
                     <div id="lastMeta" style="font-size:18px; color:#ff4fc8; margin-bottom:10px;">
                         ⏳ Aguardando alertas...
@@ -137,12 +170,14 @@
                     <div id="details" style="color:white; line-height:1.8;"></div>
                 </div>
 
+                <!-- BOTÕES DE AÇÃO -->
                 <div class="acoes-grid">
                     <button class="acao-btn reenviar" id="reenviarBtn">🔄 Reenviar</button>
                     <button class="acao-btn limpar" id="limparBtn">🗑️ Limpar</button>
                     <button class="acao-btn sair" id="sairBtn">🚪 Sair</button>
                 </div>
 
+                <!-- STATUS -->
                 <div class="status-bar" style="background:rgba(0,0,0,0.3); padding:12px; border-radius:30px; text-align:center;">
                     Sistema monitorando alertas em tempo real
                 </div>
@@ -157,70 +192,64 @@
         const sireneBtn = document.getElementById('sireneBtn');
         const mapaBtn = document.getElementById('mapaBtn');
         let lastId = 0;
-        let sireneAtiva = false;
+        let sireneAtiva = true;
         let ultimoAlerta = null;
         
-        let audioCtx = null;
-        
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-        
-        function tocarSirene() {
-            if (!sireneAtiva || !audioCtx) return;
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'sine';
-            gain.gain.value = 0.3;
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            const now = audioCtx.currentTime;
-            osc.frequency.setValueAtTime(600, now);
-            osc.frequency.linearRampToValueAtTime(1000, now + 0.2);
-            osc.frequency.linearRampToValueAtTime(600, now + 0.4);
-            
-            osc.start(now);
-            osc.stop(now + 0.5);
-            
-            if (sireneAtiva) {
-                setTimeout(tocarSirene, 500);
-            }
-        }
+        // ===== SIRENE =====
+        const sireneAudio = new Audio('/static/audio/sirene.mp3');
+        sireneAudio.loop = true;
         
         sireneBtn.addEventListener('click', () => {
-            initAudio();
             sireneAtiva = !sireneAtiva;
             sireneBtn.classList.toggle('ativa', sireneAtiva);
-        });
-        
-        mapaBtn.addEventListener('click', () => {
-            if (ultimoAlerta?.location) {
-                const {lat, lng} = ultimoAlerta.location;
-                window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+            
+            if (!sireneAtiva) {
+                sireneAudio.pause();
+                sireneAudio.currentTime = 0;
+            } else if (alertBox.classList.contains('novo')) {
+                sireneAudio.play().catch(e => console.log('Erro ao tocar:', e));
             }
         });
         
+        document.addEventListener('click', () => {
+            if (sireneAtiva && alertBox.classList.contains('novo')) {
+                sireneAudio.play().catch(e => console.log('Erro ao tocar:', e));
+            }
+        }, { once: true });
+        
+        // ===== MAPA - CORRIGIDO =====
+        mapaBtn.addEventListener('click', () => {
+            if (ultimoAlerta && ultimoAlerta.location) {
+                const lat = ultimoAlerta.location.lat;
+                const lng = ultimoAlerta.location.lng;
+                
+                // Abrir no Google Maps
+                const url = `https://www.google.com/maps?q=${lat},${lng}`;
+                window.open(url, '_blank');
+                
+                console.log('📍 Abrindo mapa:', url);
+            } else {
+                alert('Nenhuma localização disponível para este alerta.');
+            }
+        });
+        
+        // ===== BOTÕES =====
         document.getElementById('reenviarBtn').onclick = () => alert('Função em desenvolvimento');
         
         document.getElementById('limparBtn').onclick = () => {
             lastMeta.innerHTML = '⏳ Alertas limpos';
             details.innerHTML = '';
             alertBox.classList.remove('novo');
+            mapaBtn.classList.remove('visivel'); // Esconder botão do mapa
+            sireneAudio.pause();
+            sireneAudio.currentTime = 0;
         };
         
         document.getElementById('sairBtn').onclick = () => {
             window.location.href = '/logout_trusted';
         };
         
+        // ===== BUSCAR ALERTAS =====
         async function buscarAlertas() {
             try {
                 const res = await fetch('/api/last_alert?ts=' + Date.now());
@@ -229,39 +258,79 @@
                 if (data.ok && data.last) {
                     const alerta = data.last;
                     
+                    // NOVO ALERTA
                     if (alerta.id > lastId) {
                         lastId = alerta.id;
                         ultimoAlerta = alerta;
                         
                         alertBox.classList.add('novo');
                         
-                        if (sireneAtiva) tocarSirene();
+                        if (sireneAtiva) {
+                            sireneAudio.play().catch(e => console.log('Erro ao tocar:', e));
+                        }
+                        
+                        setTimeout(() => {
+                            if (sireneAtiva) {
+                                sireneAudio.pause();
+                                sireneAudio.currentTime = 0;
+                            }
+                        }, 10000);
                         
                         setTimeout(() => {
                             alertBox.classList.remove('novo');
                         }, 5000);
                     }
                     
+                    // Mostrar informações do alerta
                     lastMeta.innerHTML = `<strong>🚨 ALERTA #${alerta.id}</strong> - ${alerta.ts_br || alerta.ts}`;
                     
                     let html = '';
                     html += `👤 <strong>Nome:</strong> ${alerta.name}<br>`;
                     html += `⚠️ <strong>Situação:</strong> ${alerta.situation}<br>`;
                     
-                    if (alerta.message) html += `💬 <strong>Mensagem:</strong> ${alerta.message}<br>`;
+                    if (alerta.message) {
+                        html += `💬 <strong>Mensagem:</strong> ${alerta.message}<br>`;
+                    }
                     
+                    // LOCALIZAÇÃO - CORRIGIDO
                     if (alerta.location) {
                         const {lat, lng, accuracy} = alerta.location;
+                        
+                        // Definir classe de precisão
+                        let precisaoClass = '';
+                        let precisaoText = '';
+                        
+                        if (accuracy <= 10) {
+                            precisaoClass = 'precisao-excelente';
+                            precisaoText = 'EXCELENTE';
+                        } else if (accuracy <= 30) {
+                            precisaoClass = 'precisao-boa';
+                            precisaoText = 'BOA';
+                        } else if (accuracy <= 50) {
+                            precisaoClass = 'precisao-media';
+                            precisaoText = 'MÉDIA';
+                        } else {
+                            precisaoClass = 'precisao-ruim';
+                            precisaoText = 'RUIM';
+                        }
+                        
                         html += `<div class="loc-info">`;
-                        html += `📍 <strong>Localização:</strong><br>`;
-                        html += `   Lat: ${lat.toFixed(6)}<br>`;
-                        html += `   Lng: ${lng.toFixed(6)}<br>`;
-                        if (accuracy) html += `   🎯 Precisão: ±${accuracy.toFixed(0)}m<br>`;
+                        html += `📍 <strong>LOCALIZAÇÃO EXATA:</strong><br>`;
+                        html += `<div class="coordenadas">`;
+                        html += `   <strong>Latitude:</strong> ${lat.toFixed(6)}<br>`;
+                        html += `   <strong>Longitude:</strong> ${lng.toFixed(6)}<br>`;
                         html += `</div>`;
-                        mapaBtn.style.display = 'block';
+                        if (accuracy) {
+                            html += `   <span class="${precisaoClass}">🎯 Precisão: ±${accuracy.toFixed(0)}m (${precisaoText})</span><br>`;
+                        }
+                        html += `   <small style="color:#cdb7e6;">Clique no botão azul acima para ver no mapa</small>`;
+                        html += `</div>`;
+                        
+                        // MOSTRAR BOTÃO DO MAPA
+                        mapaBtn.classList.add('visivel');
                     } else {
-                        html += `📍 Localização não compartilhada`;
-                        mapaBtn.style.display = 'none';
+                        html += `📍 <strong>Localização não compartilhada</strong>`;
+                        mapaBtn.classList.remove('visivel');
                     }
                     
                     details.innerHTML = html;
@@ -271,9 +340,11 @@
             }
         }
         
+        // Iniciar busca automática
         setInterval(buscarAlertas, 2000);
         buscarAlertas();
         
+        // Status de conexão
         setInterval(() => {
             document.getElementById('statusConexao').innerHTML = 
                 navigator.onLine ? '🟢 Online' : '🔴 Offline';

@@ -459,7 +459,7 @@
       });
     });
     
-    // ===== LOCALIZAÇÃO EXATA (GPS REAL) =====
+    // ===== LOCALIZAÇÃO EXATA - FORÇANDO GPS REAL NO BRASIL =====
     async function getLocalizacaoExata() {
         return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
@@ -468,73 +468,71 @@
                 return;
             }
             
-            statusMsg.innerHTML = '📍 OBTENDO LOCALIZAÇÃO EXATA (GPS)...';
-            gpsPrecision.innerHTML = '⏳ ATIVANDO GPS REAL... (aguarde)';
+            statusMsg.innerHTML = '📍 ATIVANDO GPS REAL... (aguarde 30s)';
+            gpsPrecision.innerHTML = '⏳ Buscando satélites em BRASÍLIA...';
             
-            // CONFIGURAÇÃO PARA GPS REAL (não WiFi)
+            // CONFIGURAÇÃO PARA GPS REAL
             const options = {
-                enableHighAccuracy: true,      // FORÇA GPS REAL
-                timeout: 30000,                 // 30 segundos para captar satélites
-                maximumAge: 0                    // NÃO USA CACHE
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 0
             };
             
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    // Dados do GPS REAL
                     const loc = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
-                        accuracy: position.coords.accuracy,  // Precisão em metros
-                        altitude: position.coords.altitude,
-                        heading: position.coords.heading,
-                        speed: position.coords.speed,
-                        timestamp: position.timestamp
+                        accuracy: position.coords.accuracy
                     };
                     
                     console.log('📍 GPS REAL:', loc);
                     
-                    // ANÁLISE DA PRECISÃO
-                    if (loc.accuracy <= 10) {
-                        gpsPrecision.innerHTML = `📍 GPS EXATO! (±${loc.accuracy.toFixed(0)}m) - IDEAL PARA PROVAS`;
-                        gpsPrecision.style.color = '#4caf50';
-                    } else if (loc.accuracy <= 30) {
-                        gpsPrecision.innerHTML = `📍 GPS DE ALTA PRECISÃO (±${loc.accuracy.toFixed(0)}m) - ACEITÁVEL`;
-                        gpsPrecision.style.color = '#4caf50';
-                    } else if (loc.accuracy <= 50) {
-                        gpsPrecision.innerHTML = `📍 GPS MÉDIO (±${loc.accuracy.toFixed(0)}m) - TENTE NOVAMENTE`;
-                        gpsPrecision.style.color = '#ff9800';
+                    // VERIFICAR SE ESTÁ NO BRASIL (coordenadas aproximadas)
+                    const isInBrazil = loc.lat < 5 && loc.lat > -35 && loc.lng > -75 && loc.lng < -30;
+                    
+                    // Coordenadas aproximadas de Brasília: -15.8, -47.9
+                    const isInBrasilia = loc.lat > -16.5 && loc.lat < -15.0 && loc.lng > -48.5 && loc.lng < -47.0;
+                    
+                    if (!isInBrazil) {
+                        gpsPrecision.innerHTML = `❌ GPS mostrou fora do Brasil (${loc.lat.toFixed(1)}, ${loc.lng.toFixed(1)}) - TENTE NOVAMENTE`;
+                        gpsPrecision.style.color = '#f44336';
                         
-                        // Perguntar se quer tentar novamente para melhor precisão
-                        if (confirm('Precisão de ±' + loc.accuracy.toFixed(0) + 'm não é ideal.\n\nDeseja tentar novamente para obter localização mais exata?')) {
+                        if (confirm(`⚠️ O GPS mostrou coordenadas fora do Brasil.\n\nEstá em área aberta? Deseja tentar novamente?`)) {
                             getLocalizacaoExata().then(resolve).catch(reject);
                             return;
                         }
+                    } else if (isInBrasilia) {
+                        gpsPrecision.innerHTML = `📍 GPS ACERTOU! Você está em Brasília! (±${loc.accuracy.toFixed(0)}m)`;
+                        gpsPrecision.style.color = '#4caf50';
                     } else {
-                        gpsPrecision.innerHTML = `📍 GPS FRACO (±${loc.accuracy.toFixed(0)}m) - MUITO IMPRECISO`;
-                        gpsPrecision.style.color = '#f44336';
+                        gpsPrecision.innerHTML = `📍 GPS no Brasil (±${loc.accuracy.toFixed(0)}m)`;
+                        gpsPrecision.style.color = '#ff9800';
                         
-                        if (confirm('Precisão de ±' + loc.accuracy.toFixed(0) + 'm é muito baixa para provas.\n\nDeseja tentar novamente com melhor precisão?')) {
-                            getLocalizacaoExata().then(resolve).catch(reject);
-                            return;
+                        if (loc.accuracy > 50) {
+                            if (confirm(`⚠️ Precisão de ±${loc.accuracy.toFixed(0)}m pode não ser ideal.\n\nDeseja tentar novamente em área aberta?`)) {
+                                getLocalizacaoExata().then(resolve).catch(reject);
+                                return;
+                            }
                         }
                     }
                     
                     resolve(loc);
                 },
                 (error) => {
-                    let msg = 'Erro no GPS';
+                    let msg = '';
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
                             msg = 'Permissão negada';
                             gpsPrecision.innerHTML = '❌ Permissão de GPS negada - Ative nas configurações';
                             break;
                         case error.POSITION_UNAVAILABLE:
-                            msg = 'Sinal GPS indisponível - Saia para área aberta';
-                            gpsPrecision.innerHTML = '❌ Sinal GPS indisponível - Tente em local aberto';
+                            msg = 'Sinal indisponível';
+                            gpsPrecision.innerHTML = '❌ Sem sinal de satélite - Vá para área aberta (longe de prédios)';
                             break;
                         case error.TIMEOUT:
-                            msg = 'Tempo esgotado - Tente novamente em local aberto';
-                            gpsPrecision.innerHTML = '⏱️ GPS não encontrou satélites - Tente em área externa';
+                            msg = 'Tempo esgotado';
+                            gpsPrecision.innerHTML = '⏱️ GPS sem sinal - Tente em área externa (longe de prédios)';
                             break;
                     }
                     reject(msg);

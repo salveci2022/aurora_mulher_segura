@@ -253,27 +253,31 @@ def teste_pdf():
         traceback.print_exc()
         return f"Erro ao gerar PDF: {str(e)}"
 
-# ===== RELATÓRIOS EM PDF =====
+# ===== RELATÓRIOS EM PDF CORRIGIDO =====
 @app.route('/relatorio/pdf')
 def relatorio_pdf():
     """Gera relatório PDF com todos os alertas"""
     try:
         alerts = get_all_alerts()
         
+        # Se não há alertas, criar PDF com mensagem
         pdf = FPDF()
         pdf.add_page()
         
+        # Configurar fonte
         pdf.set_auto_page_break(auto=True, margin=15)
         
+        # Título
         pdf.set_font("Arial", "B", 20)
         pdf.set_text_color(255, 79, 200)
         pdf.cell(190, 15, txt="AURORA MULHER SEGURA", ln=1, align="C")
         
         pdf.set_font("Arial", "B", 16)
         pdf.set_text_color(100, 100, 100)
-        pdf.cell(190, 10, txt="Relatorio de Alertas de Emergencia", ln=1, align="C")
+        pdf.cell(190, 10, txt="RELATORIO DE ALERTAS", ln=1, align="C")
         pdf.ln(10)
         
+        # Data
         now_br = datetime.now(BR_TZ)
         formatted_time = now_br.strftime("%d/%m/%Y as %H:%M:%S")
         pdf.set_font("Arial", "", 12)
@@ -282,19 +286,21 @@ def relatorio_pdf():
         pdf.cell(190, 8, txt=f"Total de Alertas: {len(alerts)}", ln=1)
         pdf.ln(10)
         
-        with_location = sum(1 for a in alerts if a.get('location'))
-        without_location = len(alerts) - with_location
-        
-        pdf.set_font("Arial", "B", 14)
-        pdf.set_text_color(255, 79, 200)
-        pdf.cell(190, 10, txt="ESTATISTICAS", ln=1)
-        pdf.set_font("Arial", "", 12)
-        pdf.set_text_color(0, 0, 0)
-        pdf.cell(190, 8, txt=f"* Alertas com localizacao: {with_location}", ln=1)
-        pdf.cell(190, 8, txt=f"* Alertas sem localizacao: {without_location}", ln=1)
-        pdf.ln(10)
-        
         if alerts:
+            # Estatísticas
+            with_location = sum(1 for a in alerts if a.get('location'))
+            without_location = len(alerts) - with_location
+            
+            pdf.set_font("Arial", "B", 14)
+            pdf.set_text_color(255, 79, 200)
+            pdf.cell(190, 10, txt="ESTATISTICAS", ln=1)
+            pdf.set_font("Arial", "", 12)
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(190, 8, txt=f"- Alertas com localizacao: {with_location}", ln=1)
+            pdf.cell(190, 8, txt=f"- Alertas sem localizacao: {without_location}", ln=1)
+            pdf.ln(10)
+            
+            # Lista de alertas
             pdf.set_font("Arial", "B", 14)
             pdf.set_text_color(255, 79, 200)
             pdf.cell(190, 10, txt="HISTORICO DE ALERTAS", ln=1)
@@ -310,22 +316,11 @@ def relatorio_pdf():
                 pdf.cell(190, 8, txt=f"ID {alert.get('id', 'N/A')} - {ts_display}", ln=1)
                 
                 pdf.set_font("Arial", "", 11)
-                
-                nome = alert.get('name', 'Nao informado')
-                if len(nome) > 30:
-                    nome = nome[:30] + "..."
-                pdf.cell(190, 6, txt=f"   Nome: {nome}", ln=1)
-                
-                situacao = alert.get('situation', 'Emergencia')
-                if len(situacao) > 40:
-                    situacao = situacao[:40] + "..."
-                pdf.cell(190, 6, txt=f"   Situacao: {situacao}", ln=1)
+                pdf.cell(190, 6, txt=f"   Nome: {alert.get('name', 'Nao informado')}", ln=1)
+                pdf.cell(190, 6, txt=f"   Situacao: {alert.get('situation', 'Emergencia')}", ln=1)
                 
                 if alert.get('message'):
-                    msg = alert.get('message', '')
-                    if len(msg) > 50:
-                        msg = msg[:50] + "..."
-                    pdf.cell(190, 6, txt=f"   Mensagem: {msg}", ln=1)
+                    pdf.cell(190, 6, txt=f"   Mensagem: {alert.get('message')[:50]}", ln=1)
                 
                 if alert.get('location'):
                     loc = alert.get('location')
@@ -337,28 +332,21 @@ def relatorio_pdf():
                         lat = f"{lat:.6f}"
                     if isinstance(lng, float):
                         lng = f"{lng:.6f}"
-                    if acc != 'N/A' and isinstance(acc, (int, float)):
-                        acc = f"{acc:.1f}m"
                     
-                    pdf.cell(190, 6, txt=f"   Localizacao: {lat}, {lng} (+-{acc})", ln=1)
+                    pdf.cell(190, 6, txt=f"   Localizacao: {lat}, {lng} (+-{acc}m)", ln=1)
                 else:
                     pdf.cell(190, 6, txt="   Localizacao: Nao compartilhada", ln=1)
                 
-                pdf.cell(190, 2, txt="", ln=1)
                 pdf.ln(2)
         else:
-            pdf.set_font("Arial", "I", 12)
-            pdf.set_text_color(150, 150, 150)
-            pdf.cell(190, 10, txt="Nenhum alerta registrado ate o momento.", ln=1, align="C")
+            pdf.set_font("Arial", "I", 14)
+            pdf.set_text_color(255, 0, 0)
+            pdf.cell(190, 20, txt="NAO HA ALERTAS REGISTRADOS", ln=1, align="C")
+            pdf.set_font("Arial", "", 12)
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(190, 10, txt="Nenhum alerta foi enviado ate o momento.", ln=1, align="C")
         
-        pdf.ln(10)
-        
-        pdf.set_y(-30)
-        pdf.set_font("Arial", "I", 8)
-        pdf.set_text_color(150, 150, 150)
-        pdf.cell(190, 5, txt="Documento gerado automaticamente pelo sistema Aurora Mulher Segura", ln=1, align="C")
-        pdf.cell(190, 5, txt="Este relatorio contem informacoes confidenciais de seguranca", ln=1, align="C")
-        
+        # Salvar
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
         
@@ -373,7 +361,7 @@ def relatorio_pdf():
         print(f"Erro ao gerar PDF: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        return f"Erro: {str(e)}"
 
 # ===== ADMIN =====
 @app.route('/panel/login', methods=['GET', 'POST'])

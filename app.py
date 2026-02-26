@@ -22,6 +22,10 @@ STATIC_DIR = BASE_DIR / "static"
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
 STATE_FILE = BASE_DIR / "state.json"
+TERMOS_FILE = BASE_DIR / "termos_aceitos.log"
+
+print(f"📁 Diretório base: {BASE_DIR}")
+print(f"📁 Arquivo de alertas: {ALERTS_FILE}")
 
 # ===== EVITAR CACHE PARA ARQUIVOS ESTÁTICOS =====
 @app.after_request
@@ -34,6 +38,8 @@ def add_header(response):
 
 def _ensure_files():
     """Cria arquivos necessários se não existirem"""
+    print("🔧 Verificando/criando arquivos necessários...")
+    
     if not USERS_FILE.exists():
         USERS_FILE.write_text(json.dumps({
             "admin": {
@@ -42,12 +48,27 @@ def _ensure_files():
                 "name": "Admin Aurora"
             }
         }, indent=2, ensure_ascii=False), encoding="utf-8")
+        print(f"✅ Arquivo users.json criado")
     
     if not ALERTS_FILE.exists():
         ALERTS_FILE.write_text("", encoding="utf-8")
+        print(f"✅ Arquivo alerts.log criado")
     
     if not STATE_FILE.exists():
         STATE_FILE.write_text(json.dumps({"last_id": 0}, indent=2), encoding="utf-8")
+        print(f"✅ Arquivo state.json criado")
+    
+    if not TERMOS_FILE.exists():
+        TERMOS_FILE.write_text("", encoding="utf-8")
+        print(f"✅ Arquivo termos_aceitos.log criado")
+    
+    # Verifica permissões
+    try:
+        with ALERTS_FILE.open("a", encoding="utf-8") as f:
+            f.write("")
+        print(f"✅ Arquivo alerts.log tem permissão de escrita")
+    except Exception as e:
+        print(f"❌ ERRO: Sem permissão de escrita em {ALERTS_FILE}: {e}")
 
 def load_users():
     """Carrega usuários do arquivo JSON"""
@@ -79,10 +100,38 @@ def _get_next_alert_id():
     return st["last_id"]
 
 def log_alert(payload):
-    """Registra alerta no arquivo de log"""
+    """Registra alerta no arquivo de log com debug"""
     _ensure_files()
-    with ALERTS_FILE.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    try:
+        print(f"\n📝 TENTANDO SALVAR ALERTA: {payload}")
+        print(f"📁 Arquivo de alertas: {ALERTS_FILE}")
+        
+        json_str = json.dumps(payload, ensure_ascii=False)
+        print(f"📄 JSON a ser salvo: {json_str}")
+        
+        with ALERTS_FILE.open("a", encoding="utf-8") as f:
+            f.write(json_str + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+        
+        print(f"✅ Escrita concluída")
+        
+        if ALERTS_FILE.exists():
+            tamanho = ALERTS_FILE.stat().st_size
+            print(f"✅ Alerta SALVO com sucesso! Tamanho do arquivo: {tamanho} bytes")
+            
+            with ALERTS_FILE.open("r", encoding="utf-8") as f:
+                linhas = f.readlines()
+                print(f"📊 Total de alertas no arquivo: {len(linhas)}")
+                if linhas:
+                    print(f"📌 Último alerta: {linhas[-1].strip()}")
+        else:
+            print(f"❌ Arquivo não existe após escrita!")
+            
+    except Exception as e:
+        print(f"❌ ERRO CRÍTICO ao salvar alerta: {e}")
+        import traceback
+        traceback.print_exc()
 
 def read_last_alert():
     """Lê o último alerta do log"""
@@ -97,37 +146,131 @@ def read_last_alert():
         return None
 
 def get_all_alerts():
-    """Retorna todos os alertas"""
+    """Retorna todos os alertas com debug"""
     alerts = []
     try:
         if ALERTS_FILE.exists():
+            tamanho = ALERTS_FILE.stat().st_size
+            print(f"\n📁 Lendo arquivo de alertas: {ALERTS_FILE}")
+            print(f"📊 Tamanho do arquivo: {tamanho} bytes")
+            
             with open(ALERTS_FILE, 'r', encoding='utf-8') as f:
-                for line in f:
-                    if line.strip():
-                        alerts.append(json.loads(line))
-        return alerts
-    except Exception:
-        return []
+                linhas = f.readlines()
+                print(f"📄 Linhas encontradas: {len(linhas)}")
+                
+                for i, line in enumerate(linhas):
+                    line = line.strip()
+                    if line:
+                        try:
+                            alert = json.loads(line)
+                            alerts.append(alert)
+                            print(f"  ✅ Linha {i+1}: OK - ID {alert.get('id')} - {alert.get('name')}")
+                        except json.JSONDecodeError as e:
+                            print(f"  ❌ Linha {i+1}: ERRO ao decodificar JSON: {e}")
+        else:
+            print(f"❌ Arquivo {ALERTS_FILE} NÃO EXISTE!")
+            _ensure_files()
+            
+    except Exception as e:
+        print(f"❌ Erro ao ler alertas: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    print(f"📊 Total de alertas carregados: {len(alerts)}")
+    return alerts
 
-# ===== ROTAS PRINCIPAIS =====
+# ===== ROTA DO TERMO DE RESPONSABILIDADE =====
 @app.route('/')
 def index():
-    return redirect(url_for('panic_button'))
+    """Página inicial - Termo de responsabilidade"""
+    return render_template('termo_responsabilidade.html')
 
+@app.route('/termo')
+def termo_responsabilidade():
+    """Exibe o termo de responsabilidade"""
+    return render_template('termo_responsabilidade.html')
+
+@app.route('/api/aceitar-termo', methods=['POST'])
+def api_aceitar_termo():
+    """Registra o aceite do termo"""
+    try:
+        data = request.get_json() or {}
+        nome = data.get('nome', 'Não informado')
+        
+        registro = {
+            "nome": nome,
+            "data": datetime.now(BR_TZ).strftime("%d/%m/%Y %H:%M:%S"),
+            "ip": request.remote_addr,
+            "user_agent": request.headers.get('User-Agent')
+        }
+        
+        with TERMOS_FILE.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+        
+        print(f"✅ Termo aceito por: {nome} - {registro['data']}")
+        return jsonify({"ok": True})
+    except Exception as e:
+        print(f"❌ Erro ao registrar termo: {e}")
+        return jsonify({"ok": False, "erro": str(e)})
+
+# ===== ROTAS PRINCIPAIS =====
 @app.route('/panic')
 def panic_button():
+    """Botão de pânico principal"""
     users = load_users()
     trusted_names = [info.get("name") or username for username, info in users.items() if info.get("role") == "trusted"]
     return render_template('panic_button.html', trusted_names=trusted_names)
 
 @app.route('/painel-da-mulher')
 def painel_da_mulher():
-    """Painel da mulher - versão melhorada"""
-    return render_template('painel_da_mulher.html')
+    """Redireciona para o botão de pânico"""
+    return redirect(url_for('panic_button'))
 
+# ===== ROTA PARA LIMPAR ALERTAS =====
+@app.route('/limpar-alertas')
+def limpar_alertas():
+    """Limpa todos os alertas do sistema - Apenas admin"""
+    try:
+        if session.get("role") != "admin":
+            return "Acesso negado. Apenas admin pode limpar alertas.", 403
+        
+        print("\n🧹 INICIANDO LIMPEZA DE ALERTAS")
+        
+        if ALERTS_FILE.exists():
+            alerts_antes = get_all_alerts()
+            print(f"📊 Alertas antes da limpeza: {len(alerts_antes)}")
+            
+            ALERTS_FILE.unlink()
+            print(f"✅ Arquivo {ALERTS_FILE} deletado")
+            
+            _ensure_files()
+            print(f"✅ Arquivo recriado vazio")
+            
+            alerts_depois = get_all_alerts()
+            print(f"📊 Alertas depois da limpeza: {len(alerts_depois)}")
+            
+            print("🧹 TODOS OS ALERTAS FORAM LIMPOS!")
+            return "✅ Alertas limpos com sucesso!"
+        else:
+            print("ℹ️ Arquivo de alertas não existe")
+            return "ℹ️ Arquivo de alertas não existe."
+            
+    except Exception as e:
+        print(f"❌ Erro ao limpar alertas: {e}")
+        import traceback
+        traceback.print_exc()
+        return f"Erro: {e}", 500
+
+# ===== ROTA DE ALERTAS =====
 @app.route('/api/send_alert', methods=['POST'])
 def api_send_alert():
+    print("\n" + "="*60)
+    print("🚨 REQUISIÇÃO DE ALERTA RECEBIDA")
+    print("="*60)
+    
     data = request.get_json(silent=True) or {}
+    print(f"📦 Dados recebidos: {data}")
+    
     alert_id = _get_next_alert_id()
     
     location = None
@@ -168,14 +311,25 @@ def api_send_alert():
         "message": (data.get("message") or ""),
         "location": location,
     }
-    log_alert(payload)
     
-    print(f"✅ Alerta #{alert_id} recebido - {payload['name']} - {payload['situation']}")
-    if location:
-        print(f"📍 Localização: {location.get('lat', 'N/A')}, {location.get('lng', 'N/A')}")
-        if 'accuracy' in location:
-            print(f"🎯 Precisão: ±{location['accuracy']}m")
+    print(f"\n{'='*50}")
+    print(f"🚨 ALERTA #{alert_id}")
+    print(f"{'='*50}")
+    print(f"👤 Nome: {payload['name']}")
+    print(f"⚠️ Situação: {payload['situation']}")
+    print(f"💬 Mensagem: {payload['message']}")
+    print(f"📍 Localização: {location if location else 'NÃO INFORMADA'}")
     print(f"🕐 Horário: {formatted_time_br}")
+    print(f"{'='*50}")
+    
+    try:
+        log_alert(payload)
+        print(f"✅ Função log_alert executada com sucesso")
+    except Exception as e:
+        print(f"❌ ERRO NA FUNÇÃO log_alert: {e}")
+    
+    alerts_agora = get_all_alerts()
+    print(f"📊 Total de alertas após salvar: {len(alerts_agora)}")
     
     return jsonify({
         "ok": True,
@@ -201,6 +355,7 @@ def health():
         "users_json_ok": USERS_FILE.exists(),
         "alerts_log_ok": ALERTS_FILE.exists(),
         "state_file_ok": STATE_FILE.exists(),
+        "termos_file_ok": TERMOS_FILE.exists()
     })
 
 # ===== ROTA DE DIAGNÓSTICO =====
@@ -208,12 +363,21 @@ def health():
 def diagnostico_alertas():
     """Mostra todos os alertas em formato texto"""
     alerts = get_all_alerts()
-    if not alerts:
-        return "Nenhum alerta encontrado!"
     
     html = "<h1>📋 Alertas no sistema</h1>"
-    html += f"<p>Total: {len(alerts)} alertas</p>"
+    html += f"<p>Arquivo: {ALERTS_FILE}</p>"
+    html += f"<p>Arquivo existe: {ALERTS_FILE.exists()}</p>"
+    
+    if ALERTS_FILE.exists():
+        tamanho = ALERTS_FILE.stat().st_size
+        html += f"<p>Tamanho do arquivo: {tamanho} bytes</p>"
+    
+    html += f"<p>Total de alertas: {len(alerts)}</p>"
     html += "<hr>"
+    
+    if not alerts:
+        html += "<p style='color: red;'>❌ Nenhum alerta encontrado!</p>"
+    
     for a in alerts:
         html += f"<p><strong>ID {a.get('id')}</strong> - {a.get('ts_br', a.get('ts'))}</p>"
         html += f"<p>👤 {a.get('name')} - ⚠️ {a.get('situation')}</p>"
@@ -223,6 +387,7 @@ def diagnostico_alertas():
         else:
             html += f"<p>📍 Sem localização</p>"
         html += "<hr>"
+    
     return html
 
 # ===== ROTA DE TESTE PDF =====
@@ -253,21 +418,19 @@ def teste_pdf():
         traceback.print_exc()
         return f"Erro ao gerar PDF: {str(e)}"
 
-# ===== RELATÓRIOS EM PDF CORRIGIDO =====
+# ===== RELATÓRIOS EM PDF =====
 @app.route('/relatorio/pdf')
 def relatorio_pdf():
     """Gera relatório PDF com todos os alertas"""
     try:
         alerts = get_all_alerts()
         
-        # Se não há alertas, criar PDF com mensagem
+        print(f"\n📄 GERANDO PDF COM {len(alerts)} ALERTAS")
+        
         pdf = FPDF()
         pdf.add_page()
-        
-        # Configurar fonte
         pdf.set_auto_page_break(auto=True, margin=15)
         
-        # Título
         pdf.set_font("Arial", "B", 20)
         pdf.set_text_color(255, 79, 200)
         pdf.cell(190, 15, txt="AURORA MULHER SEGURA", ln=1, align="C")
@@ -277,7 +440,6 @@ def relatorio_pdf():
         pdf.cell(190, 10, txt="RELATORIO DE ALERTAS", ln=1, align="C")
         pdf.ln(10)
         
-        # Data
         now_br = datetime.now(BR_TZ)
         formatted_time = now_br.strftime("%d/%m/%Y as %H:%M:%S")
         pdf.set_font("Arial", "", 12)
@@ -287,7 +449,6 @@ def relatorio_pdf():
         pdf.ln(10)
         
         if alerts:
-            # Estatísticas
             with_location = sum(1 for a in alerts if a.get('location'))
             without_location = len(alerts) - with_location
             
@@ -300,7 +461,6 @@ def relatorio_pdf():
             pdf.cell(190, 8, txt=f"- Alertas sem localizacao: {without_location}", ln=1)
             pdf.ln(10)
             
-            # Lista de alertas
             pdf.set_font("Arial", "B", 14)
             pdf.set_text_color(255, 79, 200)
             pdf.cell(190, 10, txt="HISTORICO DE ALERTAS", ln=1)
@@ -346,9 +506,9 @@ def relatorio_pdf():
             pdf.set_text_color(0, 0, 0)
             pdf.cell(190, 10, txt="Nenhum alerta foi enviado ate o momento.", ln=1, align="C")
         
-        # Salvar
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(temp_file.name)
+        print(f"✅ PDF gerado com sucesso")
         
         return send_file(
             temp_file.name,
@@ -358,7 +518,7 @@ def relatorio_pdf():
         )
         
     except Exception as e:
-        print(f"Erro ao gerar PDF: {e}")
+        print(f"❌ Erro ao gerar PDF: {e}")
         import traceback
         traceback.print_exc()
         return f"Erro: {str(e)}"
@@ -552,18 +712,21 @@ if __name__ == '__main__':
     print("🚀 AURORA MULHER SEGURA - SISTEMA INICIADO!")
     print("=" * 60)
     print("📱 Acesse:")
-    print("   - http://localhost:5000/                (Página inicial)")
+    print("   - http://localhost:5000/                (TERMO DE RESPONSABILIDADE)")
     print("   - http://localhost:5000/panic           (Botão de Pânico)")
-    print("   - http://localhost:5000/painel-da-mulher (Painel da Mulher)")
+    print("   - http://localhost:5000/termo           (Termo de Responsabilidade)")
+    print("   - http://localhost:5000/painel-da-mulher (Redireciona para /panic)")
     print("   - http://localhost:5000/panel/login     (Admin)")
     print("   - http://localhost:5000/trusted/login   (Pessoa de Confiança)")
     print("   - http://localhost:5000/historico       (Histórico)")
     print("   - http://localhost:5000/relatorio/pdf   (Relatório PDF)")
     print("   - http://localhost:5000/teste-pdf       (Teste PDF)")
     print("   - http://localhost:5000/diagnostico-alertas (Diagnóstico)")
+    print("   - http://localhost:5000/limpar-alertas  (LIMPAR ALERTAS - Admin)")
     print("   - http://localhost:5000/health          (Health)")
     print("=" * 60)
     print(f"📁 Alertas salvos em: {ALERTS_FILE}")
+    print(f"📁 Termos aceitos em: {TERMOS_FILE}")
     print(f"👥 Usuários salvos em: {USERS_FILE}")
     print("=" * 60)
     

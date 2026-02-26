@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="icon" type="image/png" href="/static/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#ff4fc8">
+  <meta charset="utf-8">
+  <title>Aurora - Botão de Pânico</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+  <style>
+    /* MESMO ESTILO DO PAINEL DA MULHER E PANEL_TRUSTED */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #1a0033, #2d005a);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    
+    .painel-principal {
+      max-width: 480px;
+      width: 100%;
+      background: linear-gradient(145deg, #2d005a, #1a0033);
+      border-radius: 40px;
+      padding: 24px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+      border: 1px solid rgba(255,79,200,0.3);
+    }
+    
+    /* HEADER */
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(255,79,200,0.3);
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .brand-dot {
+      width: 45px;
+      height: 45px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,121,218,0.9), rgba(164,92,255,0.75));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 0 25px rgba(255,79,200,0.5);
+    }
+    
+    .brand-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .brand-sub {
+      font-size: 12px;
+      color: #cdb7e6;
+    }
+    
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .pill {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,79,200,0.3);
+      padding: 8px 16px;
+      border-radius: 30px;
+      color: white;
+      text-decoration: none;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .pill:hover {
+      background: rgba(255,79,200,0.3);
+    }
+    
+    /* TÍTULO */
+    .h1 {
+      color: white;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    
+    .center {
+      text-align: center;
+    }
+    
+    .muted {
+      color: #cdb7e6;
+    }
+    
+    .small {
+      font-size: 14px;
+    }
+    
+    /* SEÇÃO DE SITUAÇÃO */
+    .section-title {
+      color: #ffb0f0;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .situation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .situation-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,79,200,0.2);
+      border-radius: 20px;
+      padding: 16px 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+    }
+    
+    .situation-btn:hover {
+      background: rgba(255,79,200,0.15);
+      border-color: #ff4fc8;
+      transform: translateY(-2px);
+    }
+    
+    .situation-btn.active {
+      background: linear-gradient(145deg, rgba(255,79,200,0.25), rgba(164,92,255,0.25));
+      border-color: #ff4fc8;
+      box-shadow: 0 0 20px rgba(255,79,200,0.3);
+    }
+    
+    .situation-btn span {
+      font-size: 20px;
+    }
+    
+    /* CAMPOS DE INPUT */
+    .campo {
+      margin-bottom: 20px;
+    }
+    
+    .campo label {
+      display: block;
+      color: #cdb7e6;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .input, textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255,79,200,0.3);
+      border-radius: 20px;
+      padding: 15px 18px;
+      color: white;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    
+    .input:focus, textarea:focus {
+      outline: none;
+      border-color: #ff4fc8;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    
+    select.input {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff4fc8'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+      background-size: 20px;
+    }
+    
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    
+    /* BOTÃO SOS */
+    .sos-container {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0 20px;
+    }
+    
+    .sos-btn {
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle at 50% 45%, rgba(255,79,200,0.95), rgba(164,92,255,0.8) 55%, rgba(40,0,60,0.9));
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 0 10px rgba(255,79,200,0.2), 0 0 0 20px rgba(164,92,255,0.1), 0 20px 40px rgba(0,0,0,0.6);
+      border: 4px solid rgba(255,255,255,0.2);
+      transition: all 0.3s;
+      font-weight: bold;
+    }
+    
+    .sos-btn span {
+      font-size: 48px;
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    
+    .sos-btn small {
+      font-size: 14px;
+      letter-spacing: 1px;
+      margin-top: 5px;
+      color: rgba(255,255,255,0.9);
+    }
+    
+    .sos-btn.sent {
+      background: radial-gradient(circle at 50% 45%, #4caf50, #2e7d32);
+      box-shadow: 0 0 0 10px rgba(76,175,80,0.2), 0 0 0 20px rgba(76,175,80,0.1);
+    }
+    
+    .sos-btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* STATUS */
+    .status-box {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,79,200,0.3);
+      border-radius: 30px;
+      padding: 15px;
+      margin: 20px 0;
+      text-align: center;
+      color: white;
+      font-size: 14px;
+    }
+    
+    /* LOCALIZAÇÃO */
+    .location-box {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,79,200,0.3);
+      border-radius: 20px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    
+    .location-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffb0f0;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    #locTxt {
+      background: rgba(0,0,0,0.3);
+      border-radius: 16px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #a0e0ff;
+      word-break: break-all;
+    }
+    
+    #locHint {
+      color: #cdb7e6;
+      font-size: 12px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    
+    /* RODAPÉ */
+    .rodape {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 2px solid rgba(255,79,200,0.3);
+      color: #cdb7e6;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    /* UTILITÁRIOS */
+    hr {
+      border: none;
+      border-top: 1px solid rgba(255,79,200,0.3);
+      margin: 15px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="painel-principal">
+    <!-- TOPO -->
+    <div class="topo">
+      <div class="brand">
+        <div class="brand-dot">🌸</div>
+        <div>
+          <div class="brand-title">AURORA</div>
+          <div class="brand-sub">Mulher Segura</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="pill" onclick="goFull()">⛶</button>
+        <button class="pill" onclick="location.reload()">↻</button>
+        <a class="pill" href="/">✕</a>
+      </div>
+    </div>
+
+    <!-- TÍTULO -->
+    <h1 class="h1">🚨 BOTÃO DE PÂNICO</h1>
+    <p class="center muted small">Toque no botão SOS para enviar alerta</p>
+
+    <!-- SITUAÇÃO -->
+    <div class="section-title">
+      <span>⚠️</span> SITUAÇÃO
+    </div>
+    
+    <!-- Select oculto para compatibilidade -->
+    <select id="situationSelect" style="display: none;">
+      <option value="Assédio">Assédio</option>
+      <option value="Violência">Violência</option>
+      <option value="Perseguição">Perseguição</option>
+      <option value="Emergência médica">Emergência médica</option>
+      <option value="Local suspeito">Local suspeito</option>
+      <option value="Outro">Outro</option>
+    </select>
+
+    <div class="situation-grid">
+      <button type="button" class="situation-btn active" data-value="Assédio">
+        <span>🚫</span> Assédio
+      </button>
+      <button type="button" class="situation-btn" data-value="Violência">
+        <span>👊</span> Violência
+      </button>
+      <button type="button" class="situation-btn" data-value="Perseguição">
+        <span>👀</span> Perseguição
+      </button>
+      <button type="button" class="situation-btn" data-value="Emergência médica">
+        <span>🏥</span> Emergência médica
+      </button>
+      <button type="button" class="situation-btn" data-value="Local suspeito">
+        <span>⚠️</span> Local suspeito
+      </button>
+      <button type="button" class="situation-btn" data-value="Outro">
+        <span>❓</span> Outro
+      </button>
+    </div>
+
+    <!-- NOME -->
+    <div class="campo">
+      <label>👤 SEU NOME</label>
+      <select id="userNameSelect" class="input">
+        {% for name in trusted_names %}
+          <option value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+        <option value="Outro">Outro (digitar abaixo)</option>
+      </select>
+      <input id="customNameInput" class="input" style="margin-top: 10px; display: none;" placeholder="Digite seu nome">
+    </div>
+
+    <!-- MENSAGEM -->
+    <div class="campo">
+      <label>💬 MENSAGEM (OPCIONAL)</label>
+      <textarea id="messageInput" rows="2" placeholder="Descreva a situação..."></textarea>
+    </div>
+
+    <!-- BOTÃO SOS -->
+    <div class="sos-container">
+      <button id="sosBtn" class="sos-btn" onclick="enviar()">
+        <span>SOS</span>
+        <small>TOQUE</small>
+      </button>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-box" id="status">
+      🌸 Sistema pronto
+    </div>
+
+    <hr>
+
+    <!-- LOCALIZAÇÃO -->
+    <div class="location-title">
+      <span>📍</span> LOCALIZAÇÃO
+    </div>
+    <div class="location-box">
+      <div id="locTxt">Aguardando GPS...</div>
+      <div id="locHint">Ative o GPS e permita o acesso à localização</div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <div class="rodape">
+      <span>🌸 POR PTB2</span>
+      <span id="dataHora"></span>
+    </div>
+  </div>
+
+  <script>
+    function goFull() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+    }
+
+    // ===== DATA E HORA =====
+    function atualizarDataHora() {
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, '0');
+      const minutos = agora.getMinutes().toString().padStart(2, '0');
+      const dia = agora.getDate().toString().padStart(2, '0');
+      const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
+      const ano = agora.getFullYear();
+      document.getElementById('dataHora').textContent = `${horas}:${minutos} ${dia}/${mes}/${ano}`;
+    }
+    setInterval(atualizarDataHora, 1000);
+    atualizarDataHora();
+
+    // ===== LOCALIZAÇÃO =====
+    let lastPos = null;
+    let watchId = null;
+
+    function setLocText(txt) {
+      document.getElementById('locTxt').textContent = txt;
+    }
+
+    function startLocation() {
+      if (!navigator.geolocation) {
+        setLocText('❌ GPS não disponível');
+        return;
+      }
+
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          lastPos = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            acc: pos.coords.accuracy
+          };
+          
+          let cor = lastPos.acc <= 10 ? '#4caf50' : lastPos.acc <= 30 ? '#4caf50' : lastPos.acc <= 50 ? '#ff9800' : '#f44336';
+          setLocText(`Lat: ${lastPos.lat.toFixed(6)} | Lng: ${lastPos.lng.toFixed(6)} | ±${lastPos.acc.toFixed(0)}m`);
+          
+          if (lastPos.acc <= 10) document.getElementById('locHint').innerHTML = '✅ GPS EXCELENTE!';
+          else if (lastPos.acc <= 30) document.getElementById('locHint').innerHTML = '✅ GPS BOM';
+          else if (lastPos.acc <= 50) document.getElementById('locHint').innerHTML = '⚠️ GPS MÉDIO - Tente área aberta';
+          else document.getElementById('locHint').innerHTML = '❌ GPS RUIM - Vá para área aberta';
+        },
+        (err) => {
+          let msg = '⚠️ Permita o GPS';
+          if (err.code === 1) msg = '❌ Permissão negada';
+          else if (err.code === 2) msg = '❌ Sinal indisponível';
+          else if (err.code === 3) msg = '⏳ Timeout';
+          setLocText(msg);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    startLocation();
+
+    // ===== GERENCIAMENTO DE NOME =====
+    document.getElementById('userNameSelect').addEventListener('change', function() {
+      const customInput = document.getElementById('customNameInput');
+      customInput.style.display = this.value === 'Outro' ? 'block' : 'none';
+    });
+
+    function getSelectedName() {
+      const select = document.getElementById('userNameSelect');
+      if (select.value === 'Outro') {
+        return document.getElementById('customNameInput').value || 'Usuária';
+      }
+      return select.value;
+    }
+
+    // ===== GERENCIAMENTO DE SITUAÇÃO =====
+    document.querySelectorAll('.situation-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.situation-btn').forEach(b => {
+          b.classList.remove('active');
+        });
+        this.classList.add('active');
+        document.getElementById('situationSelect').value = this.dataset.value;
+        if (navigator.vibrate) navigator.vibrate(20);
+      });
+    });
+
+    // ===== ENVIO DO ALERTA =====
+    async function enviar() {
+      const btn = document.getElementById('sosBtn');
+      const status = document.getElementById('status');
+      
+      btn.disabled = true;
+      btn.classList.add('sent');
+      btn.innerHTML = '<span>✓</span><small>ENVIANDO</small>';
+      status.textContent = '⏳ Enviando alerta...';
+
+      // Pega posição atual
+      if (navigator.geolocation) {
+        await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              lastPos = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                acc: pos.coords.accuracy
+              };
+              resolve();
+            },
+            () => resolve(),
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        });
+      }
+
+      const payload = {
+        name: getSelectedName(),
+        situation: document.getElementById('situationSelect').value,
+        message: document.getElementById('messageInput').value,
+        lat: lastPos ? lastPos.lat : null,
+        lng: lastPos ? lastPos.lng : null,
+        accuracy: lastPos ? lastPos.acc : null
+      };
+
+      try {
+        const res = await fetch('/api/send_alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+          status.textContent = '✅ ALERTA ENVIADO!';
+          btn.innerHTML = '<span>✓</span><small>ENVIADO</small>';
+        } else {
+          throw new Error('Erro no servidor');
+        }
+      } catch (e) {
+        status.textContent = '❌ Erro ao enviar';
+        btn.classList.remove('sent');
+        btn.innerHTML = '<span>SOS</span><small>TOQUE</small>';
+      }
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('sent');
+        btn.innerHTML = '<span>SOS</span><small>TOQUE</small>';
+        status.textContent = '🌸 Sistema pronto';
+      }, 3000);
+    }
+
+    // Verificar permissão de localização
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        if (result.state === 'denied') {
+          setLocText('❌ Permissão negada');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

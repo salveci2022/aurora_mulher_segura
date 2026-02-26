@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora - Central de Ajuda</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .ajuda-container {
+            max-width: 420px;
+            width: 100%;
+            background: linear-gradient(145deg, #2d005a, #1a0033);
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,79,200,0.3);
+            color: white;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,79,200,0.3);
+        }
+        
+        .header h1 {
+            color: #ff4fc8;
+            font-size: 24px;
+        }
+        
+        .btn-voltar {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #ff4fc8;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-voltar:hover {
+            background: #ff4fc8;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,79,200,0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: #ff4fc8;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .canal {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,79,200,0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .canal:hover {
+            border-color: #ff4fc8;
+            background: rgba(255,79,200,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .canal-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .canal-icone {
+            width: 50px;
+            height: 50px;
+            background: #ff4fc8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .canal-texto h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .canal-texto p {
+            color: #cdb7e6;
+            font-size: 13px;
+        }
+        
+        .canal-numero {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff4fc8;
+        }
+        
+        .lei-card {
+            background: rgba(255,79,200,0.1);
+            border-left: 4px solid #ff4fc8;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .lei-card h3 {
+            color: #ffb0f0;
+            margin-bottom: 10px;
+        }
+        
+        .lei-card p {
+            color: #e0d0ff;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .tipos-violencia {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .tipo-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,79,200,0.2);
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+            color: #e0d0ff;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,79,200,0.3);
+            color: #665a7a;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ajuda-container">
+        <div class="header">
+            <a href="/panic" class="btn-voltar">← Voltar</a>
+            <h1>📞 CENTRAL DE AJUDA</h1>
+        </div>
+        
+        <div class="card">
+            <h2>🚨 EMERGÊNCIA - LIGUE AGORA</h2>
+            
+            <div class="canal" onclick="ligar('190')">
+                <div class="canal-info">
+                    <div class="canal-icone">🚔</div>
+                    <div class="canal-texto">
+                        <h3>Polícia Militar</h3>
+                        <p>Emergência - Atendimento 24h</p>
+                    </div>
+                </div>
+                <div class="canal-numero">190</div>
+            </div>
+            
+            <div class="canal" onclick="ligar('180')">
+                <div class="canal-info">
+                    <div class="canal-icone">👩</div>
+                    <div class="canal-texto">
+                        <h3>Ligue 180</h3>
+                        <p>Central de Atendimento à Mulher</p>
+                    </div>
+                </div>
+                <div class="canal-numero">180</div>
+            </div>
+            
+            <div class="canal" onclick="whatsapp()">
+                <div class="canal-info">
+                    <div class="canal-icone">💬</div>
+                    <div class="canal-texto">
+                        <h3>WhatsApp 180</h3>
+                        <p>Chat de orientação</p>
+                    </div>
+                </div>
+                <div class="canal-numero">📱</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>⚖️ LEI MARIA DA PENHA</h2>
+            
+            <div class="lei-card">
+                <h3>O que é?</h3>
+                <p>Lei 11.340/2006 - Cria mecanismos para coibir e prevenir a violência doméstica e familiar contra a mulher.</p>
+            </div>
+            
+            <h3 style="color: #ffb0f0; margin: 15px 0 10px;">Tipos de Violência:</h3>
+            
+            <div class="tipos-violencia">
+                <div class="tipo-item">🔴 Física</div>
+                <div class="tipo-item">🟠 Psicológica</div>
+                <div class="tipo-item">🟡 Sexual</div>
+                <div class="tipo-item">🟢 Patrimonial</div>
+                <div class="tipo-item">🔵 Moral</div>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <p style="color: #cdb7e6; font-size: 13px;">Medidas Protetivas: afastamento do agressor, proibição de contato, etc.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📌 ORIENTAÇÕES IMPORTANTES</h2>
+            
+            <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px; margin: 10px 0;">
+                <p style="color: #ffb0f0;">✓ Ligue 190 em emergência</p>
+                <p style="color: #e0d0ff; font-size: 13px; margin-top: 5px;">A polícia vai até você</p>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px; margin: 10px 0;">
+                <p style="color: #ffb0f0;">✓ Ligue 180 para orientação</p>
+                <p style="color: #e0d0ff; font-size: 13px; margin-top: 5px;">Funciona 24h, gratuito e sigiloso</p>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px; margin: 10px 0;">
+                <p style="color: #ffb0f0;">✓ Delegacias da Mulher</p>
+                <p style="color: #e0d0ff; font-size: 13px; margin-top: 5px;">Atendimento especializado</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>AURORA MULHER SEGURA - Protegendo vidas</p>
+        </div>
+    </div>
+    
+    <script>
+        function ligar(numero) {
+            if (confirm(`Ligar para ${numero}?`)) {
+                window.location.href = `tel:${numero}`;
+            }
+        }
+        
+        function whatsapp() {
+            window.open('https://wa.me/556196100180?text=Preciso%20de%20ajuda', '_blank');
+        }
+    </script>
+</body>
+</html>

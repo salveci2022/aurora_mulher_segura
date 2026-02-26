@@ -364,6 +364,71 @@
       font-size: 20px;
     }
     
+    /* NOVO MENU DE ACESSO RÁPIDO */
+    .menu-rapido {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .menu-item {
+      background: rgba(255,79,200,0.1);
+      border: 1px solid #ff4fc8;
+      border-radius: 20px;
+      padding: 15px;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .menu-item:hover {
+      background: rgba(255,79,200,0.2);
+      transform: translateY(-2px);
+    }
+    
+    .menu-item span {
+      font-size: 24px;
+    }
+    
+    .menu-item p {
+      color: white;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    
+    .menu-item small {
+      color: #cdb7e6;
+      font-size: 11px;
+    }
+    
+    /* BOTÃO SAÍDA RÁPIDA (FIXO) */
+    .saida-rapida-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 999;
+      background: #f44336;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 20px rgba(244,67,54,0.5);
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .saida-rapida-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    .saida-rapida-btn span {
+      color: white;
+      font-size: 30px;
+    }
+    
     /* RODAPÉ */
     .footer {
       text-align: center;
@@ -497,6 +562,21 @@
       BAIXAR RELATÓRIO COMPLETO (PDF)
     </button>
 
+    <!-- NOVO MENU DE ACESSO RÁPIDO -->
+    <div class="menu-rapido">
+      <a href="/ajuda" class="menu-item">
+        <span>📞</span>
+        <p>Central de Ajuda</p>
+        <small>180 • 190 • Direitos</small>
+      </a>
+      
+      <a href="/plano-seguranca" class="menu-item">
+        <span>📋</span>
+        <p>Plano de Segurança</p>
+        <small>Checklist • Preparação</small>
+      </a>
+    </div>
+
     <!-- RODAPÉ -->
     <div class="footer">
       <span>🌸 POR PTB2</span>
@@ -508,6 +588,11 @@
       <a href="/termo">📜 Termo de Responsabilidade e Isenção</a>
     </div>
   </div>
+  
+  <!-- BOTÃO SAÍDA RÁPIDA (FIXO) -->
+  <a href="/saida-rapida" class="saida-rapida-btn" title="Saída Rápida">
+    <span>⏪</span>
+  </a>
 
   <script>
     // ===== DATA E HORA =====
@@ -806,11 +891,10 @@
       });
     }
 
-    // ===== VERIFICAR SE ACEITOU O TERMO (OPCIONAL - SEGURANÇA EXTRA) =====
+    // ===== VERIFICAR SE ACEITOU O TERMO =====
     (function() {
       const termoAceito = localStorage.getItem('aurora_termo_aceito');
       if (!termoAceito) {
-        // Mostra um aviso sutil no rodapé
         const termoLink = document.querySelector('.termo-link a');
         if (termoLink) {
           termoLink.style.color = '#ff4fc8';

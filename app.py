@@ -390,6 +390,24 @@ def painel_da_mulher():
     """Redireciona para o botão de pânico"""
     return redirect(url_for('panic_button'))
 
+# ===== NOVAS ROTAS - CENTRAL DE AJUDA =====
+@app.route('/ajuda')
+def central_ajuda():
+    """Central de Ajuda com contatos oficiais"""
+    return render_template('ajuda.html')
+
+# ===== NOVA ROTA - PLANO DE SEGURANÇA =====
+@app.route('/plano-seguranca')
+def plano_seguranca():
+    """Plano de segurança personalizável"""
+    return render_template('plano_seguranca.html')
+
+# ===== NOVA ROTA - SAÍDA RÁPIDA (TELA NEUTRA) =====
+@app.route('/saida-rapida')
+def saida_rapida():
+    """Tela neutra para disfarce (calculadora)"""
+    return render_template('saida_rapida.html')
+
 # ===== ROTA PARA LIMPAR ALERTAS =====
 @app.route('/limpar-alertas')
 def limpar_alertas():
@@ -878,6 +896,9 @@ if __name__ == '__main__':
     print("📱 Acesse:")
     print("   - http://localhost:5000/                      (TERMO DE RESPONSABILIDADE)")
     print("   - http://localhost:5000/panic                 (Botão de Pânico)")
+    print("   - http://localhost:5000/ajuda                  (NOVA - Central de Ajuda)")
+    print("   - http://localhost:5000/plano-seguranca        (NOVA - Plano de Segurança)")
+    print("   - http://localhost:5000/saida-rapida           (NOVA - Saída Rápida)")
     print("   - http://localhost:5000/termo                 (Termo de Responsabilidade)")
     print("   - http://localhost:5000/painel-da-mulher      (Redireciona para /panic)")
     print("   - http://localhost:5000/panel/login           (Admin)")

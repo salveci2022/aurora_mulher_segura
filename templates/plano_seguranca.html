@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora - Plano de Segurança</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .plano-container {
+            max-width: 420px;
+            width: 100%;
+            background: linear-gradient(145deg, #2d005a, #1a0033);
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,79,200,0.3);
+            color: white;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,79,200,0.3);
+        }
+        
+        .header h1 {
+            color: #ff4fc8;
+            font-size: 24px;
+        }
+        
+        .btn-voltar {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #ff4fc8;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-voltar:hover {
+            background: #ff4fc8;
+        }
+        
+        .secao {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,79,200,0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .secao h2 {
+            color: #ff4fc8;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            border: 1px solid rgba(255,79,200,0.1);
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #ff4fc8;
+        }
+        
+        .checklist-item label {
+            flex: 1;
+            color: #e0d0ff;
+            cursor: pointer;
+        }
+        
+        .campo-livre {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(255,79,200,0.2);
+        }
+        
+        .campo-livre input,
+        .campo-livre textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,79,200,0.3);
+            border-radius: 15px;
+            padding: 12px;
+            color: white;
+            margin-top: 8px;
+        }
+        
+        .campo-livre input:focus,
+        .campo-livre textarea:focus {
+            outline: none;
+            border-color: #ff4fc8;
+        }
+        
+        .salvar-btn {
+            background: #ff4fc8;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 15px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        
+        .salvar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px #ff4fc8;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,79,200,0.3);
+            color: #665a7a;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="plano-container">
+        <div class="header">
+            <a href="/panic" class="btn-voltar">← Voltar</a>
+            <h1>📋 PLANO DE SEGURANÇA</h1>
+        </div>
+        
+        <div class="secao">
+            <h2>🔴 SE ESTOU EM RISCO AGORA</h2>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="risco1">
+                <label for="risco1">Ligar para 190 (Polícia)</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="risco2">
+                <label for="risco2">Sair de casa imediatamente</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="risco3">
+                <label for="risco3">Ir para local seguro (casa de familiar, amiga)</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="risco4">
+                <label for="risco4">Levar documentos e celular</label>
+            </div>
+        </div>
+        
+        <div class="secao">
+            <h2>🟡 PREPARAÇÃO PARA SAIR</h2>
+            
+            <div class="campo-livre">
+                <label style="color: #ffb0f0;">📍 Locais seguros para ir:</label>
+                <input type="text" id="locaisSeguros" placeholder="Ex: Casa da Maria, Rua das Flores, 123">
+            </div>
+            
+            <div class="campo-livre">
+                <label style="color: #ffb0f0;">👥 Pessoas de confiança:</label>
+                <textarea id="pessoasConfianca" rows="2" placeholder="Nome e telefone"></textarea>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="prep1">
+                <label for="prep1">Separar documentos (RG, CPF, certidões)</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="prep2">
+                <label for="prep2">Separar medicamentos</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="prep3">
+                <label for="prep3">Separar roupas para você e filhos</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="prep4">
+                <label for="prep4">Dinheiro ou cartão separado</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="prep5">
+                <label for="prep5">Chave de casa/carro reserva</label>
+            </div>
+        </div>
+        
+        <div class="secao">
+            <h2>🟢 PÓS-VIOLÊNCIA / MEDIDAS PROTETIVAS</h2>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pos1">
+                <label for="pos1">Registrar BO na Delegacia da Mulher</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pos2">
+                <label for="pos2">Solicitar medidas protetivas</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pos3">
+                <label for="pos3">Ligar 180 para orientação</label>
+            </div>
+            
+            <div class="checklist-item">
+                <input type="checkbox" id="pos4">
+                <label for="pos4">Buscar apoio psicológico</label>
+            </div>
+            
+            <div class="campo-livre">
+                <label style="color: #ffb0f0;">📝 Anotações importantes:</label>
+                <textarea id="anotacoes" rows="3" placeholder="Números de protocolo, datas, ocorrências..."></textarea>
+            </div>
+        </div>
+        
+        <button class="salvar-btn" onclick="salvarPlano()">💾 SALVAR MEU PLANO</button>
+        
+        <div class="footer">
+            <p>Tudo salvo apenas no seu celular</p>
+        </div>
+    </div>
+    
+    <script>
+        function carregarPlano() {
+            const itens = document.querySelectorAll('input[type="checkbox"]');
+            itens.forEach(item => {
+                const id = item.id;
+                const salvo = localStorage.getItem('plano_' + id);
+                if (salvo === 'true') {
+                    item.checked = true;
+                }
+            });
+            
+            document.getElementById('locaisSeguros').value = localStorage.getItem('plano_locais') || '';
+            document.getElementById('pessoasConfianca').value = localStorage.getItem('plano_pessoas') || '';
+            document.getElementById('anotacoes').value = localStorage.getItem('plano_anotacoes') || '';
+        }
+        
+        function salvarPlano() {
+            const itens = document.querySelectorAll('input[type="checkbox"]');
+            itens.forEach(item => {
+                localStorage.setItem('plano_' + item.id, item.checked);
+            });
+            
+            localStorage.setItem('plano_locais', document.getElementById('locaisSeguros').value);
+            localStorage.setItem('plano_pessoas', document.getElementById('pessoasConfianca').value);
+            localStorage.setItem('plano_anotacoes', document.getElementById('anotacoes').value);
+            
+            alert('✅ Plano salvo com sucesso!');
+        }
+        
+        window.onload = carregarPlano;
+    </script>
+</body>
+</html>

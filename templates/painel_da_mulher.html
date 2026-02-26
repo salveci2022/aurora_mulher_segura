@@ -92,6 +92,50 @@
       border-color: #ff4fc8;
     }
     
+    /* BOTÕES DE AÇÃO (REENVIAR, LIMPAR, SAIR) */
+    .acoes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 20px 0;
+    }
+    
+    .acao-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,79,200,0.3);
+      padding: 12px 5px;
+      border-radius: 30px;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .acao-btn span {
+      font-size: 20px;
+    }
+    
+    .acao-btn:hover {
+      transform: translateY(-3px);
+    }
+    
+    .acao-btn.reenviar {
+      background: linear-gradient(135deg, #ff9800, #f57c00);
+    }
+    
+    .acao-btn.limpar {
+      background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    }
+    
+    .acao-btn.sair {
+      background: linear-gradient(135deg, #f44336, #c62828);
+    }
+    
     /* SEÇÃO DE SITUAÇÃO */
     .section-title {
       color: #ffb0f0;
@@ -190,7 +234,7 @@
     .sos-container {
       display: flex;
       justify-content: center;
-      margin: 30px 0 20px;
+      margin: 20px 0;
     }
     
     .sos-btn {
@@ -244,6 +288,17 @@
       text-align: center;
       color: white;
       font-size: 14px;
+    }
+    
+    /* ÚLTIMO ALERTA */
+    .ultimo-alerta {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid #4caf50;
+      border-radius: 15px;
+      padding: 12px;
+      margin: 15px 0;
+      color: #4caf50;
+      font-size: 13px;
     }
     
     /* LOCALIZAÇÃO - DRIVER SHIELD 360 */
@@ -339,8 +394,23 @@
       <div class="header-actions">
         <button class="header-btn" onclick="goFullScreen()">⛶</button>
         <button class="header-btn" onclick="location.reload()">↻</button>
-        <button class="header-btn" onclick="window.location.href='/'">✕</button>
       </div>
+    </div>
+
+    <!-- BOTÕES DE AÇÃO (REENVIAR, LIMPAR, SAIR) -->
+    <div class="acoes-grid">
+      <button class="acao-btn reenviar" id="reenviarBtn">
+        <span>🔄</span>
+        Reenviar
+      </button>
+      <button class="acao-btn limpar" id="limparBtn">
+        <span>🗑️</span>
+        Limpar
+      </button>
+      <button class="acao-btn sair" id="sairBtn">
+        <span>🚪</span>
+        Sair
+      </button>
     </div>
 
     <!-- SITUAÇÃO -->
@@ -394,6 +464,9 @@
       🌸 Sistema pronto - selecione uma situação
     </div>
 
+    <!-- ÚLTIMO ALERTA -->
+    <div id="ultimoAlerta" class="ultimo-alerta" style="display: none;"></div>
+
     <!-- LOCALIZAÇÃO - DRIVER SHIELD 360 -->
     <div class="location-box">
       <div class="location-title">
@@ -406,7 +479,7 @@
     <!-- BOTÃO PDF -->
     <button class="pdf-btn" id="pdfBtn">
       <span>📄</span>
-      BAIXAR RELATÓRIO COMPLETO
+      BAIXAR RELATÓRIO COMPLETO (PDF)
     </button>
 
     <!-- RODAPÉ -->
@@ -449,12 +522,13 @@
       });
     });
 
-    // ===== TECNOLOGIA DRIVER SHIELD 360 - LOCALIZAÇÃO PERFEITA =====
+    // ===== VARIÁVEIS GLOBAIS =====
+    let ultimoAlertaEnviado = null;
     let watchId = null;
     let lastPos = null;
-    let posHistory = []; // Histórico de posições (como o Driver Shield)
-    let locationAccuracy = 0;
+    let posHistory = [];
 
+    // ===== LOCALIZAÇÃO DRIVER SHIELD 360 =====
     function showLocationStatus(msg, color) {
       const locHint = document.getElementById('locHint');
       if (locHint) {
@@ -468,23 +542,18 @@
         lat: position.coords.latitude,
         lng: position.coords.longitude,
         acc: position.coords.accuracy,
-        alt: position.coords.altitude,
         heading: position.coords.heading,
         speed: position.coords.speed,
         timestamp: position.timestamp
       };
       
-      // Guarda no histórico (últimas 10 posições)
       posHistory.unshift(newPos);
       if (posHistory.length > 10) posHistory.pop();
       
-      // Só atualiza se for mais preciso
       if (!lastPos || newPos.acc < lastPos.acc) {
         lastPos = newPos;
-        locationAccuracy = newPos.acc;
       }
       
-      console.log('📍 Driver Shield 360:', newPos);
       updateLocationUI();
     }
 
@@ -494,11 +563,9 @@
       const locTxt = document.getElementById('locTxt');
       const locHint = document.getElementById('locHint');
       
-      // Formatação profissional (igual Driver Shield)
       const latStr = lastPos.lat.toFixed(6);
       const lngStr = lastPos.lng.toFixed(6);
       
-      // Determina qualidade do sinal
       let quality = '';
       let qualityColor = '';
       
@@ -513,7 +580,7 @@
       } else if (lastPos.acc <= 10) {
         quality = 'PRECISÃO BOA (±10m)';
         qualityColor = '#8bc34a';
-        locHint.innerHTML = '✅ Sinal bom - Aguardando satélites';
+        locHint.innerHTML = '✅ Sinal bom';
       } else if (lastPos.acc <= 20) {
         quality = 'PRECISÃO MÉDIA (±20m)';
         qualityColor = '#ff9800';
@@ -524,55 +591,13 @@
         locHint.innerHTML = '❌ Sinal fraco - Vá para área externa';
       }
       
-      // Informações adicionais (igual Driver Shield)
-      let extraInfo = '';
-      if (lastPos.speed !== null) {
-        extraInfo += `<br>🚗 Velocidade: ${(lastPos.speed * 3.6).toFixed(1)} km/h`;
-      }
-      if (lastPos.heading !== null) {
-        extraInfo += `<br>🧭 Direção: ${lastPos.heading.toFixed(0)}°`;
-      }
-      if (posHistory.length > 1) {
-        const oldest = posHistory[posHistory.length - 1];
-        const timeDiff = (lastPos.timestamp - oldest.timestamp) / 1000; // segundos
-        if (timeDiff > 0) {
-          const distance = Math.sqrt(Math.pow(lastPos.lat - oldest.lat, 2) + Math.pow(lastPos.lng - oldest.lng, 2)) * 111000; // metros aproximados
-          if (distance > 5) {
-            extraInfo += `<br>📊 Movimento: ${distance.toFixed(0)}m em ${timeDiff.toFixed(0)}s`;
-          }
-        }
-      }
-      
-      // Monta display profissional
       locTxt.innerHTML = `
         <div style="color: ${qualityColor}; font-weight: bold;">${quality}</div>
         <div style="font-size: 12px; color: #a89cc0; margin-top: 5px;">
           📍 Latitude: ${latStr}<br>
           📍 Longitude: ${lngStr}
         </div>
-        ${extraInfo}
       `;
-    }
-
-    function handleLocationError(error) {
-      let msg = '';
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          msg = '❌ Permissão negada - Ative o GPS nas configurações';
-          break;
-        case error.POSITION_UNAVAILABLE:
-          msg = '❌ Sinal indisponível - Vá para área aberta';
-          break;
-        case error.TIMEOUT:
-          msg = '⏳ Buscando sinal GPS... Aguarde';
-          // Tenta novamente
-          setTimeout(() => {
-            if (watchId) navigator.geolocation.clearWatch(watchId);
-            startLocationTracking();
-          }, 5000);
-          break;
-      }
-      showLocationStatus(msg, '#f44336');
     }
 
     function startLocationTracking() {
@@ -581,37 +606,27 @@
         return;
       }
 
-      // Configuração PROFISSIONAL - mesma do Driver Shield
       const options = {
-        enableHighAccuracy: true,      // FORÇA GPS REAL (não WiFi)
-        timeout: 30000,                // 30s para captar satélites
-        maximumAge: 0,                  // NÃO usa cache
-        distanceFilter: 5                // Atualiza a cada 5 metros (economiza bateria)
+        enableHighAccuracy: true,
+        timeout: 30000,
+        maximumAge: 0,
+        distanceFilter: 5
       };
 
-      // PRIMEIRA LEITURA - Rápida para resposta imediata
       navigator.geolocation.getCurrentPosition(
         (position) => {
           processPosition(position);
-          showLocationStatus('📍 GPS ATIVADO - Aguardando melhor precisão...', '#ff9800');
+          showLocationStatus('📍 GPS ATIVADO', '#ff9800');
           
-          // INICIA MONITORAMENTO CONTÍNUO (igual Driver Shield)
-          if (watchId) navigator.geolocation.clearWatch(watchId);
           watchId = navigator.geolocation.watchPosition(
-            (pos) => {
-              processPosition(pos);
-            },
+            processPosition,
             (err) => handleLocationError(err),
             options
           );
         },
         (err) => {
-          // Se falhar, tenta mesmo assim com watch
-          if (watchId) navigator.geolocation.clearWatch(watchId);
           watchId = navigator.geolocation.watchPosition(
-            (pos) => {
-              processPosition(pos);
-            },
+            processPosition,
             (err) => handleLocationError(err),
             options
           );
@@ -620,11 +635,25 @@
       );
     }
 
-    // Função para obter localização NO MOMENTO DO ALERTA (igual Driver Shield)
+    function handleLocationError(error) {
+      let msg = '';
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          msg = '❌ Permissão negada - Ative o GPS';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          msg = '❌ Sinal indisponível - Vá para área aberta';
+          break;
+        case error.TIMEOUT:
+          msg = '⏳ Buscando sinal GPS...';
+          break;
+      }
+      showLocationStatus(msg, '#f44336');
+    }
+
     async function getLocationForAlert() {
       return new Promise((resolve) => {
         if (!lastPos) {
-          // Se não tem posição, tenta pegar uma rápida
           navigator.geolocation.getCurrentPosition(
             (pos) => {
               resolve({
@@ -642,19 +671,9 @@
       });
     }
 
-    // Inicia o tracking ao carregar
     startLocationTracking();
 
-    // Verifica permissões
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then(result => {
-        if (result.state === 'denied') {
-          showLocationStatus('❌ GPS bloqueado - Ative nas configurações', '#f44336');
-        }
-      });
-    }
-
-    // ===== HOLD DO BOTÃO SOS =====
+    // ===== BOTÃO SOS =====
     const sosBtn = document.getElementById('sosBtn');
     const statusMsg = document.getElementById('statusMsg');
     let timerHold = null;
@@ -681,7 +700,7 @@
       isHolding = false;
       
       if (!statusMsg.innerHTML.includes('ENVIADO')) {
-        statusMsg.innerHTML = '🌸 Alerta cancelado';
+        statusMsg.innerHTML = '🌸 Sistema pronto';
       }
     }
 
@@ -697,13 +716,17 @@
       const nome = document.getElementById('nomeInput').value.trim() || 'Usuária';
       const mensagem = document.getElementById('mensagemInput').value.trim() || '';
 
-      // Pega a localização mais precisa no momento do envio
       const location = await getLocationForAlert();
 
-      const payload = {
+      ultimoAlertaEnviado = {
         name: nome,
         situation: situacaoSelecionada,
         message: mensagem,
+        location: location ? {
+          lat: location.lat,
+          lng: location.lng,
+          accuracy: location.acc
+        } : null,
         lat: location ? location.lat : null,
         lng: location ? location.lng : null,
         accuracy: location ? location.acc : null
@@ -717,13 +740,19 @@
         const res = await fetch('/api/send_alert', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(ultimoAlertaEnviado)
         });
 
         const data = await res.json();
 
         if (data.ok) {
           statusMsg.innerHTML = '✅ ALERTA ENVIADO COM SUCESSO!';
+          
+          // Mostrar último alerta
+          const ultimoDiv = document.getElementById('ultimoAlerta');
+          const dataHora = new Date().toLocaleString('pt-BR');
+          ultimoDiv.innerHTML = `📋 Último alerta: ${dataHora} - ${situacaoSelecionada}`;
+          ultimoDiv.style.display = 'block';
         } else {
           throw new Error('Erro no servidor');
         }
@@ -737,8 +766,43 @@
       }, 3000);
     }
 
+    // ===== BOTÕES DE AÇÃO =====
+    document.getElementById('reenviarBtn').addEventListener('click', function() {
+      if (!ultimoAlertaEnviado) {
+        alert('Nenhum alerta para reenviar');
+        return;
+      }
+      
+      if (confirm('Reenviar o último alerta?')) {
+        fetch('/api/send_alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ultimoAlertaEnviado)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            statusMsg.innerHTML = '✅ Alerta reenviado!';
+          }
+        });
+      }
+    });
+
+    document.getElementById('limparBtn').addEventListener('click', function() {
+      document.getElementById('nomeInput').value = 'SALVECI DOS SANTOS';
+      document.getElementById('mensagemInput').value = 'Preciso de ajuda urgente!';
+      document.getElementById('ultimoAlerta').style.display = 'none';
+      statusMsg.innerHTML = '🌸 Formulário limpo';
+    });
+
+    document.getElementById('sairBtn').addEventListener('click', function() {
+      if (confirm('Deseja sair?')) {
+        window.location.href = '/';
+      }
+    });
+
     // ===== PDF =====
-    document.getElementById('pdfBtn').addEventListener('click', () => {
+    document.getElementById('pdfBtn').addEventListener('click', function() {
       window.open('/relatorio/pdf', '_blank');
       statusMsg.innerHTML = '📄 Gerando PDF...';
       setTimeout(() => {

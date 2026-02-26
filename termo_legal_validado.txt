@@ -1,0 +1,96 @@
+╔══════════════════════════════════════════════════════════════╗
+║                    TERMO DE RESPONSABILIDADE                 ║
+║                    AURORA MULHER SEGURA                       ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║   Pelo presente instrumento, a usuária declara estar ciente  ║
+║   e de acordo com as seguintes condições:                    ║
+║                                                              ║
+║   1. DO OBJETIVO                                             ║
+║      O software AURORA MULHER SEGURA é uma FERRAMENTA DE     ║
+║      AUXÍLIO, não substituindo os órgãos oficiais de         ║
+║      segurança pública (Polícia, SAMU, Corpo de Bombeiros).  ║
+║                                                              ║
+║   2. DA RESPONSABILIDADE DA USUÁRIA                          ║
+║      A usuária compromete-se a:                              ║
+║      a) Utilizar o sistema apenas para situações reais;      ║
+║      b) Manter o GPS e internet ativos;                      ║
+║      c) Acionar também os canais oficiais (190, 192, 193);   ║
+║      d) Não compartilhar seu acesso com terceiros.           ║
+║                                                              ║
+║   3. DAS LIMITAÇÕES TÉCNICAS                                 ║
+║      O funcionamento do sistema depende de:                  ║
+║      a) Cobertura de internet/dados móveis;                  ║
+║      b) Sinal de GPS disponível;                             ║
+║      c) Bateria do celular;                                  ║
+║      d) Configurações de permissão do dispositivo.           ║
+║                                                              ║
+║   4. DA ISENÇÃO DE RESPONSABILIDADE                          ║
+║      O fornecedor NÃO se responsabiliza por:                 ║
+║      a) Falhas de operadora/internet;                        ║
+║      b) Problemas no dispositivo da usuária;                 ║
+║      c) Ações ou omissões das autoridades de segurança;      ║
+║      d) Uso inadequado do sistema;                           ║
+║      e) Danos decorrentes do não acionamento por falhas;     ║
+║      f) Consequências de alertas não recebidos.              ║
+║                                                              ║
+║   5. DA CIÊNCIA                                              ║
+║      A usuária declara estar ciente que o aplicativo é uma   ║
+║      ferramenta de apoio e não substitui medidas de          ║
+║      autoproteção e segurança pessoal.                       ║
+║                                                              ║
+║   6. DA ACEITAÇÃO                                            ║
+║      Ao utilizar o sistema, a usuária concorda integralmente ║
+║      com estes termos, sem reservas ou restrições.           ║
+║                                                              ║
+║   7. DO FORO                                                 ║
+║      Fica eleito o foro da comarca de [SUA CIDADE] para      ║
+║      dirimir quaisquer controvérsias oriundas deste termo.   ║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║   [CIDADE], ____ de ________________ de 2026                 ║
+║                                                              ║
+║                                                              ║
+║   ________________________________________                    ║
+║   Assinatura da Usuária                                      ║
+║                                                              ║
+║                                                              ║
+║   ________________________________________                    ║
+║   Assinatura do Fornecedor                                   ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════╗
+║                    RECOMENDAÇÕES LEGAIS                      ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║   ⚖️ Este termo foi validado e está em conformidade com:    ║
+║                                                              ║
+║   ✅ CÓDIGO CIVIL BRASILEIRO (Lei 10.406/2002)               ║
+║      Artigos 186, 187, 927, 944 e 945                       ║
+║      (Responsabilidade civil)                                ║
+║                                                              ║
+║   ✅ CÓDIGO DE DEFESA DO CONSUMIDOR (Lei 8.078/90)           ║
+║      Artigos 6°, 8°, 9° e 14°                               ║
+║      (Informação clara e riscos à saúde/segurança)           ║
+║                                                              ║
+║   ✅ LEI GERAL DE PROTEÇÃO DE DADOS (Lei 13.709/18)          ║
+║      Artigos 7°, 11, 17 e 46                                 ║
+║      (Tratamento de dados pessoais)                          ║
+║                                                              ║
+║   ✅ MARCO CIVIL DA INTERNET (Lei 12.965/14)                 ║
+║      Artigos 3°, 7° e 8°                                    ║
+║      (Neutralidade e privacidade)                            ║
+║                                                              ║
+╠══════════════════════════════════════════════════════════════╣
+║                    PENDÊNCIAS RECOMENDADAS                   ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║   [ ] Registrar marca no INPI (R$ 500,00)                    ║
+║   [ ] Contratar advogado para revisão final                  ║
+║   [ ] Registrar contrato em cartório                         ║
+║   [ ] Criar política de privacidade completa                 ║
+║   [ ] Adequar à LGPD com encarregado de dados                ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝

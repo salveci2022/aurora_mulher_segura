@@ -26,6 +26,7 @@ TERMOS_FILE = BASE_DIR / "termos_aceitos.log"
 
 print(f"📁 Diretório base: {BASE_DIR}")
 print(f"📁 Arquivo de alertas: {ALERTS_FILE}")
+print(f"📁 Arquivo de termos: {TERMOS_FILE}")
 
 # ===== EVITAR CACHE PARA ARQUIVOS ESTÁTICOS =====
 @app.after_request
@@ -212,6 +213,169 @@ def api_aceitar_termo():
     except Exception as e:
         print(f"❌ Erro ao registrar termo: {e}")
         return jsonify({"ok": False, "erro": str(e)})
+
+# ===== ROTA PARA VER QUEM ACEITOU O TERMO (APENAS ADMIN) =====
+@app.route('/admin/termos-aceitos')
+def ver_termos_aceitos():
+    """Mostra quem aceitou o termo (apenas admin)"""
+    if session.get("role") != "admin":
+        return "Acesso negado. Apenas admin pode ver esta página.", 403
+    
+    termos = []
+    if TERMOS_FILE.exists():
+        with open(TERMOS_FILE, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip():
+                    termos.append(json.loads(line))
+    
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Termos Aceitos - Aurora</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Segoe UI', Roboto, sans-serif;
+            }
+            body {
+                background: linear-gradient(135deg, #1a0033, #2d005a);
+                min-height: 100vh;
+                padding: 30px 20px;
+            }
+            .container {
+                max-width: 1000px;
+                margin: 0 auto;
+                background: linear-gradient(145deg, #2d005a, #1a0033);
+                border-radius: 40px;
+                padding: 30px;
+                border: 1px solid rgba(255,79,200,0.3);
+                color: white;
+            }
+            h1 {
+                color: #ff4fc8;
+                text-align: center;
+                margin-bottom: 20px;
+                font-size: 32px;
+            }
+            .stats {
+                background: rgba(255,79,200,0.1);
+                border-radius: 20px;
+                padding: 20px;
+                margin: 20px 0;
+                display: flex;
+                justify-content: space-around;
+                text-align: center;
+            }
+            .stat-item {
+                flex: 1;
+            }
+            .stat-value {
+                font-size: 36px;
+                font-weight: bold;
+                color: #ff4fc8;
+            }
+            .stat-label {
+                color: #cdb7e6;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+            }
+            th {
+                background: #ff4fc8;
+                color: white;
+                padding: 12px;
+                text-align: left;
+            }
+            td {
+                padding: 12px;
+                border-bottom: 1px solid rgba(255,79,200,0.3);
+            }
+            tr:hover {
+                background: rgba(255,79,200,0.1);
+            }
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,79,200,0.3);
+                color: #665a7a;
+            }
+            .btn-voltar {
+                display: inline-block;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid #ff4fc8;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 30px;
+                text-decoration: none;
+                margin-bottom: 20px;
+            }
+            .btn-voltar:hover {
+                background: rgba(255,79,200,0.3);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <a href="/panel" class="btn-voltar">← Voltar ao Painel Admin</a>
+            <h1>📋 REGISTRO DE TERMOS ACEITOS</h1>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">""" + str(len(termos)) + """</div>
+                    <div class="stat-label">Total de Aceites</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">""" + (termos[-1].get('data')[:10] if termos else 'N/A') + """</div>
+                    <div class="stat-label">Último Aceite</div>
+                </div>
+            </div>
+    """
+    
+    if termos:
+        html += """
+            <table>
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>Data</th>
+                    <th>IP</th>
+                    <th>Navegador</th>
+                </tr>
+        """
+        
+        for i, t in enumerate(reversed(termos), 1):
+            html += f"""
+                <tr>
+                    <td>{i}</td>
+                    <td><strong>{t.get('nome', 'N/A')}</strong></td>
+                    <td>{t.get('data', 'N/A')}</td>
+                    <td>{t.get('ip', 'N/A')}</td>
+                    <td>{t.get('user_agent', 'N/A')[:40]}...</td>
+                </tr>
+            """
+        
+        html += "</table>"
+    else:
+        html += "<p style='text-align: center; color: #f44336; font-size: 18px;'>❌ Nenhum termo aceito ainda.</p>"
+    
+    html += """
+            <div class="footer">
+                <p>AURORA MULHER SEGURA - Protegendo vidas</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return html
 
 # ===== ROTAS PRINCIPAIS =====
 @app.route('/panic')
@@ -708,26 +872,27 @@ def favicon():
 
 if __name__ == '__main__':
     _ensure_files()
-    print("=" * 60)
+    print("=" * 70)
     print("🚀 AURORA MULHER SEGURA - SISTEMA INICIADO!")
-    print("=" * 60)
+    print("=" * 70)
     print("📱 Acesse:")
-    print("   - http://localhost:5000/                (TERMO DE RESPONSABILIDADE)")
-    print("   - http://localhost:5000/panic           (Botão de Pânico)")
-    print("   - http://localhost:5000/termo           (Termo de Responsabilidade)")
-    print("   - http://localhost:5000/painel-da-mulher (Redireciona para /panic)")
-    print("   - http://localhost:5000/panel/login     (Admin)")
-    print("   - http://localhost:5000/trusted/login   (Pessoa de Confiança)")
-    print("   - http://localhost:5000/historico       (Histórico)")
-    print("   - http://localhost:5000/relatorio/pdf   (Relatório PDF)")
-    print("   - http://localhost:5000/teste-pdf       (Teste PDF)")
-    print("   - http://localhost:5000/diagnostico-alertas (Diagnóstico)")
-    print("   - http://localhost:5000/limpar-alertas  (LIMPAR ALERTAS - Admin)")
-    print("   - http://localhost:5000/health          (Health)")
-    print("=" * 60)
+    print("   - http://localhost:5000/                      (TERMO DE RESPONSABILIDADE)")
+    print("   - http://localhost:5000/panic                 (Botão de Pânico)")
+    print("   - http://localhost:5000/termo                 (Termo de Responsabilidade)")
+    print("   - http://localhost:5000/painel-da-mulher      (Redireciona para /panic)")
+    print("   - http://localhost:5000/panel/login           (Admin)")
+    print("   - http://localhost:5000/trusted/login         (Pessoa de Confiança)")
+    print("   - http://localhost:5000/historico             (Histórico)")
+    print("   - http://localhost:5000/relatorio/pdf         (Relatório PDF)")
+    print("   - http://localhost:5000/teste-pdf             (Teste PDF)")
+    print("   - http://localhost:5000/diagnostico-alertas   (Diagnóstico)")
+    print("   - http://localhost:5000/limpar-alertas        (LIMPAR ALERTAS - Admin)")
+    print("   - http://localhost:5000/admin/termos-aceitos  (TERMOS ACEITOS - Admin)")
+    print("   - http://localhost:5000/health                (Health)")
+    print("=" * 70)
     print(f"📁 Alertas salvos em: {ALERTS_FILE}")
     print(f"📁 Termos aceitos em: {TERMOS_FILE}")
     print(f"👥 Usuários salvos em: {USERS_FILE}")
-    print("=" * 60)
+    print("=" * 70)
     
     app.run(host='0.0.0.0', port=5000, debug=True)

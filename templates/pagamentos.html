@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formas de Pagamento - Aurora</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            color: white;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(145deg, #2d005a, #1a0033);
+            border-radius: 40px;
+            padding: 30px;
+            border: 1px solid rgba(255,79,200,0.3);
+        }
+        
+        h1 {
+            color: #ff4fc8;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .qr-pix {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+        
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f0f0f0;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            border-radius: 20px;
+        }
+        
+        .chave-pix {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px dashed #ff4fc8;
+        }
+        
+        .botao-copiar {
+            background: #ff4fc8;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .cartoes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .cartao-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,79,200,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .bandeiras {
+            font-size: 30px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💳 FORMAS DE PAGAMENTO</h1>
+        
+        <h2 style="color: #ffb0f0;">📱 PIX (5% de desconto)</h2>
+        <div class="qr-pix">
+            <div class="qr-placeholder">
+                [QR CODE DO PIX]
+            </div>
+            <p style="color: #333; margin-top: 10px;">Escaneie o QR Code com seu banco</p>
+        </div>
+        
+        <div class="chave-pix">
+            <strong>Chave Pix (copia e cola):</strong><br>
+            <span id="chavePix">aurora@segura.com.br</span>
+        </div>
+        
+        <button class="botao-copiar" onclick="copiarPix()">📋 COPIAR CHAVE PIX</button>
+        
+        <h2 style="color: #ffb0f0; margin-top: 40px;">💳 CARTÃO DE CRÉDITO</h2>
+        
+        <div class="cartoes">
+            <div class="cartao-item">
+                <div class="bandeiras">💳</div>
+                <strong>Visa</strong>
+                <p>Até 12x</p>
+            </div>
+            <div class="cartao-item">
+                <div class="bandeiras">💳</div>
+                <strong>Mastercard</strong>
+                <p>Até 12x</p>
+            </div>
+            <div class="cartao-item">
+                <div class="bandeiras">💳</div>
+                <strong>American Express</strong>
+                <p>Até 10x</p>
+            </div>
+            <div class="cartao-item">
+                <div class="bandeiras">💳</div>
+                <strong>Elo</strong>
+                <p>Até 12x</p>
+            </div>
+            <div class="cartao-item">
+                <div class="bandeiras">💳</div>
+                <strong>Hipercard</strong>
+                <p>Até 10x</p>
+            </div>
+            <div class="cartao-item">
+                <div class="bandeiras">💳</div>
+                <strong>Diners</strong>
+                <p>Até 8x</p>
+            </div>
+        </div>
+        
+        <h2 style="color: #ffb0f0; margin-top: 40px;">🏦 TRANSFERÊNCIA BANCÁRIA</h2>
+        
+        <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px;">
+            <p><strong>Banco:</strong> 000 - Banco do Brasil</p>
+            <p><strong>Agência:</strong> 1234-5</p>
+            <p><strong>Conta:</strong> 12345-6</p>
+            <p><strong>CNPJ:</strong> 00.000.000/0001-00</p>
+            <p><strong>Razão Social:</strong> Aurora Tecnologia Ltda</p>
+        </div>
+        
+        <h2 style="color: #ffb0f0; margin-top: 40px;">📄 BOLETO</h2>
+        
+        <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; text-align: center;">
+            <p>Vencimento em 3 dias úteis</p>
+            <button class="botao-copiar">📄 GERAR BOLETO</button>
+        </div>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,79,200,0.3);">
+            <p style="color: #ffb0f0; text-align: center;">Após o pagamento, o acesso é liberado em até 1 hora</p>
+            <p style="text-align: center;">Dúvidas? WhatsApp: (XX) XXXXX-XXXX</p>
+        </div>
+    </div>
+    
+    <script>
+        function copiarPix() {
+            const chave = document.getElementById('chavePix').innerText;
+            navigator.clipboard.writeText(chave).then(() => {
+                alert('Chave Pix copiada!');
+            });
+        }
+    </script>
+</body>
+</html>

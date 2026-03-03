@@ -1,5 +1,6 @@
-Flask==3.0.3
-gunicorn==22.0.0
-flask-cors==4.0.0
-fpdf==1.7.2
-pytz==2024.2
+flask
+flask-cors
+fpdf
+pytz
+gunicorn
+pywebpush

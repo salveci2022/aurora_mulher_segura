@@ -1,3 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel · Aurora</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="aurora-bg">
+
+<div class="center-wrap">
+    <div class="aurora-card">
+
+        <div class="topbar">
+            <div class="brand">
+                <div class="brand-dot">🌸</div>
+                <div>
+                    <div class="brand-title">AURORA</div>
+                    <div class="brand-sub">Painel da Pessoa de Confiança</div>
+                </div>
+            </div>
+
+            <div class="top-actions">
+                <a href="/panic" class="pill">🚨 SOS</a>
+                <a href="/trusted/logout" class="pill">Sair</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <h1 class="h1">Painel de Monitoramento</h1>
+            <p class="center muted small">
+                Você receberá notificações quando um alerta for acionado.
+            </p>
+
+            <div class="alert alert-success center">
+                Sistema ativo e aguardando alertas.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- REGISTRO DO SERVICE WORKER E PUSH -->
 <script>
 const VAPID_PUBLIC_KEY = "BB7XEWW3AetNIC14i0HEpkgfelgS9drXIN5uRf9NOBkgQz_YTRst4GWiXn7fNZIQdprjYLUfTYmb4EtTF3F0ww8";
 
@@ -15,15 +58,12 @@ if ("serviceWorker" in navigator && "PushManager" in window) {
 
   navigator.serviceWorker.register("/static/sw.js")
     .then(reg => {
-      console.log("Service Worker registrado");
-
       return reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
     })
     .then(subscription => {
-
       return fetch("/api/subscribe", {
         method: "POST",
         headers: {
@@ -31,14 +71,16 @@ if ("serviceWorker" in navigator && "PushManager" in window) {
         },
         body: JSON.stringify(subscription)
       });
-
     })
     .then(() => {
-      console.log("Dispositivo registrado para Push!");
+      console.log("Push ativado com sucesso.");
     })
     .catch(err => {
-      console.error("Erro no Push:", err);
+      console.error("Erro ao registrar Push:", err);
     });
 
 }
 </script>
+
+</body>
+</html>

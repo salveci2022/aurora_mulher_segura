@@ -63,7 +63,7 @@ def trusted_login():
             session["trusted_logged"] = True
             return redirect(url_for("trusted_panel"))
         else:
-            return render_template("trusted_login.html", erro="Usuário ou senha inválidos")
+            return render_template("trusted_login.html", error="Usuário ou senha inválidos")
 
     return render_template("trusted_login.html")
 
@@ -95,7 +95,7 @@ def panel_login():
             session["trusted_logged"] = True
             return redirect(url_for("panel_dashboard"))
         else:
-            return render_template("trusted_login.html", erro="Usuário ou senha inválidos")
+            return render_template("trusted_login.html", error="Usuário ou senha inválidos")
 
     return render_template("trusted_login.html")
 
@@ -142,23 +142,12 @@ def send_alert():
                 subscription_info=sub,
                 data=json.dumps(payload),
                 vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_claims={
-                    "sub": "mailto:admin@aurora.com"
-                }
+                vapid_claims={"sub": "mailto:admin@aurora.com"}
             )
         except WebPushException as ex:
             print("Erro no envio:", ex)
 
     return jsonify({"status": "alert sent"}), 200
-
-
-# ==========================
-# BOTÃO DE PÂNICO (ENVIO)
-# ==========================
-
-@app.route("/panic/send", methods=["POST"])
-def panic_send():
-    return send_alert()
 
 
 # ==========================

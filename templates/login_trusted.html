@@ -28,13 +28,13 @@
 
                 {% if error %}
                 <div class="alert alert-danger center">
-                    {{ error }}
+                    Usuário ou senha inválidos!
                 </div>
                 {% endif %}
 
-                <form method="POST">
+                <form method="POST" action="/trusted/login">
                     <label class="label">👤 Usuário</label>
-                    <input type="text" name="username" class="input" placeholder="Digite seu usuário" required>
+                    <input type="text" name="user" class="input" placeholder="Digite seu usuário" required>
                     
                     <label class="label">🔑 Senha</label>
                     <input type="password" name="password" class="input" placeholder="Digite sua senha" required>

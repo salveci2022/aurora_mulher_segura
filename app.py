@@ -13,34 +13,20 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = "aurora_v20_ultra_estavel_secure_2026"
 CORS(app)
 
-# Configuração do fuso horário do Brasil
 BR_TZ = pytz.timezone('America/Sao_Paulo')
 
 BASE_DIR = Path(__file__).resolve().parent
-TEMPLATES_DIR = BASE_DIR / "templates"
-STATIC_DIR = BASE_DIR / "static"
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
 STATE_FILE = BASE_DIR / "state.json"
 TERMOS_FILE = BASE_DIR / "termos_aceitos.log"
 
-print(f"📁 Diretório base: {BASE_DIR}")
-print(f"📁 Arquivo de alertas: {ALERTS_FILE}")
-print(f"📁 Arquivo de termos: {TERMOS_FILE}")
 
-# ===== EVITAR CACHE PARA ARQUIVOS ESTÁTICOS =====
-@app.after_request
-def add_header(response):
-    if 'Cache-Control' not in response.headers:
-        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '-1'
-    return response
-
+# ==============================
+# CRIA ARQUIVOS SE NÃO EXISTIREM
+# ==============================
 def _ensure_files():
-    """Cria arquivos necessários se não existirem"""
-    print("🔧 Verificando/criando arquivos necessários...")
-    
+
     if not USERS_FILE.exists():
         USERS_FILE.write_text(json.dumps({
             "admin": {
@@ -49,871 +35,272 @@ def _ensure_files():
                 "name": "Admin Aurora"
             }
         }, indent=2, ensure_ascii=False), encoding="utf-8")
-        print(f"✅ Arquivo users.json criado")
-    
+
     if not ALERTS_FILE.exists():
         ALERTS_FILE.write_text("", encoding="utf-8")
-        print(f"✅ Arquivo alerts.log criado")
-    
+
     if not STATE_FILE.exists():
         STATE_FILE.write_text(json.dumps({"last_id": 0}, indent=2), encoding="utf-8")
-        print(f"✅ Arquivo state.json criado")
-    
+
     if not TERMOS_FILE.exists():
         TERMOS_FILE.write_text("", encoding="utf-8")
-        print(f"✅ Arquivo termos_aceitos.log criado")
-    
-    # Verifica permissões
-    try:
-        with ALERTS_FILE.open("a", encoding="utf-8") as f:
-            f.write("")
-        print(f"✅ Arquivo alerts.log tem permissão de escrita")
-    except Exception as e:
-        print(f"❌ ERRO: Sem permissão de escrita em {ALERTS_FILE}: {e}")
 
+
+# ==============================
+# USUÁRIOS
+# ==============================
 def load_users():
-    """Carrega usuários do arquivo JSON"""
     _ensure_files()
     try:
         return json.loads(USERS_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        return {
-            "admin": {
-                "password": "admin123",
-                "role": "admin",
-                "name": "Admin Aurora"
-            }
-        }
+    except:
+        return {}
+
 
 def save_users(data):
-    """Salva usuários no arquivo JSON"""
     USERS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
+
+# ==============================
+# ALERTAS
+# ==============================
 def _get_next_alert_id():
-    """Gera próximo ID de alerta"""
-    _ensure_files()
-    try:
-        st = json.loads(STATE_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        st = {"last_id": 0}
-    st["last_id"] = int(st.get("last_id", 0)) + 1
-    STATE_FILE.write_text(json.dumps(st, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    st = json.loads(STATE_FILE.read_text())
+    st["last_id"] += 1
+
+    STATE_FILE.write_text(json.dumps(st, indent=2))
+
     return st["last_id"]
 
+
 def log_alert(payload):
-    """Registra alerta no arquivo de log com debug"""
-    _ensure_files()
-    try:
-        print(f"\n📝 TENTANDO SALVAR ALERTA: {payload}")
-        print(f"📁 Arquivo de alertas: {ALERTS_FILE}")
-        
-        json_str = json.dumps(payload, ensure_ascii=False)
-        print(f"📄 JSON a ser salvo: {json_str}")
-        
-        with ALERTS_FILE.open("a", encoding="utf-8") as f:
-            f.write(json_str + "\n")
-            f.flush()
-            os.fsync(f.fileno())
-        
-        print(f"✅ Escrita concluída")
-        
-        if ALERTS_FILE.exists():
-            tamanho = ALERTS_FILE.stat().st_size
-            print(f"✅ Alerta SALVO com sucesso! Tamanho do arquivo: {tamanho} bytes")
-            
-            with ALERTS_FILE.open("r", encoding="utf-8") as f:
-                linhas = f.readlines()
-                print(f"📊 Total de alertas no arquivo: {len(linhas)}")
-                if linhas:
-                    print(f"📌 Último alerta: {linhas[-1].strip()}")
-        else:
-            print(f"❌ Arquivo não existe após escrita!")
-            
-    except Exception as e:
-        print(f"❌ ERRO CRÍTICO ao salvar alerta: {e}")
-        import traceback
-        traceback.print_exc()
+
+    with ALERTS_FILE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
 
 def read_last_alert():
-    """Lê o último alerta do log"""
-    _ensure_files()
-    try:
-        txt = ALERTS_FILE.read_text(encoding="utf-8").strip()
-        if not txt:
-            return None
-        lines = [ln for ln in txt.split("\n") if ln.strip()]
-        return json.loads(lines[-1])
-    except Exception:
+
+    if not ALERTS_FILE.exists():
         return None
 
+    txt = ALERTS_FILE.read_text().strip()
+
+    if not txt:
+        return None
+
+    lines = txt.split("\n")
+
+    return json.loads(lines[-1])
+
+
 def get_all_alerts():
-    """Retorna todos os alertas com debug"""
+
     alerts = []
-    try:
-        if ALERTS_FILE.exists():
-            tamanho = ALERTS_FILE.stat().st_size
-            print(f"\n📁 Lendo arquivo de alertas: {ALERTS_FILE}")
-            print(f"📊 Tamanho do arquivo: {tamanho} bytes")
-            
-            with open(ALERTS_FILE, 'r', encoding='utf-8') as f:
-                linhas = f.readlines()
-                print(f"📄 Linhas encontradas: {len(linhas)}")
-                
-                for i, line in enumerate(linhas):
-                    line = line.strip()
-                    if line:
-                        try:
-                            alert = json.loads(line)
-                            alerts.append(alert)
-                            print(f"  ✅ Linha {i+1}: OK - ID {alert.get('id')} - {alert.get('name')}")
-                        except json.JSONDecodeError as e:
-                            print(f"  ❌ Linha {i+1}: ERRO ao decodificar JSON: {e}")
-        else:
-            print(f"❌ Arquivo {ALERTS_FILE} NÃO EXISTE!")
-            _ensure_files()
-            
-    except Exception as e:
-        print(f"❌ Erro ao ler alertas: {e}")
-        import traceback
-        traceback.print_exc()
-    
-    print(f"📊 Total de alertas carregados: {len(alerts)}")
+
+    if ALERTS_FILE.exists():
+
+        with open(ALERTS_FILE, "r", encoding="utf-8") as f:
+
+            for line in f:
+                line = line.strip()
+
+                if line:
+                    alerts.append(json.loads(line))
+
     return alerts
 
-# ===== ROTA DO TERMO DE RESPONSABILIDADE =====
+
+# ==============================
+# PÁGINA INICIAL
+# ==============================
 @app.route('/')
 def index():
-    """Página inicial - Termo de responsabilidade"""
     return render_template('termo_responsabilidade.html')
 
-@app.route('/termo')
-def termo_responsabilidade():
-    """Exibe o termo de responsabilidade"""
-    return render_template('termo_responsabilidade.html')
 
+# ==============================
+# ACEITAR TERMO
+# ==============================
 @app.route('/api/aceitar-termo', methods=['POST'])
 def api_aceitar_termo():
-    """Registra o aceite do termo"""
-    try:
-        data = request.get_json() or {}
-        nome = data.get('nome', 'Não informado')
-        
-        registro = {
-            "nome": nome,
-            "data": datetime.now(BR_TZ).strftime("%d/%m/%Y %H:%M:%S"),
-            "ip": request.remote_addr,
-            "user_agent": request.headers.get('User-Agent')
-        }
-        
-        with TERMOS_FILE.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(registro, ensure_ascii=False) + "\n")
-        
-        print(f"✅ Termo aceito por: {nome} - {registro['data']}")
-        return jsonify({"ok": True})
-    except Exception as e:
-        print(f"❌ Erro ao registrar termo: {e}")
-        return jsonify({"ok": False, "erro": str(e)})
 
-# ===== ROTA PARA VER QUEM ACEITOU O TERMO (APENAS ADMIN) =====
-@app.route('/admin/termos-aceitos')
-def ver_termos_aceitos():
-    """Mostra quem aceitou o termo (apenas admin)"""
-    if session.get("role") != "admin":
-        return "Acesso negado. Apenas admin pode ver esta página.", 403
-    
-    termos = []
-    if TERMOS_FILE.exists():
-        with open(TERMOS_FILE, 'r', encoding='utf-8') as f:
-            for line in f:
-                if line.strip():
-                    termos.append(json.loads(line))
-    
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Termos Aceitos - Aurora</title>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                font-family: 'Segoe UI', Roboto, sans-serif;
-            }
-            body {
-                background: linear-gradient(135deg, #1a0033, #2d005a);
-                min-height: 100vh;
-                padding: 30px 20px;
-            }
-            .container {
-                max-width: 1000px;
-                margin: 0 auto;
-                background: linear-gradient(145deg, #2d005a, #1a0033);
-                border-radius: 40px;
-                padding: 30px;
-                border: 1px solid rgba(255,79,200,0.3);
-                color: white;
-            }
-            h1 {
-                color: #ff4fc8;
-                text-align: center;
-                margin-bottom: 20px;
-                font-size: 32px;
-            }
-            .stats {
-                background: rgba(255,79,200,0.1);
-                border-radius: 20px;
-                padding: 20px;
-                margin: 20px 0;
-                display: flex;
-                justify-content: space-around;
-                text-align: center;
-            }
-            .stat-item {
-                flex: 1;
-            }
-            .stat-value {
-                font-size: 36px;
-                font-weight: bold;
-                color: #ff4fc8;
-            }
-            .stat-label {
-                color: #cdb7e6;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 20px 0;
-            }
-            th {
-                background: #ff4fc8;
-                color: white;
-                padding: 12px;
-                text-align: left;
-            }
-            td {
-                padding: 12px;
-                border-bottom: 1px solid rgba(255,79,200,0.3);
-            }
-            tr:hover {
-                background: rgba(255,79,200,0.1);
-            }
-            .footer {
-                text-align: center;
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid rgba(255,79,200,0.3);
-                color: #665a7a;
-            }
-            .btn-voltar {
-                display: inline-block;
-                background: rgba(255,255,255,0.1);
-                border: 1px solid #ff4fc8;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 30px;
-                text-decoration: none;
-                margin-bottom: 20px;
-            }
-            .btn-voltar:hover {
-                background: rgba(255,79,200,0.3);
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <a href="/panel" class="btn-voltar">← Voltar ao Painel Admin</a>
-            <h1>📋 REGISTRO DE TERMOS ACEITOS</h1>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value">""" + str(len(termos)) + """</div>
-                    <div class="stat-label">Total de Aceites</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">""" + (termos[-1].get('data')[:10] if termos else 'N/A') + """</div>
-                    <div class="stat-label">Último Aceite</div>
-                </div>
-            </div>
-    """
-    
-    if termos:
-        html += """
-            <table>
-                <tr>
-                    <th>#</th>
-                    <th>Nome</th>
-                    <th>Data</th>
-                    <th>IP</th>
-                    <th>Navegador</th>
-                </tr>
-        """
-        
-        for i, t in enumerate(reversed(termos), 1):
-            html += f"""
-                <tr>
-                    <td>{i}</td>
-                    <td><strong>{t.get('nome', 'N/A')}</strong></td>
-                    <td>{t.get('data', 'N/A')}</td>
-                    <td>{t.get('ip', 'N/A')}</td>
-                    <td>{t.get('user_agent', 'N/A')[:40]}...</td>
-                </tr>
-            """
-        
-        html += "</table>"
-    else:
-        html += "<p style='text-align: center; color: #f44336; font-size: 18px;'>❌ Nenhum termo aceito ainda.</p>"
-    
-    html += """
-            <div class="footer">
-                <p>AURORA MULHER SEGURA - Protegendo vidas</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    return html
+    data = request.get_json() or {}
 
-# ===== ROTAS PRINCIPAIS =====
-@app.route('/panic')
-def panic_button():
-    """Botão de pânico principal"""
-    users = load_users()
-    trusted_names = [info.get("name") or username for username, info in users.items() if info.get("role") == "trusted"]
-    return render_template('panic_button.html', trusted_names=trusted_names)
-
-@app.route('/painel-da-mulher')
-def painel_da_mulher():
-    """Redireciona para o botão de pânico"""
-    return redirect(url_for('panic_button'))
-
-# ===== NOVAS ROTAS - CENTRAL DE AJUDA =====
-@app.route('/ajuda')
-def central_ajuda():
-    """Central de Ajuda com contatos oficiais"""
-    return render_template('ajuda.html')
-
-# ===== NOVA ROTA - PLANO DE SEGURANÇA =====
-@app.route('/plano-seguranca')
-def plano_seguranca():
-    """Plano de segurança personalizável"""
-    return render_template('plano_seguranca.html')
-
-# ===== NOVA ROTA - SAÍDA RÁPIDA (TELA NEUTRA) =====
-@app.route('/saida-rapida')
-def saida_rapida():
-    """Tela neutra para disfarce (calculadora)"""
-    return render_template('saida_rapida.html')
-
-# ===== ROTA PARA LIMPAR ALERTAS =====
-@app.route('/limpar-alertas')
-def limpar_alertas():
-    """Limpa todos os alertas do sistema - Apenas admin"""
-    try:
-        if session.get("role") != "admin":
-            return "Acesso negado. Apenas admin pode limpar alertas.", 403
-        
-        print("\n🧹 INICIANDO LIMPEZA DE ALERTAS")
-        
-        if ALERTS_FILE.exists():
-            alerts_antes = get_all_alerts()
-            print(f"📊 Alertas antes da limpeza: {len(alerts_antes)}")
-            
-            ALERTS_FILE.unlink()
-            print(f"✅ Arquivo {ALERTS_FILE} deletado")
-            
-            _ensure_files()
-            print(f"✅ Arquivo recriado vazio")
-            
-            alerts_depois = get_all_alerts()
-            print(f"📊 Alertas depois da limpeza: {len(alerts_depois)}")
-            
-            print("🧹 TODOS OS ALERTAS FORAM LIMPOS!")
-            return "✅ Alertas limpos com sucesso!"
-        else:
-            print("ℹ️ Arquivo de alertas não existe")
-            return "ℹ️ Arquivo de alertas não existe."
-            
-    except Exception as e:
-        print(f"❌ Erro ao limpar alertas: {e}")
-        import traceback
-        traceback.print_exc()
-        return f"Erro: {e}", 500
-
-# ===== ROTA DE ALERTAS =====
-@app.route('/api/send_alert', methods=['POST'])
-def api_send_alert():
-    print("\n" + "="*60)
-    print("🚨 REQUISIÇÃO DE ALERTA RECEBIDA")
-    print("="*60)
-    
-    data = request.get_json(silent=True) or {}
-    print(f"📦 Dados recebidos: {data}")
-    
-    alert_id = _get_next_alert_id()
-    
-    location = None
-    
-    if data.get("location"):
-        location = data.get("location")
-    elif data.get("lat") and data.get("lng"):
-        location = {
-            "lat": float(data.get("lat")),
-            "lng": float(data.get("lng")),
-            "accuracy": data.get("accuracy")
-        }
-    elif data.get("latitude") and data.get("longitude"):
-        location = {
-            "lat": float(data.get("latitude")),
-            "lng": float(data.get("longitude")),
-            "accuracy": data.get("accuracy")
-        }
-    
-    if location:
-        if 'lat' not in location and 'latitude' in location:
-            location['lat'] = location['latitude']
-        if 'lng' not in location and 'longitude' in location:
-            location['lng'] = location['longitude']
-        if 'lng' not in location and 'lon' in location:
-            location['lng'] = location['lon']
-    
-    now_br = datetime.now(BR_TZ)
-    formatted_time = now_br.strftime("%Y-%m-%d %H:%M:%S")
-    formatted_time_br = now_br.strftime("%d/%m/%Y %H:%M:%S")
-    
-    payload = {
-        "id": alert_id,
-        "ts": formatted_time,
-        "ts_br": formatted_time_br,
-        "name": (data.get("name") or "Usuária"),
-        "situation": (data.get("situation") or "Emergência"),
-        "message": (data.get("message") or ""),
-        "location": location,
+    registro = {
+        "nome": data.get("nome"),
+        "data": datetime.now(BR_TZ).strftime("%d/%m/%Y %H:%M:%S"),
+        "ip": request.remote_addr
     }
-    
-    print(f"\n{'='*50}")
-    print(f"🚨 ALERTA #{alert_id}")
-    print(f"{'='*50}")
-    print(f"👤 Nome: {payload['name']}")
-    print(f"⚠️ Situação: {payload['situation']}")
-    print(f"💬 Mensagem: {payload['message']}")
-    print(f"📍 Localização: {location if location else 'NÃO INFORMADA'}")
-    print(f"🕐 Horário: {formatted_time_br}")
-    print(f"{'='*50}")
-    
-    try:
-        log_alert(payload)
-        print(f"✅ Função log_alert executada com sucesso")
-    except Exception as e:
-        print(f"❌ ERRO NA FUNÇÃO log_alert: {e}")
-    
-    alerts_agora = get_all_alerts()
-    print(f"📊 Total de alertas após salvar: {len(alerts_agora)}")
-    
-    return jsonify({
-        "ok": True,
-        "id": alert_id,
-        "message": "Alerta recebido com sucesso!",
-        "location": location,
-        "timestamp": formatted_time_br
-    })
 
-@app.route('/api/last_alert')
-def api_last_alert():
-    last = read_last_alert()
-    return jsonify({"ok": True, "last": last})
+    with TERMOS_FILE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(registro) + "\n")
 
-@app.route('/health')
-def health():
-    now_br = datetime.now(BR_TZ)
-    alerts = get_all_alerts()
-    return jsonify({
-        "ok": True,
-        "server_time": now_br.isoformat(),
-        "total_alertas": len(alerts),
-        "users_json_ok": USERS_FILE.exists(),
-        "alerts_log_ok": ALERTS_FILE.exists(),
-        "state_file_ok": STATE_FILE.exists(),
-        "termos_file_ok": TERMOS_FILE.exists()
-    })
+    return jsonify({"ok": True})
 
-# ===== ROTA DE DIAGNÓSTICO =====
-@app.route('/diagnostico-alertas')
-def diagnostico_alertas():
-    """Mostra todos os alertas em formato texto"""
-    alerts = get_all_alerts()
-    
-    html = "<h1>📋 Alertas no sistema</h1>"
-    html += f"<p>Arquivo: {ALERTS_FILE}</p>"
-    html += f"<p>Arquivo existe: {ALERTS_FILE.exists()}</p>"
-    
-    if ALERTS_FILE.exists():
-        tamanho = ALERTS_FILE.stat().st_size
-        html += f"<p>Tamanho do arquivo: {tamanho} bytes</p>"
-    
-    html += f"<p>Total de alertas: {len(alerts)}</p>"
-    html += "<hr>"
-    
-    if not alerts:
-        html += "<p style='color: red;'>❌ Nenhum alerta encontrado!</p>"
-    
-    for a in alerts:
-        html += f"<p><strong>ID {a.get('id')}</strong> - {a.get('ts_br', a.get('ts'))}</p>"
-        html += f"<p>👤 {a.get('name')} - ⚠️ {a.get('situation')}</p>"
-        if a.get('location'):
-            loc = a.get('location')
-            html += f"<p>📍 {loc.get('lat')}, {loc.get('lng')} (±{loc.get('accuracy')}m)</p>"
-        else:
-            html += f"<p>📍 Sem localização</p>"
-        html += "<hr>"
-    
-    return html
 
-# ===== ROTA DE TESTE PDF =====
-@app.route('/teste-pdf')
-def teste_pdf():
-    """Rota de teste para PDF"""
-    try:
-        from fpdf import FPDF
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.cell(200, 10, txt="TESTE PDF - AURORA MULHER SEGURA", ln=1, align="C")
-        pdf.cell(200, 10, txt="Este é um teste de geração de PDF", ln=1, align="C")
-        pdf.cell(200, 10, txt=f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", ln=1, align="C")
-        
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-        pdf.output(temp_file.name)
-        
-        return send_file(
-            temp_file.name,
-            as_attachment=True,
-            download_name=f"teste_aurora_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-            mimetype='application/pdf'
-        )
-    except Exception as e:
-        print(f"Erro no teste PDF: {e}")
-        import traceback
-        traceback.print_exc()
-        return f"Erro ao gerar PDF: {str(e)}"
-
-# ===== RELATÓRIOS EM PDF =====
-@app.route('/relatorio/pdf')
-def relatorio_pdf():
-    """Gera relatório PDF com todos os alertas"""
-    try:
-        alerts = get_all_alerts()
-        
-        print(f"\n📄 GERANDO PDF COM {len(alerts)} ALERTAS")
-        
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        
-        pdf.set_font("Arial", "B", 20)
-        pdf.set_text_color(255, 79, 200)
-        pdf.cell(190, 15, txt="AURORA MULHER SEGURA", ln=1, align="C")
-        
-        pdf.set_font("Arial", "B", 16)
-        pdf.set_text_color(100, 100, 100)
-        pdf.cell(190, 10, txt="RELATORIO DE ALERTAS", ln=1, align="C")
-        pdf.ln(10)
-        
-        now_br = datetime.now(BR_TZ)
-        formatted_time = now_br.strftime("%d/%m/%Y as %H:%M:%S")
-        pdf.set_font("Arial", "", 12)
-        pdf.set_text_color(0, 0, 0)
-        pdf.cell(190, 8, txt=f"Gerado em: {formatted_time}", ln=1)
-        pdf.cell(190, 8, txt=f"Total de Alertas: {len(alerts)}", ln=1)
-        pdf.ln(10)
-        
-        if alerts:
-            with_location = sum(1 for a in alerts if a.get('location'))
-            without_location = len(alerts) - with_location
-            
-            pdf.set_font("Arial", "B", 14)
-            pdf.set_text_color(255, 79, 200)
-            pdf.cell(190, 10, txt="ESTATISTICAS", ln=1)
-            pdf.set_font("Arial", "", 12)
-            pdf.set_text_color(0, 0, 0)
-            pdf.cell(190, 8, txt=f"- Alertas com localizacao: {with_location}", ln=1)
-            pdf.cell(190, 8, txt=f"- Alertas sem localizacao: {without_location}", ln=1)
-            pdf.ln(10)
-            
-            pdf.set_font("Arial", "B", 14)
-            pdf.set_text_color(255, 79, 200)
-            pdf.cell(190, 10, txt="HISTORICO DE ALERTAS", ln=1)
-            pdf.ln(5)
-            
-            alerts_ordenados = sorted(alerts, key=lambda x: x.get('id', 0), reverse=True)
-            
-            for alert in alerts_ordenados[:50]:
-                pdf.set_font("Arial", "B", 11)
-                pdf.set_text_color(0, 0, 0)
-                
-                ts_display = alert.get('ts_br', alert.get('ts', 'N/A'))
-                pdf.cell(190, 8, txt=f"ID {alert.get('id', 'N/A')} - {ts_display}", ln=1)
-                
-                pdf.set_font("Arial", "", 11)
-                pdf.cell(190, 6, txt=f"   Nome: {alert.get('name', 'Nao informado')}", ln=1)
-                pdf.cell(190, 6, txt=f"   Situacao: {alert.get('situation', 'Emergencia')}", ln=1)
-                
-                if alert.get('message'):
-                    pdf.cell(190, 6, txt=f"   Mensagem: {alert.get('message')[:50]}", ln=1)
-                
-                if alert.get('location'):
-                    loc = alert.get('location')
-                    lat = loc.get('lat', 'N/A')
-                    lng = loc.get('lng', 'N/A')
-                    acc = loc.get('accuracy', 'N/A')
-                    
-                    if isinstance(lat, float):
-                        lat = f"{lat:.6f}"
-                    if isinstance(lng, float):
-                        lng = f"{lng:.6f}"
-                    
-                    pdf.cell(190, 6, txt=f"   Localizacao: {lat}, {lng} (+-{acc}m)", ln=1)
-                else:
-                    pdf.cell(190, 6, txt="   Localizacao: Nao compartilhada", ln=1)
-                
-                pdf.ln(2)
-        else:
-            pdf.set_font("Arial", "I", 14)
-            pdf.set_text_color(255, 0, 0)
-            pdf.cell(190, 20, txt="NAO HA ALERTAS REGISTRADOS", ln=1, align="C")
-            pdf.set_font("Arial", "", 12)
-            pdf.set_text_color(0, 0, 0)
-            pdf.cell(190, 10, txt="Nenhum alerta foi enviado ate o momento.", ln=1, align="C")
-        
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-        pdf.output(temp_file.name)
-        print(f"✅ PDF gerado com sucesso")
-        
-        return send_file(
-            temp_file.name,
-            as_attachment=True,
-            download_name=f"relatorio_aurora_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-            mimetype='application/pdf'
-        )
-        
-    except Exception as e:
-        print(f"❌ Erro ao gerar PDF: {e}")
-        import traceback
-        traceback.print_exc()
-        return f"Erro: {str(e)}"
-
-# ===== ADMIN =====
-@app.route('/panel/login', methods=['GET', 'POST'])
+# ==============================
+# LOGIN ADMIN
+# ==============================
+@app.route('/admin/login', methods=['GET','POST'])
 def admin_login():
+
     users = load_users()
     error = False
+
     if request.method == 'POST':
-        u = (request.form.get("user") or "").strip()
-        p = (request.form.get("password") or "")
+
+        u = request.form.get("username")
+        p = request.form.get("password")
+
         info = users.get(u)
+
         if info and info.get("role") == "admin" and info.get("password") == p:
-            session.clear()
+
+            session["admin"] = u
             session["role"] = "admin"
-            session["user"] = u
-            return redirect(url_for('admin_panel'))
+
+            return redirect("/admin")
+
         error = True
-    return render_template('login_admin.html', error=error)
 
-@app.route('/panel')
+    return render_template("login_admin.html", error=error)
+
+
+@app.route('/admin')
 def admin_panel():
+
     if session.get("role") != "admin":
-        return redirect(url_for('admin_login'))
-    
-    users = load_users()
-    trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
-    
+        return redirect("/admin/login")
+
     alerts = get_all_alerts()
-    today = datetime.now(BR_TZ).strftime('%Y-%m-%d')
-    
-    stats = {
-        'total': len(alerts),
-        'today': sum(1 for a in alerts if a.get('ts', '').startswith(today)),
-        'with_location': sum(1 for a in alerts if a.get('location')),
-        'without_location': sum(1 for a in alerts if not a.get('location'))
-    }
-    
-    return render_template('panel_admin.html', trusted=trusted, alerts=alerts, stats=stats)
 
-@app.route('/panel/add_trusted', methods=['POST'])
-def admin_add_trusted():
-    if session.get("role") != "admin":
-        return redirect(url_for('admin_login'))
-    
-    name = (request.form.get("trusted_name") or "").strip()
-    username = (request.form.get("trusted_user") or "").strip().lower()
-    password = (request.form.get("trusted_password") or "").strip()
-    
-    if not name or not username or not password:
-        return redirect("/panel?err=Preencha+nome,+usuario+e+senha")
-    
-    users = load_users()
-    if username in users:
-        return redirect("/panel?err=Este+usuario+ja+existe")
-    
-    trusted_users = [u for u, info in users.items() if info.get("role") == "trusted"]
-    if len(trusted_users) >= 3:
-        return redirect("/panel?err=Limite+de+3+pessoas+de+confianca+atingido")
-    
-    users[username] = {
-        "password": password,
-        "role": "trusted",
-        "name": name
-    }
-    save_users(users)
-    return redirect("/panel?msg=Pessoa+de+confianca+cadastrada")
+    return render_template("panel_admin.html", alerts=alerts)
 
-@app.route('/panel/delete_trusted', methods=['POST'])
-def admin_delete_trusted():
-    if session.get("role") != "admin":
-        return redirect(url_for('admin_login'))
-    
-    username = (request.form.get("username") or "").strip()
-    users = load_users()
-    
-    if username in users and users[username].get("role") == "trusted":
-        users.pop(username)
-        save_users(users)
-        return redirect("/panel?msg=Pessoa+removida")
-    
-    return redirect("/panel?err=Nao+foi+possivel+remover")
 
 @app.route('/logout_admin')
 def logout_admin():
     session.clear()
-    return redirect(url_for('admin_login'))
+    return redirect("/admin/login")
 
-# ===== TRUSTED =====
-@app.route('/trusted/login', methods=['GET', 'POST'])
+
+# ==============================
+# LOGIN PESSOA DE CONFIANÇA
+# ==============================
+@app.route('/trusted/login', methods=['GET','POST'])
 def trusted_login():
+
     users = load_users()
     error = False
+
     if request.method == 'POST':
-        u = (request.form.get("user") or "").strip().lower()
+
+        u = (request.form.get("username") or "").strip().lower()
         p = (request.form.get("password") or "")
+
         info = users.get(u)
+
         if info and info.get("role") == "trusted" and info.get("password") == p:
-            session.clear()
-            session["role"] = "trusted"
+
             session["trusted"] = u
-            return redirect(url_for('trusted_panel'))
+            session["role"] = "trusted"
+
+            return redirect("/trusted/panel")
+
         error = True
-    return render_template('login_trusted.html', error=error)
+
+    return render_template("login_trusted.html", error=error)
+
 
 @app.route('/trusted/panel')
 def trusted_panel():
+
     if session.get("role") != "trusted":
-        return redirect(url_for('trusted_login'))
-    
+        return redirect("/trusted/login")
+
     users = load_users()
     u = session.get("trusted")
+
     name = users.get(u, {}).get("name") or u
-    
-    return render_template('panel_trusted.html', display_name=name)
+
+    return render_template("panel_trusted.html", display_name=name)
+
 
 @app.route('/logout_trusted')
 def logout_trusted():
     session.clear()
-    return redirect(url_for('panic_button'))
+    return redirect("/trusted/login")
 
-@app.route('/trusted/recover', methods=['GET', 'POST'])
-def trusted_recover():
-    msg, err = "", ""
-    if request.method == 'POST':
-        u = (request.form.get("user") or "").strip().lower()
-        new = (request.form.get("new_password") or "").strip()
-        users = load_users()
-        info = users.get(u)
-        if not info or info.get("role") != "trusted":
-            err = "Usuario nao encontrado."
-        elif len(new) < 4:
-            err = "Senha muito curta (minimo 4)."
-        else:
-            users[u]["password"] = new
-            save_users(users)
-            msg = "Senha redefinida. Faca login."
-    return render_template('trusted_recover.html', msg=msg, err=err)
 
-@app.route('/trusted/change_password', methods=['GET', 'POST'])
-def trusted_change_password():
-    if session.get("role") != "trusted":
-        return redirect(url_for('trusted_login'))
-    
-    msg, err = "", ""
-    if request.method == 'POST':
-        old = request.form.get("old_password") or ""
-        new = (request.form.get("new_password") or "").strip()
-        users = load_users()
-        u = session.get("trusted")
-        info = users.get(u)
-        if not info or info.get("password") != old:
-            err = "Senha atual incorreta."
-        elif len(new) < 4:
-            err = "Nova senha muito curta (minimo 4)."
-        else:
-            users[u]["password"] = new
-            save_users(users)
-            msg = "Senha alterada com sucesso."
-    return render_template('trusted_change_password.html', msg=msg, err=err)
+# ==============================
+# BOTÃO DE PÂNICO
+# ==============================
+@app.route('/panic')
+def panic_page():
+    return render_template("panic_button.html")
 
-# ===== HISTÓRICO =====
-@app.route('/historico')
-def historico():
-    """Página de histórico de alertas"""
+
+@app.route('/api/panic', methods=['POST'])
+def api_panic():
+
+    data = request.get_json() or {}
+
+    alert = {
+        "id": _get_next_alert_id(),
+        "name": data.get("name"),
+        "msg": data.get("msg"),
+        "lat": data.get("lat"),
+        "lon": data.get("lon"),
+        "time": datetime.now(BR_TZ).strftime("%d/%m/%Y %H:%M:%S")
+    }
+
+    log_alert(alert)
+
+    return jsonify({"ok": True})
+
+
+@app.route('/api/last_alert')
+def api_last_alert():
+    return jsonify(read_last_alert())
+
+
+@app.route('/api/alerts')
+def api_alerts():
+    return jsonify(get_all_alerts())
+
+
+# ==============================
+# PDF RELATÓRIO
+# ==============================
+@app.route('/report/<int:alert_id>')
+def report(alert_id):
+
     alerts = get_all_alerts()
-    return render_template('historico.html', alerts=alerts)
 
-# ===== TERMOS =====
-@app.route('/termos')
-def termos():
-    return render_template('legal.html')
+    alert = next((a for a in alerts if a["id"] == alert_id), None)
 
-@app.route('/privacidade')
-def privacidade():
-    return render_template('legal.html')
+    if not alert:
+        return "Alerta não encontrado"
 
-@app.route('/lgpd')
-def lgpd():
-    return render_template('legal.html')
+    pdf = FPDF()
+    pdf.add_page()
 
-# ===== FAVICON =====
-@app.route('/favicon.ico')
-def favicon():
-    return redirect(url_for('static', filename='favicon.ico'))
+    pdf.set_font("Arial", size=14)
 
-if __name__ == '__main__':
-    _ensure_files()
-    print("=" * 70)
-    print("🚀 AURORA MULHER SEGURA - SISTEMA INICIADO!")
-    print("=" * 70)
-    print("📱 Acesse:")
-    print("   - http://localhost:5000/                      (TERMO DE RESPONSABILIDADE)")
-    print("   - http://localhost:5000/panic                 (Botão de Pânico)")
-    print("   - http://localhost:5000/ajuda                  (NOVA - Central de Ajuda)")
-    print("   - http://localhost:5000/plano-seguranca        (NOVA - Plano de Segurança)")
-    print("   - http://localhost:5000/saida-rapida           (NOVA - Saída Rápida)")
-    print("   - http://localhost:5000/termo                 (Termo de Responsabilidade)")
-    print("   - http://localhost:5000/painel-da-mulher      (Redireciona para /panic)")
-    print("   - http://localhost:5000/panel/login           (Admin)")
-    print("   - http://localhost:5000/trusted/login         (Pessoa de Confiança)")
-    print("   - http://localhost:5000/historico             (Histórico)")
-    print("   - http://localhost:5000/relatorio/pdf         (Relatório PDF)")
-    print("   - http://localhost:5000/teste-pdf             (Teste PDF)")
-    print("   - http://localhost:5000/diagnostico-alertas   (Diagnóstico)")
-    print("   - http://localhost:5000/limpar-alertas        (LIMPAR ALERTAS - Admin)")
-    print("   - http://localhost:5000/admin/termos-aceitos  (TERMOS ACEITOS - Admin)")
-    print("   - http://localhost:5000/health                (Health)")
-    print("=" * 70)
-    print(f"📁 Alertas salvos em: {ALERTS_FILE}")
-    print(f"📁 Termos aceitos em: {TERMOS_FILE}")
-    print(f"👥 Usuários salvos em: {USERS_FILE}")
-    print("=" * 70)
+    pdf.cell(200,10,"Relatório Aurora Mulher Segura", ln=True)
+
+    for k,v in alert.items():
+        pdf.cell(200,10,f"{k}: {v}", ln=True)
+
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    pdf.output(tmp.name)
+
+    return send_file(tmp.name, as_attachment=True)
     
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+# ==============================
+# RUN
+# ==============================
+if __name__ == "__main__":
+    app.run(debug=True)

@@ -251,9 +251,76 @@
             border: 1px solid rgba(255, 98, 212, 0.28);
             font-size: 12px;
         }
+        .unlock-audio {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 20px;
+        }
+        .unlock-audio h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #ff4fc8;
+        }
+        .unlock-audio p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            max-width: 500px;
+            line-height: 1.5;
+        }
+        .unlock-btn {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        }
+        .unlock-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.6);
+        }
+        .flash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.3);
+            z-index: 9998;
+            display: none;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="aurora-bg">
+    <!-- TELA DE DESBLOQUEIO DE ÁUDIO (APARECE NO PRIMEIRO ACESSO) -->
+    <div id="unlockAudioModal" class="unlock-audio">
+        <h2>🔔 ATIVE OS ALERTAS SONOROS</h2>
+        <p>Para receber sirenes automáticas em situações de emergência,<br><strong>clique no botão abaixo</strong> para liberar o áudio deste navegador.</p>
+        <button id="unlockAudioBtn" class="unlock-btn">✅ LIBERAR SIRENE AUTOMÁTICA</button>
+        <p style="margin-top: 20px; font-size: 14px; color: #aaa;">
+            Esta ação é necessária apenas uma vez por sessão.<br>
+            Seu navegador bloqueia sons automáticos por segurança.
+        </p>
+    </div>
+    
+    <!-- EFEITO VISUAL DE ALERTA (FALLBACK QUANDO ÁUDIO BLOQUEADO) -->
+    <div id="flashScreen" class="flash-screen"></div>
+
     <div class="center-wrap">
         <div class="aurora-card">
             <div class="topbar">
@@ -274,13 +341,6 @@
             <div class="content">
                 <h1 class="h1">Central SOS</h1>
                 <p class="center muted small">Olá, <strong>{{ display_name }}</strong></p>
-
-                <!-- AVISO IMPORTANTE PARA NOTIFICAÇÕES -->
-                <div class="warning-box">
-                    <strong>🔔 ATIVE AS NOTIFICAÇÕES!</strong><br>
-                    Clique em "Permitir" quando solicitado para receber alertas mesmo com a janela minimizada.<br>
-                    <small>⚠️ Com a tela bloqueada, o navegador não pode receber alertas. Mantenha esta página ABERTA.</small>
-                </div>
 
                 <div id="sirenStatus" class="siren-status">
                     🔊 Sirene: <span id="sirenStatusText">Desativada</span>
@@ -307,11 +367,11 @@
 
                 <!-- DICAS IMPORTANTES -->
                 <div class="info-box">
-                    <p class="small"><strong>ℹ️ DICAS PARA MELHOR FUNCIONAMENTO:</strong></p>
-                    <p class="small">• Mantenha esta página ABERTA e com notificações ATIVADAS</p>
-                    <p class="small">• No celular: Adicione à tela inicial (PWA) para notificações push</p>
-                    <p class="small">• No computador: Mantenha a janela aberta mesmo minimizada</p>
-                    <p class="small">• Para proteção 24h com tela bloqueada: App nativo em desenvolvimento</p>
+                    <p class="small"><strong>ℹ️ FUNCIONAMENTO DA SIRENE:</strong></p>
+                    <p class="small">✅ Clique em "LIBERAR SIRENE AUTOMÁTICA" ao entrar</p>
+                    <p class="small">✅ Mantenha esta página ABERTA para receber alertas</p>
+                    <p class="small">✅ A sirene tocará automaticamente em novos alertas</p>
+                    <p class="small">⚠️ Com tela bloqueada, o navegador não recebe alertas</p>
                 </div>
 
                 <!-- Botões de Ação -->
@@ -320,14 +380,6 @@
                     <button class="btn-action btn-limpar" onclick="limparAlerta()">🧹 Limpar</button>
                     <button class="btn-action btn-sair" onclick="sairSistema()">🚪 Sair</button>
                 </div>
-
-                <!-- AVISO DE LIMITAÇÕES -->
-                <div style="text-align:center;margin-top:20px;padding:10px;background:rgba(40,0,60,0.3);border-radius:10px;font-size:11px;">
-                    <strong>⚠️ LIMITAÇÕES TÉCNICAS:</strong><br>
-                    Este é um sistema web. Para receber alertas com a tela bloqueada ou app totalmente fechado,<br>
-                    é necessário um app nativo Android/iOS (em desenvolvimento).<br>
-                    Mantenha esta página ABERTA para receber alertas em tempo real.
-                </div>
             </div>
         </div>
     </div>
@@ -335,72 +387,146 @@
     <audio id="sirenSound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
 
     <script>
-        const siren = document.getElementById('sirenSound');
+        // ===== INICIALIZAÇÃO DO CONTEXTO DE ÁUDIO (SOLUÇÃO DEFINITIVA) =====
+        let audioContext = null;
         let sirenUnlocked = false;
+        let sirenAudio = null;
         let lastAlertId = null;
         let alertaAtual = null;
         const alertButton = document.getElementById('alertButton');
+        const unlockModal = document.getElementById('unlockAudioModal');
+        const unlockBtn = document.getElementById('unlockAudioBtn');
+        const flashScreen = document.getElementById('flashScreen');
 
-        // ===== NOTIFICAÇÕES DE ÁREA DE TRABALHO =====
-        function requestNotificationPermission() {
-            if (!('Notification' in window)) {
-                console.log('⚠️ Este navegador não suporta notificações');
-                return;
-            }
-            
-            if (Notification.permission !== 'granted') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        console.log('✅ Permissão de notificação concedida');
-                        document.getElementById('sirenStatusText').textContent = 'Ativada + Notificações';
-                    } else {
-                        console.log('❌ Permissão de notificação negada');
-                        document.getElementById('sirenStatusText').textContent = 'Ativada (sem notificações)';
-                    }
-                });
-            }
-        }
+        // Inicializar áudio no primeiro clique da página (não só no botão)
+        document.addEventListener('click', initAudioContext, { once: true });
+        unlockBtn.addEventListener('click', initAudioContext);
 
-        function showDesktopNotification(alert) {
-            if (!('Notification' in window) || Notification.permission !== 'granted') {
-                return;
+        function initAudioContext() {
+            // Criar contexto de áudio (Web Audio API)
+            if (!audioContext) {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (window.AudioContext) {
+                    audioContext = new AudioContext();
+                    console.log('✅ Contexto de áudio inicializado');
+                }
             }
             
-            const notification = new Notification('🚨 ALERTA DE EMERGÊNCIA', {
-                body: `De: ${alert.name}\nSituação: ${alert.situation}\nClique para ver no mapa`,
-                icon: '/static/icon-192.png',
-                badge: '/static/icon-192.png',
-                requireInteraction: true,
-                silent: false
-            });
+            // Carregar e preparar o áudio da sirene
+            if (!sirenAudio) {
+                const audioElement = document.getElementById('sirenSound');
+                sirenAudio = audioElement;
+                
+                // Garantir que o áudio está carregado
+                audioElement.load();
+                
+                // Configurar para tocar quando desbloqueado
+                audioElement.volume = 1.0;
+            }
             
-            // Foco na janela quando clicar na notificação
-            notification.onclick = function() {
-                window.focus();
-                this.close();
-            };
+            // Marcar como desbloqueado
+            sirenUnlocked = true;
+            document.getElementById('sirenStatusText').textContent = 'Ativada ✓';
+            unlockModal.style.display = 'none';
+            console.log('✅ Áudio desbloqueado com sucesso!');
             
-            // Tocar sirene mesmo com notificação
+            // Testar sirene imediatamente para confirmar
             setTimeout(() => {
                 playSiren();
+                setTimeout(() => {
+                    if (sirenAudio && !sirenAudio.paused) {
+                        sirenAudio.pause();
+                        sirenAudio.currentTime = 0;
+                    }
+                }, 1000);
             }, 500);
         }
 
-        // Chamar ao carregar a página
-        document.addEventListener('DOMContentLoaded', requestNotificationPermission);
-
-        function testSiren() {
-            sirenUnlocked = true;
-            siren.play().catch(e => console.log('Áudio bloqueado:', e));
-            alert('🔊 Sirene testada!\n\nO áudio está liberado para alertas futuros.');
-            document.getElementById('sirenStatusText').textContent = 'Ativada';
-            requestNotificationPermission(); // Solicitar notificações ao testar sirene
+        // ===== FUNÇÃO DE TOCAR SIRENE (COM FALLBACK VISUAL) =====
+        function playSiren() {
+            if (!sirenUnlocked) {
+                console.warn('⚠️ Sirene bloqueada - usuário não desbloqueou o áudio');
+                triggerVisualAlert();
+                return;
+            }
+            
+            try {
+                // Método 1: Web Audio API (mais confiável)
+                if (audioContext && sirenAudio) {
+                    const source = audioContext.createMediaElementSource(sirenAudio);
+                    source.connect(audioContext.destination);
+                    
+                    // Garantir que o áudio está no início
+                    if (sirenAudio.currentTime > 0) {
+                        sirenAudio.currentTime = 0;
+                    }
+                    
+                    // Tocar com volume máximo
+                    sirenAudio.volume = 1.0;
+                    sirenAudio.play().catch(e => {
+                        console.error('❌ Erro ao tocar sirene:', e);
+                        triggerVisualAlert();
+                    });
+                    
+                    console.log('🔊 Sirene tocando via Web Audio API');
+                    return;
+                }
+                
+                // Método 2: Áudio padrão (fallback)
+                const siren = document.getElementById('sirenSound');
+                if (siren) {
+                    siren.volume = 1.0;
+                    if (siren.currentTime > 0) {
+                        siren.currentTime = 0;
+                    }
+                    siren.play().catch(e => {
+                        console.error('❌ Erro ao tocar sirene:', e);
+                        triggerVisualAlert();
+                    });
+                    console.log('🔊 Sirene tocando via HTMLAudioElement');
+                }
+            } catch (e) {
+                console.error('❌ Erro crítico ao tocar sirene:', e);
+                triggerVisualAlert();
+            }
         }
 
-        function playSiren() {
-            if (sirenUnlocked) {
-                siren.play().catch(e => console.log('Erro ao tocar sirene:', e));
+        // ===== FALLBACK VISUAL QUANDO ÁUDIO BLOQUEADO =====
+        function triggerVisualAlert() {
+            // Piscar tela vermelha
+            flashScreen.style.display = 'block';
+            flashScreen.style.opacity = '0.3';
+            
+            // Animação de piscar 3 vezes
+            let count = 0;
+            const interval = setInterval(() => {
+                flashScreen.style.opacity = flashScreen.style.opacity === '0.3' ? '0' : '0.3';
+                count++;
+                if (count >= 6) { // 3 piscadas completas
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        flashScreen.style.display = 'none';
+                    }, 300);
+                }
+            }, 300);
+            
+            // Vibrar dispositivo se disponível
+            if (navigator.vibrate) {
+                navigator.vibrate([500, 200, 500, 200, 500]);
             }
+            
+            console.log('🚨 Alerta visual ativado (áudio bloqueado)');
+        }
+
+        // ===== FUNÇÕES EXISTENTES (ATUALIZADAS) =====
+        function testSiren() {
+            if (!sirenUnlocked) {
+                alert('⚠️ Primeiro clique no botão "LIBERAR SIRENE AUTOMÁTICA" na tela inicial!');
+                return;
+            }
+            
+            playSiren();
+            alert('🔊 Sirene testada com sucesso!\n\nA sirene tocará automaticamente em novos alertas.');
         }
 
         function updateAlerts() {
@@ -417,8 +543,8 @@
                         lastAlertId = alert.id;
                         alertaAtual = alert;
                         
-                        // >>>>> NOTIFICAÇÃO DE ÁREA DE TRABALHO <<<<<
-                        showDesktopNotification(alert);
+                        // >>>>> TOCAR SIRENE AUTOMATICAMENTE <<<<<
+                        playSiren();
                         
                         const alertInfo = document.getElementById('alertInfo');
                         const mapContainer = document.getElementById('mapContainer');
@@ -460,9 +586,6 @@
                         } else {
                             locationInfo.style.display = 'none';
                         }
-
-                        // Tocar sirene
-                        playSiren();
                         
                         console.log('🚨 Novo alerta recebido!');
                         console.log('ID:', alert.id);
@@ -495,6 +618,7 @@
                 .then(res => {
                     if (res.ok) {
                         alert('✅ Alerta reenviado com sucesso!');
+                        playSiren(); // Tocar sirene no reenvio também
                     } else {
                         alert('❌ Erro ao reenviar alerta');
                     }
@@ -531,6 +655,11 @@
         // Atualizar a cada 3 segundos
         setInterval(updateAlerts, 3000);
         updateAlerts();
+        
+        // Mensagem de boas-vindas no console
+        console.log('🌸 Aurora Mulher Segura - Painel da Pessoa de Confiança');
+        console.log('✅ Sistema carregado com sucesso');
+        console.log('💡 Dica: Clique em "LIBERAR SIRENE AUTOMÁTICA" para ativar os alertas sonoros');
     </script>
 </body>
 </html>

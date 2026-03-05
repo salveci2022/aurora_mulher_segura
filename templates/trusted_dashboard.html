@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pessoa de Confiança - Aurora Mulher Segura</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#7a00ff">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            color: #ffffff;
+            font-family: system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ===== UNLOCK MODAL ===== */
+        .unlock-audio {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,.92);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 9999; text-align: center; padding: 20px;
+        }
+        .unlock-audio h2 { font-size: 26px; margin-bottom: 16px; color: #ff4fc8; }
+        .unlock-audio p { color: #ccc; font-size: 15px; line-height: 1.6; margin-bottom: 8px; }
+        .unlock-btn {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white; border: none;
+            padding: 15px 40px; font-size: 18px;
+            font-weight: bold; border-radius: 50px;
+            cursor: pointer; margin: 20px 0;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .unlock-btn:hover { transform: scale(1.05); box-shadow: 0 8px 24px rgba(76,175,80,.5); }
+
+        /* ===== FLASH SCREEN ===== */
+        .flash-screen {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255,0,0,.3);
+            z-index: 9998; display: none; pointer-events: none;
+        }
+
+        /* ===== LAYOUT ===== */
+        .center-wrap {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 18px;
+        }
+        .aurora-card {
+            width: min(440px, 96vw);
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(24,0,36,.95), rgba(10,0,20,.95));
+            box-shadow: 0 18px 60px rgba(0,0,0,.6);
+            border: 1px solid rgba(255,98,212,.25);
+            overflow: hidden;
+        }
+
+        /* ===== TOPBAR ===== */
+        .topbar {
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: rgba(255,255,255,.04);
+            border-bottom: 1px solid rgba(255,98,212,.15);
+            flex-wrap: wrap; gap: 10px;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand-dot { font-size: 26px; }
+        .brand-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; color: #ff62d4; }
+        .brand-sub { font-size: 11px; color: #aaa; letter-spacing: 1px; }
+        .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pill {
+            background: rgba(255,255,255,.1);
+            color: #fff; border: 1px solid rgba(255,255,255,.2);
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+            transition: background .2s;
+        }
+        .pill:hover { background: rgba(255,255,255,.2); }
+
+        /* ===== CONTENT ===== */
+        .content { padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; }
+        .h1 { font-size: 24px; font-weight: 800; text-align: center; color: #ff62d4; letter-spacing: 1px; }
+        .center { text-align: center; }
+        .muted { color: #aaa; }
+        .small { font-size: 13px; line-height: 1.6; }
+
+        /* ===== SIREN STATUS ===== */
+        .siren-status {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,98,212,.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px; color: #ddd;
+            text-align: center;
+        }
+
+        /* ===== ALERT BUTTON ===== */
+        .alert-button {
+            border-radius: 14px;
+            padding: 20px;
+            background: rgba(255,255,255,.05);
+            border: 2px solid rgba(255,98,212,.2);
+            text-align: center;
+            transition: all .4s;
+        }
+        .alert-button.active {
+            background: rgba(255,0,80,.12);
+            border-color: #ff0050;
+            animation: pulse-border 1.5s infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,0,80,.4); }
+            50%       { box-shadow: 0 0 0 10px rgba(255,0,80,0); }
+        }
+        .alert-button .status { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .alert-button .message { font-size: 13px; color: #ccc; }
+
+        /* ===== ALERT INFO BOX ===== */
+        .alert-info {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,98,212,.2);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .alert-info.danger { background: rgba(255,0,60,.1); border-color: rgba(255,0,60,.4); }
+
+        /* ===== MAP ===== */
+        .map-button {
+            background: linear-gradient(135deg, #7a00ff, #4a00c0);
+            color: white; border: none; padding: 8px 18px;
+            border-radius: 20px; font-size: 13px; font-weight: 600;
+            cursor: pointer; margin-top: 8px; width: 100%;
+            transition: opacity .2s;
+        }
+        .map-button:hover { opacity: .85; }
+        .map-container { border-radius: 12px; overflow: hidden; }
+        .map-container iframe { width: 100%; height: 220px; border: none; display: block; }
+
+        /* ===== INFO BOX ===== */
+        .info-box {
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .info-box p { margin-bottom: 4px; }
+
+        /* ===== ACTION BUTTONS ===== */
+        .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-action {
+            flex: 1; min-width: 80px;
+            padding: 10px 8px; border: none;
+            border-radius: 10px; font-size: 13px;
+            font-weight: 700; cursor: pointer;
+            transition: opacity .2s, transform .1s;
+        }
+        .btn-action:hover { opacity: .85; transform: translateY(-1px); }
+        .btn-reenviar { background: linear-gradient(135deg, #7a00ff, #5500cc); color: #fff; }
+        .btn-limpar   { background: linear-gradient(135deg, #ff6a00, #cc4400); color: #fff; }
+        .btn-sair     { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+
+        /* ===== ALERT DANGER (inline) ===== */
+        .alert.alert-danger {
+            background: rgba(255,0,60,.1);
+            border: 1px solid rgba(255,0,60,.4);
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .alert.alert-danger p { margin-bottom: 6px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <!-- UNLOCK MODAL -->
+    <div id="unlockAudioModal" class="unlock-audio">
+        <h2>🔔 ATIVE OS ALERTAS SONOROS</h2>
+        <p>Para receber sirenes automáticas em situações de emergência,<br>
+           <strong>clique no botão abaixo</strong> para liberar o áudio deste navegador.</p>
+        <button id="unlockAudioBtn" class="unlock-btn">✅ LIBERAR SIRENE AUTOMÁTICA</button>
+        <p style="font-size:13px;color:#888;">Esta ação é necessária apenas uma vez por sessão.<br>
+           Seu navegador bloqueia sons automáticos por segurança.</p>
+    </div>
+
+    <!-- FLASH SCREEN -->
+    <div id="flashScreen" class="flash-screen"></div>
+
+    <div class="center-wrap">
+        <div class="aurora-card">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-dot">🌸</div>
+                    <div>
+                        <div class="brand-title">AURORA</div>
+                        <div class="brand-sub">Pessoa de Confiança</div>
+                    </div>
+                </div>
+                <div class="top-actions">
+                    <button onclick="testSiren()" class="pill">🔊 Sirene</button>
+                    <a href="/relatorio/pdf" class="pill" style="background:linear-gradient(135deg,#4caf50,#2e7d32);">📄 PDF</a>
+                    <button onclick="sairSistema()" class="pill">🚪 Sair</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <h1 class="h1">Central SOS</h1>
+                <p class="center muted small">Olá, <strong>{{ display_name }}</strong></p>
+
+                <div id="sirenStatus" class="siren-status">
+                    🔊 Sirene: <span id="sirenStatusText">Desativada</span>
+                </div>
+
+                <div id="alertButton" class="alert-button">
+                    <div class="status">🚨 AGUARDANDO ALERTA</div>
+                    <div class="message">Nenhum alerta recebido</div>
+                </div>
+
+                <div id="alertInfo">
+                    <p class="center muted small">⏳ Aguardando alertas...</p>
+                </div>
+
+                <div class="alert-info" id="locationInfo" style="display:none;">
+                    <p class="small"><strong>📍 Última Localização:</strong></p>
+                    <p class="small" id="locationText"></p>
+                    <button id="openMapBtn" class="map-button">🗺️ Ver no Google Maps</button>
+                </div>
+
+                <div id="mapContainer" class="map-container" style="display:none;">
+                    <iframe id="mapFrame" src="" frameborder="0"></iframe>
+                </div>
+
+                <div class="info-box">
+                    <p class="small"><strong>ℹ️ FUNCIONAMENTO DA SIRENE:</strong></p>
+                    <p class="small">✅ Clique em "LIBERAR SIRENE AUTOMÁTICA" ao entrar</p>
+                    <p class="small">✅ Mantenha esta página ABERTA para receber alertas</p>
+                    <p class="small">✅ A sirene tocará automaticamente em novos alertas</p>
+                    <p class="small">⚠️ Com tela bloqueada, o navegador não recebe alertas</p>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-action btn-reenviar" onclick="reenviarAlerta()">📤 Reenviar</button>
+                    <button class="btn-action btn-limpar" onclick="limparAlerta()">🧹 Limpar</button>
+                    <button class="btn-action btn-sair" onclick="sairSistema()">🚪 Sair</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="sirenSound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
+
+    <script>
+        // ===== STATE =====
+        let audioCtx      = null;
+        let sirenUnlocked = false;
+        let lastAlertId   = null;
+        let alertaAtual   = null;  // FIX: renamed from "alert" (was shadowing window.alert)
+
+        const alertButton  = document.getElementById('alertButton');
+        const unlockModal  = document.getElementById('unlockAudioModal');
+        const unlockBtn    = document.getElementById('unlockAudioBtn');
+        const flashScreen  = document.getElementById('flashScreen');
+
+        // Unlock on first page click OR button click
+        document.addEventListener('click', initAudioContext, { once: true });
+        unlockBtn.addEventListener('click', () => { initAudioContext(); });
+
+        // ===== INIT AUDIO CONTEXT =====
+        function initAudioContext() {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!audioCtx && window.AudioContext) {
+                audioCtx = new AudioContext();
+            }
+            // FIX: resume context if browser suspended it
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            sirenUnlocked = true;
+            document.getElementById('sirenStatusText').textContent = 'Ativada ✓';
+            unlockModal.style.display = 'none';
+
+            // Brief test tone — stops after 1 second
+            setTimeout(() => {
+                playSiren();
+                setTimeout(stopSiren, 1000);
+            }, 500);
+        }
+
+        // ===== PLAY SIREN =====
+        function playSiren() {
+            if (!sirenUnlocked) {
+                triggerVisualAlert();
+                return;
+            }
+            // FIX: resume context before playing
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            try {
+                const siren = document.getElementById('sirenSound');
+                if (siren) {
+                    // FIX: always reset before replaying to avoid overlapping audio
+                    siren.pause();
+                    siren.currentTime = 0;
+                    siren.volume = 1.0;
+                    siren.play().catch(() => triggerVisualAlert());
+                }
+            } catch (e) {
+                triggerVisualAlert();
+            }
+        }
+
+        // ===== STOP SIREN =====
+        function stopSiren() {
+            const siren = document.getElementById('sirenSound');
+            if (siren && !siren.paused) {
+                siren.pause();
+                siren.currentTime = 0;
+            }
+        }
+
+        // ===== VISUAL FALLBACK =====
+        function triggerVisualAlert() {
+            flashScreen.style.display = 'block';
+            let count = 0;
+            const interval = setInterval(() => {
+                flashScreen.style.opacity = (parseFloat(flashScreen.style.opacity || 0) > 0) ? '0' : '0.3';
+                if (++count >= 6) {
+                    clearInterval(interval);
+                    setTimeout(() => { flashScreen.style.display = 'none'; }, 300);
+                }
+            }, 300);
+            if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
+        }
+
+        // ===== TEST SIREN =====
+        function testSiren() {
+            if (!sirenUnlocked) {
+                alert('⚠️ Primeiro clique em "LIBERAR SIRENE AUTOMÁTICA" na tela inicial!');
+                return;
+            }
+            playSiren();
+            alert('🔊 Sirene testada com sucesso!\n\nA sirene tocará automaticamente em novos alertas.');
+        }
+
+        // ===== POLL FOR ALERTS =====
+        function updateAlerts() {
+            fetch('/api/last_alert')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok || !data.last) return;
+
+                    const rec = data.last;  // FIX: renamed from "alert" to avoid shadowing window.alert
+                    if (rec.id !== lastAlertId) {
+                        lastAlertId  = rec.id;
+                        alertaAtual  = rec;
+
+                        playSiren();  // Automatic siren on new alert
+
+                        document.getElementById('alertInfo').innerHTML = `
+                            <div class="alert alert-danger">
+                                <p><strong>🚨 ALERTA RECEBIDO</strong></p>
+                                <p><strong>⏰ Horário:</strong> ${rec.ts}</p>
+                                <p><strong>👤 Usuária:</strong> ${rec.name}</p>
+                                <p><strong>🚨 Situação:</strong> ${rec.situation}</p>
+                                <p><strong>📝 Mensagem:</strong> ${rec.message || '—'}</p>
+                            </div>`;
+
+                        alertButton.className = 'alert-button active';
+                        alertButton.innerHTML = `
+                            <div class="status">🚨 ALERTA RECEBIDO</div>
+                            <div class="message">${rec.situation}</div>`;
+
+                        if (rec.location) {
+                            const lat = rec.location.lat;
+                            const lng = rec.location.lng;
+                            document.getElementById('locationText').textContent =
+                                `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+                            document.getElementById('locationInfo').style.display = 'block';
+                            document.getElementById('openMapBtn').onclick = () => {
+                                document.getElementById('mapContainer').style.display = 'block';
+                                document.getElementById('mapFrame').src =
+                                    `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+                            };
+                        } else {
+                            document.getElementById('locationInfo').style.display = 'none';
+                        }
+                    }
+                })
+                .catch(err => console.error('Erro ao buscar alertas:', err));
+            // FIX: removed duplicate setTimeout inside catch — setInterval below handles retries
+        }
+
+        // Poll every 3 seconds
+        setInterval(updateAlerts, 3000);
+        updateAlerts();
+
+        function reenviarAlerta() {
+            if (!alertaAtual) {
+                alert('⚠️ Nenhum alerta para reenviar');
+                return;
+            }
+            if (confirm('Deseja reenviar o último alerta?')) {
+                fetch('/api/send_alert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(alertaAtual)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.ok) { alert('✅ Alerta reenviado com sucesso!'); playSiren(); }
+                    else        { alert('❌ Erro ao reenviar alerta'); }
+                })
+                .catch(() => alert('❌ Erro de conexão ao reenviar alerta'));
+            }
+        }
+
+        function limparAlerta() {
+            document.getElementById('alertInfo').innerHTML =
+                '<p class="center muted small">⏳ Aguardando alertas...</p>';
+            document.getElementById('locationInfo').style.display = 'none';
+            document.getElementById('mapContainer').style.display = 'none';
+            alertButton.className = 'alert-button';
+            alertButton.innerHTML = `
+                <div class="status">🚨 AGUARDANDO ALERTA</div>
+                <div class="message">Nenhum alerta recebido</div>`;
+            alertaAtual = null;
+            stopSiren();
+        }
+
+        function sairSistema() {
+            if (confirm('Deseja realmente sair do painel da pessoa de confiança?')) {
+                window.location.href = '/trusted/login';
+            }
+        }
+    </script>
+</body>
+</html>

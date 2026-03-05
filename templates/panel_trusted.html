@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Confiança · Aurora</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* MESMO ESTILO DO PAINEL DA MULHER */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .painel-confianca {
+            max-width: 480px;
+            width: 100%;
+            background: linear-gradient(145deg, #2d005a, #1a0033);
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,79,200,0.3);
+        }
+        
+        .topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,79,200,0.3);
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .brand-dot {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,121,218,0.9), rgba(164,92,255,0.75));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 0 25px rgba(255,79,200,0.5);
+        }
+        
+        .brand-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .brand-sub {
+            font-size: 12px;
+            color: #cdb7e6;
+        }
+        
+        .status-conexao {
+            font-size: 14px;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+        }
+        
+        /* BOTÃO REDONDO DA SIRENE (IGUAL AO SOS) */
+        .sirene-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .sirene-btn {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle at 50% 45%, rgba(255,121,218,0.95), rgba(138,36,139,0.65) 55%, rgba(40,0,60,0.75));
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 0 10px rgba(255,79,200,0.1), 0 0 0 25px rgba(164,92,255,0.07), 0 20px 50px rgba(0,0,0,0.55);
+            transition: all 0.3s;
+            border: 3px solid rgba(255,255,255,0.2);
+            user-select: none;
+            margin: 0 auto;
+        }
+        
+        .sirene-btn span {
+            font-size: 50px;
+            font-weight: bold;
+            color: #180013;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+        }
+        
+        .sirene-btn small {
+            font-size: 14px;
+            color: #220019;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .sirene-btn.ativa {
+            background: radial-gradient(circle at 50% 45%, #ff9800, #f57c00);
+            box-shadow: 0 0 0 10px rgba(255,152,0,0.2), 0 0 0 25px rgba(255,152,0,0.1), 0 0 50px #ff9800;
+            animation: pulse 1s infinite;
+        }
+        
+        .sirene-btn.ativa span {
+            color: white;
+            text-shadow: 0 2px 0 #b95f00;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255,152,0,0.3), 0 0 0 30px rgba(255,152,0,0.15), 0 0 70px #ff9800; }
+            100% { transform: scale(1); }
+        }
+        
+        /* BOTÃO DO MAPA */
+        .mapa-btn {
+            background: linear-gradient(135deg, #2196f3, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 15px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 15px 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(33,150,243,0.3);
+        }
+        
+        .mapa-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33,150,243,0.5);
+        }
+        
+        .mapa-btn.visivel {
+            display: flex;
+        }
+        
+        .mapa-btn span {
+            font-size: 24px;
+        }
+        
+        /* ÁREA DO ALERTA */
+        #alertBox {
+            background: rgba(255,79,200,0.1);
+            border: 2px solid #ff4fc8;
+            border-radius: 25px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: all 0.5s;
+        }
+        
+        #alertBox.novo {
+            background: rgba(255,152,0,0.2);
+            border-color: #ff9800;
+            box-shadow: 0 0 30px rgba(255,152,0,0.5);
+            animation: brilho 1s infinite;
+        }
+        
+        @keyframes brilho {
+            0% { box-shadow: 0 0 10px #ff9800; }
+            50% { box-shadow: 0 0 30px #ff9800; }
+            100% { box-shadow: 0 0 10px #ff9800; }
+        }
+        
+        #lastMeta {
+            font-size: 18px;
+            color: #ff4fc8;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        #details {
+            line-height: 1.8;
+            color: white;
+        }
+        
+        /* BOTÕES DE AÇÃO (IGUAIS AO DA MULHER) */
+        .acoes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .acao-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,79,200,0.3);
+            padding: 15px 5px;
+            border-radius: 30px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .acao-btn span {
+            font-size: 24px;
+        }
+        
+        .acao-btn:hover {
+            transform: translateY(-3px);
+        }
+        
+        .acao-btn.reenviar { background: linear-gradient(135deg, #ff9800, #f57c00); }
+        .acao-btn.limpar { background: linear-gradient(135deg, #9c27b0, #7b1fa2); }
+        .acao-btn.sair { background: linear-gradient(135deg, #f44336, #c62828); }
+        
+        /* STATUS BAR */
+        .status-bar {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,79,200,0.3);
+            border-radius: 30px;
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+            color: #cdb7e6;
+            margin-top: 15px;
+        }
+        
+        /* LOCALIZAÇÃO INFO */
+        .loc-info {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #ff4fc8;
+        }
+        
+        .coordenadas {
+            font-family: monospace;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        
+        .precisao-excelente { color: #4caf50; font-weight: bold; }
+        .precisao-boa { color: #4caf50; }
+        .precisao-media { color: #ff9800; }
+        .precisao-ruim { color: #f44336; }
+        
+        /* RODAPÉ */
+        .rodape {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255,79,200,0.3);
+            color: #cdb7e6;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="painel-confianca">
+        <!-- TOPO -->
+        <div class="topo">
+            <div class="brand">
+                <div class="brand-dot">🌸</div>
+                <div>
+                    <div class="brand-title">AURORA</div>
+                    <div class="brand-sub">Pessoa de Confiança</div>
+                </div>
+            </div>
+            <div class="status-conexao" id="statusConexao">🟢 Online</div>
+        </div>
+
+        <!-- TÍTULO -->
+        <h1 class="h1" style="color:white; text-align:center; margin-bottom:5px;">CENTRAL DE ALERTAS</h1>
+        <p class="center muted small" style="margin-bottom:20px;">Olá, <strong style="color:#ff4fc8;">{{ display_name }}</strong></p>
+
+        <!-- BOTÃO REDONDO DA SIRENE (IGUAL AO SOS) -->
+        <div class="sirene-container">
+            <div class="sirene-btn" id="sireneBtn">
+                <span>🔔</span>
+                <small>SIRENE</small>
+            </div>
+        </div>
+
+        <!-- BOTÃO DO MAPA -->
+        <button class="mapa-btn" id="mapaBtn">
+            <span>📍</span>
+            ABRIR LOCALIZAÇÃO NO MAPA
+        </button>
+
+        <!-- ÁREA DO ALERTA -->
+        <div id="alertBox">
+            <div id="lastMeta">⏳ Aguardando alertas...</div>
+            <div id="details"></div>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO (REENVIAR, LIMPAR, SAIR) -->
+        <div class="acoes-grid">
+            <button class="acao-btn reenviar" id="reenviarBtn">
+                <span>🔄</span>
+                Reenviar
+            </button>
+            <button class="acao-btn limpar" id="limparBtn">
+                <span>🗑️</span>
+                Limpar
+            </button>
+            <button class="acao-btn sair" id="sairBtn">
+                <span>🚪</span>
+                Sair
+            </button>
+        </div>
+
+        <!-- STATUS BAR -->
+        <div class="status-bar" id="statusBar">
+            Sistema monitorando alertas em tempo real
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="rodape">
+            <span id="dataHora"></span> • 🌸 AURORA V2.0
+        </div>
+    </div>
+
+    <script>
+        // Elementos DOM
+        const lastMeta = document.getElementById('lastMeta');
+        const details = document.getElementById('details');
+        const alertBox = document.getElementById('alertBox');
+        const sireneBtn = document.getElementById('sireneBtn');
+        const mapaBtn = document.getElementById('mapaBtn');
+        const statusBar = document.getElementById('statusBar');
+        let lastId = 0;
+        let sireneAtiva = true;
+        let ultimoAlerta = null;
+        
+        // ===== DATA E HORA =====
+        function atualizarDataHora() {
+            const agora = new Date();
+            const horas = agora.getHours().toString().padStart(2, '0');
+            const minutos = agora.getMinutes().toString().padStart(2, '0');
+            const dia = agora.getDate().toString().padStart(2, '0');
+            const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
+            const ano = agora.getFullYear();
+            document.getElementById('dataHora').textContent = `${horas}:${minutos} ${dia}/${mes}/${ano}`;
+        }
+        setInterval(atualizarDataHora, 1000);
+        atualizarDataHora();
+        
+        // ===== SIRENE =====
+        const sireneAudio = new Audio('/static/audio/sirene.mp3');
+        sireneAudio.loop = true;
+        
+        sireneBtn.addEventListener('click', () => {
+            sireneAtiva = !sireneAtiva;
+            sireneBtn.classList.toggle('ativa', sireneAtiva);
+            
+            if (!sireneAtiva) {
+                sireneAudio.pause();
+                sireneAudio.currentTime = 0;
+            }
+        });
+        
+        document.addEventListener('click', () => {
+            if (sireneAtiva && alertBox.classList.contains('novo')) {
+                sireneAudio.play().catch(e => console.log('Erro ao tocar:', e));
+            }
+        }, { once: true });
+        
+        // ===== MAPA =====
+        mapaBtn.addEventListener('click', () => {
+            if (ultimoAlerta && ultimoAlerta.location) {
+                const lat = ultimoAlerta.location.lat;
+                const lng = ultimoAlerta.location.lng;
+                window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+            }
+        });
+        
+        // ===== BOTÕES =====
+        document.getElementById('reenviarBtn').onclick = () => alert('Função em desenvolvimento');
+        
+        document.getElementById('limparBtn').onclick = () => {
+            lastMeta.innerHTML = '⏳ Alertas limpos';
+            details.innerHTML = '';
+            alertBox.classList.remove('novo');
+            mapaBtn.classList.remove('visivel');
+            sireneAudio.pause();
+            sireneAudio.currentTime = 0;
+            statusBar.innerHTML = '🧹 Alerta limpo manualmente';
+        };
+        
+        document.getElementById('sairBtn').onclick = () => {
+            if (confirm('Deseja realmente sair?')) {
+                window.location.href = '/logout_trusted';
+            }
+        };
+        
+        // ===== BUSCAR ALERTAS =====
+        async function buscarAlertas() {
+            try {
+                const res = await fetch('/api/last_alert?ts=' + Date.now());
+                const data = await res.json();
+                
+                if (data.ok && data.last) {
+                    const alerta = data.last;
+                    
+                    // NOVO ALERTA
+                    if (alerta.id > lastId) {
+                        lastId = alerta.id;
+                        ultimoAlerta = alerta;
+                        
+                        alertBox.classList.add('novo');
+                        
+                        if (sireneAtiva) {
+                            sireneAudio.play().catch(e => console.log('Erro ao tocar:', e));
+                        }
+                        
+                        setTimeout(() => {
+                            if (sireneAtiva) {
+                                sireneAudio.pause();
+                                sireneAudio.currentTime = 0;
+                            }
+                        }, 10000);
+                        
+                        setTimeout(() => {
+                            alertBox.classList.remove('novo');
+                        }, 5000);
+                        
+                        statusBar.innerHTML = `🚨 NOVO ALERTA #${alerta.id} recebido!`;
+                        setTimeout(() => {
+                            statusBar.innerHTML = 'Sistema monitorando alertas em tempo real';
+                        }, 5000);
+                    }
+                    
+                    // Mostrar horário brasileiro
+                    lastMeta.innerHTML = `<strong>🚨 ALERTA #${alerta.id}</strong> - ${alerta.ts_br || alerta.ts}`;
+                    
+                    let html = '';
+                    html += `👤 <strong>Nome:</strong> ${alerta.name || 'Não informado'}<br>`;
+                    html += `⚠️ <strong>Situação:</strong> ${alerta.situation}<br>`;
+                    
+                    if (alerta.message) {
+                        html += `💬 <strong>Mensagem:</strong> ${alerta.message}<br>`;
+                    }
+                    
+                    // LOCALIZAÇÃO
+                    if (alerta.location) {
+                        const {lat, lng, accuracy} = alerta.location;
+                        
+                        let precisaoClass = '';
+                        let precisaoText = '';
+                        
+                        if (accuracy <= 5) {
+                            precisaoClass = 'precisao-excelente';
+                            precisaoText = 'EXATÍSSIMA';
+                        } else if (accuracy <= 10) {
+                            precisaoClass = 'precisao-excelente';
+                            precisaoText = 'EXCELENTE';
+                        } else if (accuracy <= 30) {
+                            precisaoClass = 'precisao-boa';
+                            precisaoText = 'BOA';
+                        } else if (accuracy <= 50) {
+                            precisaoClass = 'precisao-media';
+                            precisaoText = 'MÉDIA';
+                        } else {
+                            precisaoClass = 'precisao-ruim';
+                            precisaoText = 'RUIM';
+                        }
+                        
+                        html += `<div class="loc-info">`;
+                        html += `📍 <strong>LOCALIZAÇÃO EXATA:</strong><br>`;
+                        html += `<div class="coordenadas">`;
+                        html += `   Latitude: ${lat.toFixed(6)}<br>`;
+                        html += `   Longitude: ${lng.toFixed(6)}<br>`;
+                        html += `</div>`;
+                        if (accuracy) {
+                            html += `   <span class="${precisaoClass}">🎯 Precisão: ±${accuracy.toFixed(0)}m (${precisaoText})</span><br>`;
+                        }
+                        html += `   <small style="color:#cdb7e6;">Clique no botão azul acima para abrir o mapa</small>`;
+                        html += `</div>`;
+                        
+                        mapaBtn.classList.add('visivel');
+                    } else {
+                        html += `📍 <strong>Localização não compartilhada</strong>`;
+                        mapaBtn.classList.remove('visivel');
+                    }
+                    
+                    details.innerHTML = html;
+                }
+            } catch (e) {
+                console.error('Erro:', e);
+            }
+        }
+        
+        setInterval(buscarAlertas, 2000);
+        buscarAlertas();
+        
+        // Status de conexão
+        setInterval(() => {
+            document.getElementById('statusConexao').innerHTML = 
+                navigator.onLine ? '🟢 Online' : '🔴 Offline';
+        }, 5000);
+    </script>
+</body>
+</html>

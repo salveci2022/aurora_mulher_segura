@@ -1,37 +1,64 @@
 [
-    {
-        "id": 1,
-        "name": "SALVECI DOS SANTOS",
-        "situation": "Assédio",
-        "message": "Preciso de ajuda urgente!",
-        "ts": "2026-03-10T11:36:55.941962",
-        "ts_br": "10/03/2026 08:36:55",
-        "location": {
-            "lat": -16.02023948524896,
-            "lng": -48.02074635598516,
-            "accuracy": 95
-        }
-    },
-    {
-        "id": 2,
-        "name": "SALVECI DOS SANTOS",
-        "situation": "Assédio",
-        "message": "Preciso de ajuda urgente!",
-        "ts": "2026-03-10T12:12:26.488040",
-        "ts_br": "10/03/2026 09:12:26",
-        "location": {
-            "lat": -16.020135529085433,
-            "lng": -48.0207277601293,
-            "accuracy": 105
-        }
-    },
-    {
-        "id": 3,
-        "name": "",
-        "situation": "",
-        "message": "",
-        "ts": "2026-03-10T12:21:11.639044",
-        "ts_br": "10/03/2026 09:21:11",
-        "location": null
+  {
+    "id": 1,
+    "name": "SALVECI DOS SANTOS",
+    "situation": "Ass\u00e9dio",
+    "message": "Preciso de ajuda urgente!",
+    "ts": "2026-03-10T11:36:55.941962",
+    "ts_br": "10/03/2026 08:36:55",
+    "location": {
+      "lat": -16.02023948524896,
+      "lng": -48.02074635598516,
+      "accuracy": 95
     }
+  },
+  {
+    "id": 2,
+    "name": "SALVECI DOS SANTOS",
+    "situation": "Ass\u00e9dio",
+    "message": "Preciso de ajuda urgente!",
+    "ts": "2026-03-10T12:12:26.488040",
+    "ts_br": "10/03/2026 09:12:26",
+    "location": {
+      "lat": -16.020135529085433,
+      "lng": -48.0207277601293,
+      "accuracy": 105
+    }
+  },
+  {
+    "id": 3,
+    "name": "",
+    "situation": "",
+    "message": "",
+    "ts": "2026-03-10T12:21:11.639044",
+    "ts_br": "10/03/2026 09:21:11",
+    "location": null
+  },
+  {
+    "nome": "Usu\u00e1ria Aurora",
+    "situacao": "Emerg\u00eancia",
+    "hora": "10/03/2026 10:34:37",
+    "localizacao": {
+      "lat": -16.020127687925072,
+      "lng": -48.0207610589574
+    }
+  },
+  {
+    "nome": "Usu\u00e1ria Aurora",
+    "situacao": "Emerg\u00eancia",
+    "hora": "10/03/2026 10:34:41",
+    "localizacao": {
+      "lat": -16.020127687925072,
+      "lng": -48.0207610589574
+    }
+  },
+  {
+    "nome": "Usu\u00e1ria Aurora",
+    "situacao": "Emerg\u00eancia",
+    "hora": "10/03/2026 10:34:41",
+    "localizacao": {
+      "lat": -16.020127687925072,
+      "lng": -48.0207610589574
+    }
+  }
 ]

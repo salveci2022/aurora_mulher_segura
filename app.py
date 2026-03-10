@@ -1,270 +1,241 @@
-from __future__ import annotations
-from flask import Flask, render_template, request, jsonify, redirect, session, send_file
-from flask_cors import CORS
-from datetime import datetime
-import os
+from flask import Flask, render_template, jsonify, request, redirect, session
 import json
-from pathlib import Path
-from fpdf import FPDF
-import tempfile
-import pytz
+import os
+from datetime import datetime
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
-app.secret_key = "aurora_secure_2026"
-CORS(app)
+app = Flask(__name__)
 
-BR_TZ = pytz.timezone('America/Sao_Paulo')
+app.secret_key = "aurora_secret"
 
-BASE_DIR = Path(__file__).resolve().parent
-USERS_FILE = BASE_DIR / "users.json"
-ALERTS_FILE = BASE_DIR / "alerts.log"
-STATE_FILE = BASE_DIR / "state.json"
+ALERT_FILE = "alerts.log"
+TRUSTED_FILE = "trusted.json"
 
 
-# ===============================
-# CRIAR ARQUIVOS
-# ===============================
-def ensure_files():
+# ==============================
+# GARANTIR ARQUIVOS
+# ==============================
 
-    if not USERS_FILE.exists():
-        USERS_FILE.write_text(json.dumps({
-            "admin": {
-                "password": "admin123",
-                "role": "admin",
-                "name": "Administrador"
-            }
-        }, indent=2, ensure_ascii=False), encoding="utf-8")
+if not os.path.exists(ALERT_FILE):
+    with open(ALERT_FILE, "w") as f:
+        json.dump([], f)
 
-    if not ALERTS_FILE.exists():
-        ALERTS_FILE.write_text("", encoding="utf-8")
-
-    if not STATE_FILE.exists():
-        STATE_FILE.write_text(json.dumps({"last_id": 0}), encoding="utf-8")
+if not os.path.exists(TRUSTED_FILE):
+    with open(TRUSTED_FILE, "w") as f:
+        json.dump({}, f)
 
 
-# ===============================
-# UTILIDADES
-# ===============================
-def load_users():
-    ensure_files()
-    return json.loads(USERS_FILE.read_text(encoding="utf-8"))
+# ==============================
+# FUNÇÕES
+# ==============================
+
+def load_alerts():
+
+    try:
+        with open(ALERT_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return []
 
 
-def save_users(data):
-    USERS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+def save_alerts(data):
+
+    with open(ALERT_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
 
-def next_alert_id():
+# ==============================
+# HOME
+# ==============================
 
-    state = json.loads(STATE_FILE.read_text())
-
-    state["last_id"] += 1
-
-    STATE_FILE.write_text(json.dumps(state))
-
-    return state["last_id"]
-
-
-def save_alert(alert):
-
-    with open(ALERTS_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(alert, ensure_ascii=False) + "\n")
-
-
-def get_all_alerts():
-
-    alerts = []
-
-    if ALERTS_FILE.exists():
-
-        with open(ALERTS_FILE, "r", encoding="utf-8") as f:
-
-            for line in f:
-
-                if line.strip():
-                    alerts.append(json.loads(line))
-
-    return alerts
-
-
-def get_last_alert():
-
-    alerts = get_all_alerts()
-
-    if alerts:
-        return alerts[-1]
-
-    return None
-
-
-# ===============================
-# PAGINAS
-# ===============================
 @app.route("/")
-def index():
-    return render_template("termo_responsabilidade.html")
-
-
-@app.route("/panic")
-def panic():
+def home():
     return render_template("panic_button.html")
 
 
-@app.route("/ajuda")
-def ajuda():
-    return render_template("ajuda.html")
+# ==============================
+# LOGIN ADMIN
+# ==============================
 
-
-@app.route("/plano-seguranca")
-def plano():
-    return render_template("plano_seguranca.html")
-
-
-@app.route("/saida-rapida")
-def saida():
-    return render_template("saida_rapida.html")
-
-
-# ===============================
-# API ALERTA
-# ===============================
-@app.route("/api/send_alert", methods=["POST"])
-def send_alert():
-
-    data = request.get_json()
-
-    now = datetime.now(BR_TZ)
-
-    alert = {
-        "id": next_alert_id(),
-        "ts": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "ts_br": now.strftime("%d/%m/%Y %H:%M:%S"),
-        "name": data.get("name", "Usuária"),
-        "situation": data.get("situation"),
-        "message": data.get("message"),
-        "location": data.get("location")
-    }
-
-    save_alert(alert)
-
-    return jsonify({"ok": True})
-
-
-@app.route("/api/last_alert")
-def last_alert():
-
-    alert = get_last_alert()
-
-    return jsonify({"ok": True, "last": alert})
-
-
-# ===============================
-# ADMIN
-# ===============================
-@app.route("/panel/login", methods=["GET","POST"])
-def admin_login():
-
-    users = load_users()
-
-    error = False
+@app.route("/panel/login", methods=["GET", "POST"])
+def panel_login():
 
     if request.method == "POST":
 
-        u = request.form.get("user")
+        user = request.form.get("username")
+        password = request.form.get("password")
 
-        p = request.form.get("password")
+        if user == "admin" and password == "admin123":
 
-        info = users.get(u)
-
-        if info and info["password"] == p and info["role"] == "admin":
-
-            session["role"] = "admin"
-
+            session["admin"] = True
             return redirect("/panel")
 
-        error = True
+    return render_template("login_admin.html")
 
-    return render_template("login_admin.html", error=error)
 
+# ==============================
+# PAINEL ADMIN
+# ==============================
 
 @app.route("/panel")
-def admin_panel():
+def panel_admin():
 
-    if session.get("role") != "admin":
+    if not session.get("admin"):
         return redirect("/panel/login")
 
-    alerts = get_all_alerts()
-
-    users = load_users()
-
-    trusted = {k:v for k,v in users.items() if v.get("role")=="trusted"}
-
-    return render_template("panel_admin.html",
-                           alerts=alerts,
-                           trusted=trusted)
+    return render_template("panel_admin.html")
 
 
-# ===============================
-# TRUSTED
-# ===============================
+@app.route("/panel/logout")
+def panel_logout():
+
+    session.pop("admin", None)
+
+    return redirect("/panel/login")
+
+
+# ==============================
+# LOGIN TRUSTED
+# ==============================
+
+@app.route("/trusted/login", methods=["GET", "POST"])
+def trusted_login():
+
+    if request.method == "POST":
+
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == "trusted" and password == "1234":
+
+            session["trusted"] = True
+            return redirect("/trusted")
+
+    return render_template("login_trusted.html")
+
+
+# ==============================
+# PAINEL TRUSTED
+# ==============================
+
 @app.route("/trusted")
 def trusted_panel():
 
-    users = load_users()
+    if not session.get("trusted"):
+        return redirect("/trusted/login")
 
-    trusted = [v for v in users.values() if v.get("role")=="trusted"]
-
-    if not trusted:
-        return "Nenhuma pessoa de confiança cadastrada"
-
-    name = trusted[0]["name"]
-
-    return render_template("panel_trusted.html", display_name=name)
+    return render_template("panel_trusted.html")
 
 
-@app.route("/trusted/login")
-def trusted_login():
-    return redirect("/trusted")
+@app.route("/trusted/logout")
+def trusted_logout():
+
+    session.pop("trusted", None)
+
+    return redirect("/trusted/login")
 
 
-# ===============================
-# PDF
-# ===============================
-@app.route("/relatorio/pdf")
-def relatorio():
+# ==============================
+# SALVAR PESSOAS DE CONFIANÇA
+# ==============================
 
-    alerts = get_all_alerts()
+@app.route("/api/trusted/save", methods=["POST"])
+def save_trusted():
 
-    pdf = FPDF()
+    data = request.json
 
-    pdf.add_page()
+    with open(TRUSTED_FILE, "w") as f:
+        json.dump(data, f, indent=2)
 
-    pdf.set_font("Arial","B",16)
-
-    pdf.cell(0,10,"RELATORIO DE ALERTAS",ln=1)
-
-    pdf.set_font("Arial","",12)
-
-    for a in alerts:
-
-        pdf.cell(0,8,f"{a['ts_br']} - {a['name']} - {a['situation']}",ln=1)
-
-    temp = tempfile.NamedTemporaryFile(delete=False,suffix=".pdf")
-
-    pdf.output(temp.name)
-
-    return send_file(temp.name,as_attachment=True)
+    return {"status": "ok"}
 
 
-# ===============================
-# START
-# ===============================
+# ==============================
+# ENVIAR ALERTA
+# ==============================
+
+@app.route("/api/alert", methods=["POST"])
+def receive_alert():
+
+    data = request.json
+
+    alerts = load_alerts()
+
+    alerta = {
+        "nome": data.get("nome"),
+        "situacao": data.get("situacao"),
+        "hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "localizacao": data.get("localizacao", "")
+    }
+
+    alerts.append(alerta)
+
+    save_alerts(alerts)
+
+    return {"status": "ok"}
+
+
+# ==============================
+# ÚLTIMO ALERTA
+# ==============================
+
+@app.route("/api/last_alert")
+def api_last_alert():
+
+    alerts = load_alerts()
+
+    if not alerts:
+        return jsonify({"last": None})
+
+    return jsonify({"last": alerts[-1]})
+
+
+# ==============================
+# HISTÓRICO
+# ==============================
+
+@app.route("/api/alerts")
+def api_alerts():
+
+    alerts = load_alerts()
+
+    return jsonify(alerts)
+
+
+# ==============================
+# LIMPAR ALERTAS
+# ==============================
+
+@app.route("/api/clear_alerts")
+def clear_alerts():
+
+    save_alerts([])
+
+    return {"status": "ok"}
+
+
+# ==============================
+# REENVIAR ALERTA
+# ==============================
+
+@app.route("/api/resend_alert")
+def resend_alert():
+
+    alerts = load_alerts()
+
+    if alerts:
+
+        ultimo = alerts[-1]
+
+        alerts.append(ultimo)
+
+        save_alerts(alerts)
+
+    return {"status": "resent"}
+
+
+# ==============================
+# RODAR SERVIDOR
+# ==============================
+
 if __name__ == "__main__":
-
-    ensure_files()
-
-    port = int(os.environ.get("PORT",5000))
-
-    print("🚀 Aurora iniciado")
-
-    app.run(host="0.0.0.0",port=port,debug=True)
+    app.run(debug=True)

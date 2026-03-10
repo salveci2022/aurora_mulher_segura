@@ -3,8 +3,9 @@
   "short_name": "Aurora",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
+  "background_color": "#2a003f",
   "theme_color": "#7a00ff",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/static/icon-192.png",

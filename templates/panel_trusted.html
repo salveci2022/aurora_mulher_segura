@@ -4,272 +4,225 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Central de Alertas - Aurora</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Aurora Mulher Segura</title>
+
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#7a00ff">
+
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-512.png') }}">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 <style>
 
 body{
-background:#2b0055;
+background:#2d0045;
 font-family:Arial;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+text-align:center;
 color:white;
 }
 
-.container{
+.painel-central{
+margin-top:80px;
+}
 
-width:420px;
-background:#3a006e;
-border-radius:30px;
+.card{
+background:#4c0073;
 padding:30px;
-text-align:center;
-box-shadow:0 0 40px rgba(0,0,0,0.5);
-
-}
-
-h1{
-margin-bottom:10px;
-}
-
-.sirene{
-
-width:160px;
-height:160px;
-border-radius:100%;
-background:radial-gradient(circle,#ff6ae3,#5d009e);
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:60px;
-margin:20px auto;
-cursor:pointer;
+border-radius:12px;
+width:320px;
+margin:auto;
 }
 
 button{
-
-padding:15px;
+margin-top:15px;
+padding:12px 20px;
 border:none;
-border-radius:20px;
-margin:5px;
-font-weight:bold;
+border-radius:8px;
 cursor:pointer;
-
+font-weight:bold;
 }
 
-.btnMapa{
-background:#2c8df0;
-color:white;
-width:100%;
-}
-
-.btnReenviar{
-background:orange;
-}
-
-.btnLimpar{
-background:#8e44ad;
+.btn-mapa{
+background:#3da6ff;
 color:white;
 }
 
-.btnSair{
-background:#e74c3c;
+.btn-parar{
+background:#ff5c5c;
+color:white;
+}
+
+.btn-limpar{
+background:#ffaa00;
+color:white;
+}
+
+.btn-reenviar{
+background:#00c853;
+color:white;
+}
+
+.btn-sair{
+background:#444;
 color:white;
 }
 
 .alerta{
-
-background:#4a007e;
-padding:20px;
-border-radius:15px;
-margin-top:20px;
-text-align:left;
-
+animation:piscando 1s infinite;
 }
 
-#alertBox{
-animation:none;
-}
-
-.blink{
-
-animation:blink 1s infinite;
-
-}
-
-@keyframes blink{
-
-0%{background:#600000;}
-50%{background:red;}
-100%{background:#600000;}
-
-}
-
-footer{
-margin-top:20px;
-font-size:12px;
+@keyframes piscando{
+0%{background:#4c0073;}
+50%{background:#8b0000;}
+100%{background:#4c0073;}
 }
 
 </style>
 
 </head>
 
-
 <body>
 
-<div class="container">
+<div class="painel-central">
 
-<h1>CENTRAL DE ALERTAS</h1>
+<h1>🚨 CENTRAL SOS</h1>
 
-<p>Olá, {{display_name}}</p>
+<div id="card" class="card">
 
-<div class="sirene" onclick="tocarSirene()">
-🔔
-</div>
+<h2 id="status">Aguardando alerta...</h2>
 
-<a id="mapLink" target="_blank">
-<button class="btnMapa">📍 ABRIR LOCALIZAÇÃO NO MAPA</button>
-</a>
+<p id="nome">Nome: ---</p>
 
+<p id="situacao">Situação: ---</p>
 
-<div class="alerta" id="alertBox">
-
-<p><b>Alerta:</b> <span id="alertId">---</span></p>
-
-<p><b>Nome:</b> <span id="alertName">---</span></p>
-
-<p><b>Situação:</b> <span id="alertSituation">---</span></p>
-
-<p><b>Mensagem:</b> <span id="alertMessage">---</span></p>
-
-<p><b>Horário:</b> <span id="alertTime">---</span></p>
+<p id="hora">Hora: ---</p>
 
 </div>
 
-<div>
+<br>
 
-<button class="btnReenviar" onclick="reenviar()">↩ Reenviar</button>
+<button class="btn-mapa" onclick="abrirMapa()">
+📍 ABRIR LOCALIZAÇÃO NO MAPA
+</button>
 
-<button class="btnLimpar" onclick="limpar()">🗑 Limpar</button>
+<br>
 
-<button class="btnSair" onclick="sair()">🚪 Sair</button>
+<button class="btn-parar" onclick="pararSirene()">
+🔕 PARAR SIRENE
+</button>
+
+<br><br>
+
+<button class="btn-reenviar" onclick="reenviarAlerta()">
+🔁 REENVIAR ALERTA
+</button>
+
+<button class="btn-limpar" onclick="limparAlerta()">
+🧹 LIMPAR
+</button>
+
+<button class="btn-sair" onclick="sair()">
+🚪 SAIR
+</button>
 
 </div>
 
-<footer>
-
-Sistema monitorando alertas em tempo real
-
-</footer>
-
-</div>
-
+<audio id="sirene" loop>
+<source src="/static/sirene.mp3" type="audio/mpeg">
+</audio>
 
 <script>
 
-let lastId=0
-let ultimoAlerta=null
+let ultimo = null
 
+function atualizar(){
 
-async function verificarAlerta(){
+fetch("/api/last_alert")
 
-try{
+.then(r=>r.json())
 
-const res=await fetch("/api/last_alert")
-const data=await res.json()
+.then(data=>{
 
-if(data.ok && data.last){
+if(!data.last) return
 
-const a=data.last
+if(ultimo == data.last.hora) return
 
-if(a.id!=lastId){
+ultimo = data.last.hora
 
-ultimoAlerta=a
-lastId=a.id
+document.getElementById("status").innerText="🚨 ALERTA RECEBIDO"
 
-document.getElementById("alertId").innerText="#"+a.id
-document.getElementById("alertName").innerText=a.name
-document.getElementById("alertSituation").innerText=a.situation
-document.getElementById("alertMessage").innerText=a.message
-document.getElementById("alertTime").innerText=a.ts_br
+document.getElementById("nome").innerText="Nome: "+data.last.nome
 
-document.getElementById("alertBox").classList.add("blink")
+document.getElementById("situacao").innerText="Situação: "+data.last.situacao
 
-if(a.location){
+document.getElementById("hora").innerText="Hora: "+data.last.hora
 
-const lat=a.location.lat
-const lng=a.location.lng
+document.getElementById("card").classList.add("alerta")
 
-document.getElementById("mapLink").href=
-"https://maps.google.com/?q="+lat+","+lng
+document.getElementById("sirene").play()
 
-}
-
-tocarSirene()
-
-}
-
-}
-
-}catch(e){
-
-console.log("erro",e)
-
-}
-
-}
-
-setInterval(verificarAlerta,3000)
-
-
-function tocarSirene(){
-
-const audio=new Audio("/static/audio/sirene.mp3")
-audio.loop=true
-audio.play().catch(()=>{})
-
-}
-
-
-function reenviar(){
-
-if(!ultimoAlerta) return
-
-fetch("/api/send_alert",{
-
-method:"POST",
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify(ultimoAlerta)
+window.ultimaLocalizacao=data.last.localizacao
 
 })
 
-alert("Alerta reenviado!")
+}
+
+setInterval(atualizar,2000)
+
+function pararSirene(){
+
+document.getElementById("sirene").pause()
 
 }
 
+function abrirMapa(){
 
-function limpar(){
+if(!window.ultimaLocalizacao){
 
-document.getElementById("alertBox").classList.remove("blink")
+alert("Localização não disponível")
 
-document.getElementById("alertName").innerText="---"
-document.getElementById("alertSituation").innerText="---"
-document.getElementById("alertMessage").innerText="---"
-document.getElementById("alertTime").innerText="---"
+return
 
 }
 
+window.open(
+"https://maps.google.com/?q="+window.ultimaLocalizacao,
+"_blank"
+)
+
+}
+
+function limparAlerta(){
+
+fetch("/api/clear_alerts")
+
+.then(()=>{
+
+location.reload()
+
+})
+
+}
+
+function reenviarAlerta(){
+
+fetch("/api/resend_alert")
+
+}
 
 function sair(){
 
-window.location="/panic"
+window.location="/trusted/logout"
 
 }
 
 </script>
 
 </body>
+
 </html>

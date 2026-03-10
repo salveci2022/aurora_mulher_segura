@@ -4,57 +4,94 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Pessoa de Confiança - Aurora</title>
+<title>Central de Alertas - Aurora</title>
 
 <style>
 
 body{
-background:#0b0018;
-color:white;
+background:#2b0055;
 font-family:Arial;
-text-align:center;
-padding:20px;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+color:white;
 }
 
-.card{
-background:#1a0033;
+.container{
+
+width:420px;
+background:#3a006e;
+border-radius:30px;
 padding:30px;
-border-radius:20px;
-max-width:500px;
-margin:auto;
-box-shadow:0 0 30px rgba(255,0,120,0.4);
+text-align:center;
+box-shadow:0 0 40px rgba(0,0,0,0.5);
+
 }
 
 h1{
-color:#ff4fc8;
+margin-bottom:10px;
 }
 
-.alert{
-background:#2b004d;
+.sirene{
+
+width:160px;
+height:160px;
+border-radius:100%;
+background:radial-gradient(circle,#ff6ae3,#5d009e);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:60px;
+margin:20px auto;
+cursor:pointer;
+}
+
+button{
+
+padding:15px;
+border:none;
+border-radius:20px;
+margin:5px;
+font-weight:bold;
+cursor:pointer;
+
+}
+
+.btnMapa{
+background:#2c8df0;
+color:white;
+width:100%;
+}
+
+.btnReenviar{
+background:orange;
+}
+
+.btnLimpar{
+background:#8e44ad;
+color:white;
+}
+
+.btnSair{
+background:#e74c3c;
+color:white;
+}
+
+.alerta{
+
+background:#4a007e;
 padding:20px;
 border-radius:15px;
 margin-top:20px;
+text-align:left;
+
 }
 
-.alert strong{
-color:#ff4fc8;
-}
-
-#mapLink{
-display:inline-block;
-margin-top:15px;
-padding:12px 20px;
-background:#ff4fc8;
-color:white;
-text-decoration:none;
-border-radius:10px;
-font-weight:bold;
-}
-
-#mapLink:hover{
-background:#ff1493;
+#alertBox{
+animation:none;
 }
 
 .blink{
@@ -65,10 +102,15 @@ animation:blink 1s infinite;
 
 @keyframes blink{
 
-0%{background:#5b0000;}
-50%{background:#ff0000;}
-100%{background:#5b0000;}
+0%{background:#600000;}
+50%{background:red;}
+100%{background:#600000;}
 
+}
+
+footer{
+margin-top:20px;
+font-size:12px;
 }
 
 </style>
@@ -78,97 +120,156 @@ animation:blink 1s infinite;
 
 <body>
 
-<div class="card">
+<div class="container">
 
-<h1>🚨 ALERTA AURORA</h1>
+<h1>CENTRAL DE ALERTAS</h1>
 
-<p>Painel da Pessoa de Confiança</p>
+<p>Olá, {{display_name}}</p>
 
-<div class="alert" id="alertBox">
+<div class="sirene" onclick="tocarSirene()">
+🔔
+</div>
 
-<p><strong>Nome:</strong> <span id="alertName">---</span></p>
+<a id="mapLink" target="_blank">
+<button class="btnMapa">📍 ABRIR LOCALIZAÇÃO NO MAPA</button>
+</a>
 
-<p><strong>Situação:</strong> <span id="alertSituation">---</span></p>
 
-<p><strong>Horário:</strong> <span id="alertTime">---</span></p>
+<div class="alerta" id="alertBox">
 
-<a id="mapLink" target="_blank">📍 Abrir localização</a>
+<p><b>Alerta:</b> <span id="alertId">---</span></p>
+
+<p><b>Nome:</b> <span id="alertName">---</span></p>
+
+<p><b>Situação:</b> <span id="alertSituation">---</span></p>
+
+<p><b>Mensagem:</b> <span id="alertMessage">---</span></p>
+
+<p><b>Horário:</b> <span id="alertTime">---</span></p>
 
 </div>
 
+<div>
+
+<button class="btnReenviar" onclick="reenviar()">↩ Reenviar</button>
+
+<button class="btnLimpar" onclick="limpar()">🗑 Limpar</button>
+
+<button class="btnSair" onclick="sair()">🚪 Sair</button>
+
 </div>
 
+<footer>
+
+Sistema monitorando alertas em tempo real
+
+</footer>
+
+</div>
 
 
 <script>
 
-let lastId = 0;
+let lastId=0
+let ultimoAlerta=null
+
 
 async function verificarAlerta(){
 
-    try{
+try{
 
-        const res = await fetch("/api/last_alert");
+const res=await fetch("/api/last_alert")
+const data=await res.json()
 
-        const data = await res.json();
+if(data.ok && data.last){
 
-        if(data.ok && data.last){
+const a=data.last
 
-            const a = data.last;
+if(a.id!=lastId){
 
-            if(a.id != lastId){
+ultimoAlerta=a
+lastId=a.id
 
-                lastId = a.id;
+document.getElementById("alertId").innerText="#"+a.id
+document.getElementById("alertName").innerText=a.name
+document.getElementById("alertSituation").innerText=a.situation
+document.getElementById("alertMessage").innerText=a.message
+document.getElementById("alertTime").innerText=a.ts_br
 
-                document.getElementById("alertName").innerText = a.name;
+document.getElementById("alertBox").classList.add("blink")
 
-                document.getElementById("alertSituation").innerText = a.situation;
+if(a.location){
 
-                document.getElementById("alertTime").innerText = a.ts_br;
+const lat=a.location.lat
+const lng=a.location.lng
 
-                document.getElementById("alertBox").classList.add("blink");
-
-                if(a.location){
-
-                    const lat = a.location.lat;
-
-                    const lng = a.location.lng;
-
-                    document.getElementById("mapLink").href =
-                    "https://maps.google.com/?q="+lat+","+lng;
-
-                }
-
-                tocarSirene();
-
-            }
-
-        }
-
-    }catch(e){
-
-        console.log("Erro alerta",e);
-
-    }
+document.getElementById("mapLink").href=
+"https://maps.google.com/?q="+lat+","+lng
 
 }
+
+tocarSirene()
+
+}
+
+}
+
+}catch(e){
+
+console.log("erro",e)
+
+}
+
+}
+
+setInterval(verificarAlerta,3000)
 
 
 function tocarSirene(){
 
-    const audio = new Audio("/static/audio/sirene.mp3");
-
-    audio.loop = true;
-
-    audio.play().catch(()=>{});
+const audio=new Audio("/static/audio/sirene.mp3")
+audio.loop=true
+audio.play().catch(()=>{})
 
 }
 
 
-setInterval(verificarAlerta,3000);
+function reenviar(){
+
+if(!ultimoAlerta) return
+
+fetch("/api/send_alert",{
+
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(ultimoAlerta)
+
+})
+
+alert("Alerta reenviado!")
+
+}
+
+
+function limpar(){
+
+document.getElementById("alertBox").classList.remove("blink")
+
+document.getElementById("alertName").innerText="---"
+document.getElementById("alertSituation").innerText="---"
+document.getElementById("alertMessage").innerText="---"
+document.getElementById("alertTime").innerText="---"
+
+}
+
+
+function sair(){
+
+window.location="/panic"
+
+}
 
 </script>
-
 
 </body>
 </html>

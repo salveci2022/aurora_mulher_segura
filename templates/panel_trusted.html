@@ -1,321 +1,375 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-
-<title>Confiança · Aurora</title>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-
-background:linear-gradient(135deg,#1a0033,#2d005a);
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:15px;
-
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-
-}
-
-.painel-confianca{
-
-max-width:480px;
-width:100%;
-
-background:linear-gradient(145deg,#2d005a,#1a0033);
-
-border-radius:40px;
-
-padding:24px;
-
-box-shadow:0 30px 60px rgba(0,0,0,0.7);
-
-border:1px solid rgba(255,79,200,0.3);
-
-}
-
-.topo{
-
-display:flex;
-align-items:center;
-justify-content:space-between;
-
-margin-bottom:20px;
-padding-bottom:15px;
-
-border-bottom:2px solid rgba(255,79,200,0.3);
-
-}
-
-.brand{
-
-display:flex;
-align-items:center;
-gap:12px;
-
-}
-
-.brand-dot{
-
-width:45px;
-height:45px;
-
-background:radial-gradient(circle at 30% 30%,rgba(255,121,218,0.9),rgba(164,92,255,0.75));
-
-border-radius:50%;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-color:white;
-font-size:24px;
-
-box-shadow:0 0 25px rgba(255,79,200,0.5);
-
-}
-
-.brand-title{
-
-font-size:16px;
-font-weight:bold;
-color:white;
-
-}
-
-.brand-sub{
-
-font-size:12px;
-color:#cdb7e6;
-
-}
-
-.status-conexao{
-
-font-size:14px;
-
-padding:5px 10px;
-
-background:rgba(255,255,255,0.1);
-
-border-radius:20px;
-
-}
-
-.sirene-container{
-
-display:flex;
-justify-content:center;
-
-margin:20px 0;
-
-}
-
-.sirene-btn{
-
-width:180px;
-height:180px;
-
-background:radial-gradient(circle at 50% 45%,rgba(255,121,218,0.95),rgba(138,36,139,0.65) 55%,rgba(40,0,60,0.75));
-
-border-radius:50%;
-
-display:flex;
-flex-direction:column;
-
-align-items:center;
-justify-content:center;
-
-color:white;
-
-cursor:pointer;
-
-box-shadow:0 0 0 10px rgba(255,79,200,0.1),
-0 0 0 25px rgba(164,92,255,0.07),
-0 20px 50px rgba(0,0,0,0.55);
-
-transition:all 0.3s;
-
-border:3px solid rgba(255,255,255,0.2);
-
-user-select:none;
-
-margin:0 auto;
-
-}
-
-.sirene-btn span{
-
-font-size:50px;
-font-weight:bold;
-
-color:#180013;
-
-text-shadow:0 1px 0 rgba(255,255,255,0.35);
-
-}
-
-.sirene-btn small{
-
-font-size:14px;
-
-color:#220019;
-
-font-weight:bold;
-
-margin-top:5px;
-
-}
-
-.sirene-btn.ativa{
-
-background:radial-gradient(circle at 50% 45%,#ff9800,#f57c00);
-
-box-shadow:0 0 0 10px rgba(255,152,0,0.2),
-0 0 0 25px rgba(255,152,0,0.1),
-0 0 50px #ff9800;
-
-animation:pulse 1s infinite;
-
-}
-
-.sirene-btn.ativa span{
-
-color:white;
-
-text-shadow:0 2px 0 #b95f00;
-
-}
-
-@keyframes pulse{
-
-0%{transform:scale(1)}
-
-50%{transform:scale(1.1)}
-
-100%{transform:scale(1)}
-
-}
-
-</style>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Confiança · Aurora</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a0033, #2d005a);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .painel-confianca {
+      max-width: 520px;
+      width: 100%;
+      background: linear-gradient(145deg, #2d005a, #1a0033);
+      border-radius: 40px;
+      padding: 24px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 79, 200, 0.3);
+    }
+
+    .topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(255, 79, 200, 0.3);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-dot {
+      width: 45px;
+      height: 45px;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 121, 218, 0.9), rgba(164, 92, 255, 0.75));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 0 25px rgba(255, 79, 200, 0.5);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: #cdb7e6;
+    }
+
+    .status-conexao {
+      font-size: 14px;
+      padding: 5px 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      color: white;
+    }
+
+    /* CENTRAL DE ALERTAS */
+    .central-alertas {
+      background: rgba(20, 0, 30, 0.7);
+      backdrop-filter: blur(4px);
+      border: 2px solid rgba(255, 79, 200, 0.4);
+      border-radius: 30px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .central-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+      border-bottom: 1px dashed rgba(255, 79, 200, 0.3);
+      padding-bottom: 10px;
+    }
+
+    .central-header span:first-child {
+      font-weight: bold;
+      color: #ff79da;
+    }
+
+    .abrir-mapa {
+      display: inline-block;
+      background: rgba(164, 92, 255, 0.3);
+      border: 1px solid rgba(255, 121, 218, 0.6);
+      border-radius: 30px;
+      padding: 8px 18px;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      text-decoration: none;
+      margin-bottom: 20px;
+      text-align: center;
+      width: fit-content;
+    }
+
+    .alerta-item {
+      background: rgba(0, 0, 0, 0.4);
+      border-left: 6px solid #ff4fc8;
+      border-radius: 18px;
+      padding: 18px;
+      margin: 20px 0;
+    }
+
+    .alerta-titulo {
+      color: #ffb3e6;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .alerta-detalhe {
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .localizacao-bloco {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .localizacao-titulo {
+      color: #ff79da;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .coordenadas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      color: #b79aff;
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .info-extra {
+      color: #cdb7e6;
+      font-size: 14px;
+      border-top: 1px solid rgba(255, 121, 218, 0.2);
+      padding-top: 12px;
+      margin-top: 8px;
+    }
+
+    .acoes-alerta {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+      justify-content: center;
+    }
+
+    .btn-acao {
+      flex: 1;
+      background: rgba(164, 92, 255, 0.25);
+      border: 2px solid rgba(255, 121, 218, 0.6);
+      border-radius: 60px;
+      padding: 14px 10px;
+      font-weight: bold;
+      font-size: 16px;
+      color: white;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 0 15px rgba(255, 79, 200, 0.3);
+    }
+
+    .btn-acao.cancelar {
+      background: rgba(200, 50, 100, 0.3);
+      border-color: rgba(255, 100, 150, 0.8);
+    }
+
+    .btn-acao:hover {
+      background: rgba(255, 121, 218, 0.5);
+      transform: scale(1.02);
+    }
+
+    .sirene-container {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0 10px;
+    }
+
+    .sirene-btn {
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 0 10px rgba(255, 79, 200, 0.1), 0 0 0 25px rgba(164, 92, 255, 0.07), 0 20px 50px rgba(0, 0, 0, 0.55);
+      transition: all 0.3s;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      user-select: none;
+      margin: 0 auto;
+    }
+
+    .sirene-btn span {
+      font-size: 48px;
+      font-weight: bold;
+      color: #180013;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    .sirene-btn small {
+      font-size: 14px;
+      color: #220019;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .sirene-btn.ativa {
+      background: radial-gradient(circle at 50% 45%, #ff9800, #f57c00);
+      box-shadow: 0 0 0 10px rgba(255, 152, 0, 0.2), 0 0 0 25px rgba(255, 152, 0, 0.1), 0 0 50px #ff9800;
+      animation: pulse 1s infinite;
+    }
+
+    .sirene-btn.ativa span {
+      color: white;
+      text-shadow: 0 2px 0 #b95f00;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .rodape-texto {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 11px;
+      text-align: center;
+      margin-top: 25px;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="painel-confianca">
+    <div class="topo">
+      <div class="brand">
+        <div class="brand-dot">🌸</div>
+        <div>
+          <div class="brand-title">AURORA</div>
+          <div class="brand-sub">Mulher Segura</div>
+        </div>
+      </div>
+      <div class="status-conexao">Conectado</div>
+    </div>
 
-<div class="painel-confianca">
+    <!-- CENTRAL DE ALERTAS (IGUAL À IMAGEM) -->
+    <div class="central-alertas">
+      <div class="central-header">
+        <span># CENTRAL DE ALERTAS</span>
+        <span>CLS. AUTHENTICATE</span>
+      </div>
 
-<div class="topo">
+      <div class="abrir-mapa">📍 ABRIR LOCALIZAÇÃO NO MAPA</div>
 
-<div class="brand">
+      <!-- ALERTA 461 -->
+      <div class="alerta-item">
+        <div class="alerta-titulo">🔴 ALERTA 461 - 25/02/2025 14:50:29</div>
+        <div class="alerta-detalhe">1️⃣ Número EDS SANTOS</div>
+        <div class="alerta-detalhe">2️⃣ Sharding Volatile Base</div>
+        <div class="alerta-detalhe">3️⃣ Manutenção Próximo de ajuda urgentes</div>
+      </div>
 
-<div class="brand-dot">🌸</div>
+      <!-- LOCALIZAÇÃO EXATA -->
+      <div class="localizacao-bloco">
+        <div class="localizacao-titulo">📍 LOCALIZAÇÃO EXATA</div>
+        <div class="coordenadas">
+          <span><strong>LATITUDE:</strong> 43.200000</span>
+          <span><strong>LONGITUDE:</strong> -88.400000</span>
+        </div>
+        <div class="info-extra">
+          <div>🔹 <strong>Possuição:</strong> +1 Gbps publico</div>
+          <div style="font-size: 12px; margin-top: 8px;">🔹 Clique no botão e use uma para ver os mapas</div>
+        </div>
+      </div>
 
-<div>
+      <!-- BOTÕES CANCELAR / 1 MINUTO -->
+      <div class="acoes-alerta">
+        <div class="btn-acao cancelar">Cancelar</div>
+        <div class="btn-acao">1 Minuto</div>
+        <div class="btn-acao">1 Minuto</div>
+      </div>
 
-<div class="brand-title">AURORA</div>
-<div class="brand-sub">Mulher Segura</div>
+      <div style="color: rgba(255,200,240,0.5); font-size: 11px; text-align: right; margin-top: 12px;">
+        Gostaria reconhecendo outras em tempo real
+      </div>
+    </div>
 
-</div>
+    <!-- BOTÃO SOS (SIRENE) -->
+    <div class="sirene-container">
+      <div class="sirene-btn" id="sireneBtn">
+        <span>SOS</span>
+        <small>Alerta</small>
+      </div>
+    </div>
 
-</div>
+    <div class="rodape-texto">⏱️ atualização a cada 3s</div>
+  </div>
 
-<div class="status-conexao">
+  <!-- SCRIPT ALERTA TEMPO REAL -->
+  <script>
+    let ultimoID = 0;
 
-Conectado
+    async function verificarAlerta() {
+      try {
+        const res = await fetch("/api/last_alert");
+        const data = await res.json();
+        if (!data.alert) return;
+        if (data.alert.id !== ultimoID) {
+          ultimoID = data.alert.id;
+          ativarSirene(data.alert);
+        }
+      } catch (e) {
+        console.log("erro alerta", e);
+      }
+    }
 
-</div>
+    function ativarSirene(alert) {
+      const btn = document.getElementById("sireneBtn");
+      if (btn) {
+        btn.classList.add("ativa");
+      }
 
-</div>
+      // Toca som (certifique-se de que o arquivo existe)
+      const audio = new Audio("/static/siren.mp3");
+      audio.play().catch(() => {}); // fallback se não conseguir
 
-<div class="sirene-container">
+      if (alert.location) {
+        const url = "https://maps.google.com/?q=" + alert.location;
+        window.open(url, "_blank");
+      }
+    }
 
-<div class="sirene-btn" id="sireneBtn">
-
-<span>SOS</span>
-
-<small>Alerta</small>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ========================================= -->
-<!-- SCRIPT ALERTA TEMPO REAL -->
-<!-- ========================================= -->
-
-<script>
-
-let ultimoID = 0;
-
-async function verificarAlerta(){
-
-try{
-
-const res = await fetch("/api/last_alert");
-
-const data = await res.json();
-
-if(!data.alert) return;
-
-if(data.alert.id !== ultimoID){
-
-ultimoID = data.alert.id;
-
-ativarSirene(data.alert);
-
-}
-
-}catch(e){
-
-console.log("erro alerta",e);
-
-}
-
-}
-
-function ativarSirene(alert){
-
-const btn = document.getElementById("sireneBtn");
-
-if(btn){
-
-btn.classList.add("ativa");
-
-}
-
-const audio = new Audio("/static/siren.mp3");
-
-audio.play();
-
-if(alert.location){
-
-const url = "https://maps.google.com/?q="+alert.location;
-
-window.open(url,"_blank");
-
-}
-
-}
-
-setInterval(verificarAlerta,3000);
-
-</script>
-
+    setInterval(verificarAlerta, 3000);
+  </script>
 </body>
 </html>

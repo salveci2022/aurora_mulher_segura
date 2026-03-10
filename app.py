@@ -1,19 +1,19 @@
-from flask import Flask, render_template, request, jsonify, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import json
 import os
 from datetime import datetime
 
 app = Flask(__name__)
 
-app.secret_key = "aurora_secret_key"
+app.secret_key = "aurora_secret_key_2026"
 
 ALERT_FILE = "alerts.log"
 TRUSTED_FILE = "trusted.json"
 
 
-# =============================
-# CRIAR ARQUIVOS SE NÃO EXISTIR
-# =============================
+# ===============================
+# CRIAR ARQUIVOS SE NÃO EXISTIREM
+# ===============================
 
 if not os.path.exists(ALERT_FILE):
     with open(ALERT_FILE, "w") as f:
@@ -24,14 +24,14 @@ if not os.path.exists(TRUSTED_FILE):
         json.dump({}, f)
 
 
-# =============================
+# ===============================
 # FUNÇÕES AUXILIARES
-# =============================
+# ===============================
 
 def load_alerts():
 
     try:
-        with open(ALERT_FILE, "r", encoding="utf-8") as f:
+        with open(ALERT_FILE, "r") as f:
             return json.load(f)
     except:
         return []
@@ -39,25 +39,25 @@ def load_alerts():
 
 def save_alerts(data):
 
-    with open(ALERT_FILE, "w", encoding="utf-8") as f:
+    with open(ALERT_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
 
-# =============================
+# ===============================
 # HOME
-# =============================
+# ===============================
 
 @app.route("/")
 def home():
     return render_template("panic_button.html")
 
 
-# =============================
+# ===============================
 # LOGIN ADMIN
-# =============================
+# ===============================
 
 @app.route("/panel/login", methods=["GET","POST"])
-def panel_login():
+def admin_login():
 
     if request.method == "POST":
 
@@ -72,12 +72,12 @@ def panel_login():
     return render_template("login_admin.html")
 
 
-# =============================
+# ===============================
 # PAINEL ADMIN
-# =============================
+# ===============================
 
 @app.route("/panel")
-def panel_admin():
+def panel():
 
     if not session.get("admin"):
         return redirect("/panel/login")
@@ -88,13 +88,13 @@ def panel_admin():
 @app.route("/panel/logout")
 def panel_logout():
 
-    session.pop("admin", None)
+    session.pop("admin",None)
     return redirect("/panel/login")
 
 
-# =============================
-# LOGIN TRUSTED
-# =============================
+# ===============================
+# LOGIN PESSOA DE CONFIANÇA
+# ===============================
 
 @app.route("/trusted/login", methods=["GET","POST"])
 def trusted_login():
@@ -104,7 +104,7 @@ def trusted_login():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        if username == "trusted" and password == "1234":
+        if username == "aurora" and password == "2026":
 
             session["trusted"] = True
             return redirect("/trusted")
@@ -112,9 +112,9 @@ def trusted_login():
     return render_template("login_trusted.html")
 
 
-# =============================
-# PAINEL TRUSTED
-# =============================
+# ===============================
+# PAINEL PESSOA DE CONFIANÇA
+# ===============================
 
 @app.route("/trusted")
 def trusted_panel():
@@ -128,13 +128,14 @@ def trusted_panel():
 @app.route("/trusted/logout")
 def trusted_logout():
 
-    session.pop("trusted", None)
+    session.pop("trusted",None)
+
     return redirect("/trusted/login")
 
 
-# =============================
+# ===============================
 # SALVAR PESSOAS DE CONFIANÇA
-# =============================
+# ===============================
 
 @app.route("/api/trusted/save", methods=["POST"])
 def save_trusted():
@@ -147,9 +148,9 @@ def save_trusted():
     return {"status":"ok"}
 
 
-# =============================
-# RECEBER ALERTA (SOS)
-# =============================
+# ===============================
+# RECEBER ALERTA SOS
+# ===============================
 
 @app.route("/api/alert", methods=["POST"])
 def receive_alert():
@@ -168,6 +169,8 @@ def receive_alert():
 
         "situacao": data.get("situacao"),
 
+        "mensagem": data.get("mensagem"),
+
         "hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
 
         "localizacao": data.get("localizacao"),
@@ -183,9 +186,9 @@ def receive_alert():
     return {"status":"ok"}
 
 
-# =============================
-# ÚLTIMO ALERTA
-# =============================
+# ===============================
+# ULTIMO ALERTA
+# ===============================
 
 @app.route("/api/last_alert")
 def api_last_alert():
@@ -193,14 +196,14 @@ def api_last_alert():
     alerts = load_alerts()
 
     if not alerts:
-        return jsonify({"last":None})
+        return {"alert": None}
 
-    return jsonify({"last":alerts[-1]})
+    return {"alert": alerts[-1]}
 
 
-# =============================
-# HISTÓRICO
-# =============================
+# ===============================
+# HISTÓRICO COMPLETO
+# ===============================
 
 @app.route("/api/alerts")
 def api_alerts():
@@ -210,21 +213,22 @@ def api_alerts():
     return jsonify(alerts)
 
 
-# =============================
+# ===============================
 # LIMPAR ALERTAS
-# =============================
+# ===============================
 
 @app.route("/api/clear_alerts")
 def clear_alerts():
 
-    save_alerts([])
+    with open(ALERT_FILE,"w") as f:
+        json.dump([],f)
 
     return {"status":"ok"}
 
 
-# =============================
-# REENVIAR ALERTA
-# =============================
+# ===============================
+# REENVIAR ÚLTIMO ALERTA
+# ===============================
 
 @app.route("/api/resend_alert")
 def resend_alert():
@@ -240,9 +244,10 @@ def resend_alert():
     return {"status":"resent"}
 
 
-# =============================
-# RODAR SERVIDOR
-# =============================
+# ===============================
+# EXECUTAR SERVIDOR
+# ===============================
 
 if __name__ == "__main__":
+
     app.run(debug=True)

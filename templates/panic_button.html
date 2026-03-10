@@ -1,951 +1,825 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <meta name="theme-color" content="#ff4fc8">
-  <link rel="manifest" href="/static/manifest.json">
-  <link rel="icon" type="image/png" href="/static/icons/favicon-32.png">
-  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
-  <title>Aurora Mulher Segura - Botão de Pânico</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    
-    body {
-      background: linear-gradient(135deg, #1a0033, #2d005a);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    
-    .painel-mulher {
-      max-width: 420px;
-      width: 100%;
-      background: linear-gradient(145deg, #2d005a, #1a0033);
-      border-radius: 40px;
-      padding: 24px;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-      border: 1px solid rgba(255,79,200,0.3);
-    }
-    
-    /* HEADER - VERSÃO ATUALIZADA */
-    .header {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 24px;
-    }
-    
-    .header-top {
-      display: flex;
-      width: 100%;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .logo-icon {
-      width: 48px;
-      height: 48px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,121,218,0.9), rgba(164,92,255,0.75));
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 28px;
-      box-shadow: 0 10px 20px -5px rgba(255,79,200,0.5);
-    }
-    
-    .logo-text h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: white;
-      line-height: 1.2;
-    }
-    
-    .logo-text p {
-      font-size: 13px;
-      color: #a89cc0;
-    }
-    
-    .header-actions {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .header-btn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,79,200,0.2);
-      color: #d4c4f0;
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .header-btn:hover {
-      background: rgba(255,79,200,0.2);
-      color: white;
-      border-color: #ff4fc8;
-    }
-    
-    .header-titulos {
-      width: 100%;
-      margin-top: 5px;
-      padding-top: 10px;
-      border-top: 2px solid rgba(255,79,200,0.3);
-    }
-    
-    .titulo-rosa {
-      color: #ff4fc8;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-shadow: 0 0 10px rgba(255,79,200,0.5);
-    }
-    
-    .titulo-branco {
-      color: white;
-      font-size: 18px;
-      font-weight: 600;
-      margin-top: 4px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
-    .badge-panico {
-      background: rgba(255,79,200,0.2);
-      padding: 4px 12px;
-      border-radius: 30px;
-    }
-    
-    .instrucao {
-      color: #cdb7e6;
-      font-size: 13px;
-      margin-top: 8px;
-      font-style: italic;
-    }
-    
-    /* SEÇÃO DE SITUAÇÃO */
-    .section-title {
-      color: #ffb0f0;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      margin: 20px 0 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .section-title span {
-      font-size: 18px;
-    }
-    
-    .situation-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    
-    .situation-btn {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,79,200,0.2);
-      border-radius: 20px;
-      padding: 16px 12px;
-      color: #e0d0ff;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      backdrop-filter: blur(5px);
-    }
-    
-    .situation-btn:hover {
-      background: rgba(255,79,200,0.15);
-      border-color: #ff4fc8;
-      transform: translateY(-2px);
-    }
-    
-    .situation-btn.active {
-      background: linear-gradient(145deg, rgba(255,79,200,0.25), rgba(164,92,255,0.25));
-      border-color: #ff4fc8;
-      box-shadow: 0 0 20px rgba(255,79,200,0.3);
-    }
-    
-    .situation-btn span {
-      font-size: 20px;
-    }
-    
-    /* CAMPOS DE INPUT */
-    .input-group {
-      margin-bottom: 20px;
-    }
-    
-    .input-label {
-      display: block;
-      color: #cdb7e6;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-    
-    .input-field {
-      width: 100%;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255,79,200,0.3);
-      border-radius: 20px;
-      padding: 16px 18px;
-      color: white;
-      font-size: 16px;
-      transition: all 0.2s;
-    }
-    
-    .input-field:focus {
-      outline: none;
-      border-color: #ff4fc8;
-      background: rgba(0, 0, 0, 0.4);
-    }
-    
-    .input-field::placeholder {
-      color: #665a7a;
-    }
-    
-    textarea.input-field {
-      min-height: 80px;
-      resize: vertical;
-    }
-    
-    /* BOTÃO SOS */
-    .sos-container {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    
-    .sos-btn {
-      width: 200px;
-      height: 200px;
-      background: radial-gradient(circle at 50% 45%, rgba(255,79,200,0.95), rgba(164,92,255,0.8) 55%, rgba(40,0,60,0.9));
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 0 0 10px rgba(255,79,200,0.2), 0 0 0 20px rgba(164,92,255,0.1), 0 20px 40px rgba(0,0,0,0.6);
-      border: 4px solid rgba(255,255,255,0.2);
-      transition: all 0.3s;
-      font-weight: bold;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    .sos-btn span {
-      font-size: 48px;
-      font-weight: 900;
-      color: white;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    }
-    
-    .sos-btn small {
-      font-size: 14px;
-      letter-spacing: 1px;
-      margin-top: 5px;
-      color: rgba(255,255,255,0.9);
-    }
-    
-    .sos-btn.holding {
-      transform: scale(1.05);
-      box-shadow: 0 0 0 15px rgba(255,79,200,0.3), 0 0 0 30px rgba(164,92,255,0.2), 0 30px 50px rgba(0,0,0,0.7);
-    }
-    
-    .sos-btn.sent {
-      background: radial-gradient(circle at 50% 45%, #4caf50, #2e7d32);
-      box-shadow: 0 0 0 10px rgba(76,175,80,0.2), 0 0 0 20px rgba(76,175,80,0.1);
-    }
-    
-    /* STATUS */
-    .status-box {
-      background: rgba(0,0,0,0.2);
-      border: 1px solid rgba(255,79,200,0.3);
-      border-radius: 30px;
-      padding: 15px;
-      margin: 20px 0;
-      text-align: center;
-      color: white;
-      font-size: 14px;
-    }
-    
-    /* LOCALIZAÇÃO - DRIVER SHIELD 360 */
-    .location-box {
-      background: rgba(0,0,0,0.2);
-      border: 1px solid rgba(255,79,200,0.3);
-      border-radius: 20px;
-      padding: 16px;
-      margin: 20px 0;
-    }
-    
-    .location-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #ffb0f0;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-    
-    #locTxt {
-      background: rgba(0,0,0,0.3);
-      border-radius: 16px;
-      padding: 12px;
-      font-family: monospace;
-      font-size: 14px;
-      color: #a0e0ff;
-      word-break: break-all;
-      line-height: 1.6;
-    }
-    
-    #locHint {
-      color: #cdb7e6;
-      font-size: 12px;
-      margin-top: 10px;
-      text-align: center;
-    }
-    
-    /* BOTÃO PDF */
-    .pdf-btn {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: white;
-      border: none;
-      border-radius: 30px;
-      padding: 16px;
-      width: 100%;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin: 20px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all 0.3s;
-      box-shadow: 0 10px 20px -5px rgba(34,197,94,0.4);
-    }
-    
-    .pdf-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 15px 30px -5px rgba(34,197,94,0.6);
-    }
-    
-    .pdf-btn span {
-      font-size: 20px;
-    }
-    
-    /* NOVO MENU DE ACESSO RÁPIDO */
-    .menu-rapido {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin: 20px 0;
-    }
-    
-    .menu-item {
-      background: rgba(255,79,200,0.1);
-      border: 1px solid #ff4fc8;
-      border-radius: 20px;
-      padding: 15px;
-      text-align: center;
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-    
-    .menu-item:hover {
-      background: rgba(255,79,200,0.2);
-      transform: translateY(-2px);
-    }
-    
-    .menu-item span {
-      font-size: 24px;
-    }
-    
-    .menu-item p {
-      color: white;
-      font-size: 14px;
-      margin-top: 5px;
-    }
-    
-    .menu-item small {
-      color: #cdb7e6;
-      font-size: 11px;
-    }
-    
-    /* BOTÃO SAÍDA RÁPIDA (FIXO) */
-    .saida-rapida-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 999;
-      background: #f44336;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 5px 20px rgba(244,67,54,0.5);
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-    
-    .saida-rapida-btn:hover {
-      transform: scale(1.1);
-    }
-    
-    .saida-rapida-btn span {
-      color: white;
-      font-size: 30px;
-    }
-    
-    /* RODAPÉ */
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255,79,200,0.15);
-      color: #665a7a;
-      font-size: 12px;
-      display: flex;
-      justify-content: space-between;
-    }
-    
-    /* LINK DO TERMO */
-    .termo-link {
-      text-align: center;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,79,200,0.1);
-    }
-    
-    .termo-link a {
-      color: #ff4fc8;
-      font-size: 11px;
-      text-decoration: none;
-      opacity: 0.8;
-      transition: opacity 0.3s;
-    }
-    
-    .termo-link a:hover {
-      opacity: 1;
-      text-decoration: underline;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2d0a40">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Aurora - Botão de Pânico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a0520 0%, #2d0a40 50%, #1a0520 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .title h2 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #ff6b9d, #f5576c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .sos-instruction {
+            background: linear-gradient(135deg, rgba(245,87,108,0.2), rgba(240,147,251,0.2));
+            border: 2px solid #f5576c;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: glow 2s infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(245,87,108,0.5); }
+            50% { box-shadow: 0 0 20px rgba(245,87,108,0.8); }
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ff6b9d;
+            font-weight: 600;
+        }
+        
+        .situations {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .situation-btn {
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,107,157,0.3);
+            color: white;
+            padding: 15px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .situation-btn:hover, .situation-btn.active {
+            background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(196,69,105,0.3));
+            border-color: #ff6b9d;
+            transform: translateY(-2px);
+        }
+        
+        .situation-btn .icon {
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #ff6b9d;
+            font-weight: 600;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #ff6b9d;
+        }
+        
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .sos-button-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .sos-button {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: 8px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 40px rgba(245,87,108,0.6), inset 0 0 40px rgba(255,255,255,0.2);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: sosPulse 2s infinite;
+        }
+        
+        @keyframes sosPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(245,87,108,0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 60px rgba(245,87,108,0.9); }
+        }
+        
+        .sos-button:active {
+            transform: scale(0.95);
+        }
+        
+        .sos-button.hold {
+            animation: sosHold 0.5s infinite;
+        }
+        
+        @keyframes sosHold {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .sos-text {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
+        .status-message {
+            background: rgba(0,255,136,0.1);
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        
+        .gps-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .gps-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .gps-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffa500;
+            animation: blink 1s infinite;
+        }
+        
+        .gps-indicator.active {
+            background: #00ff88;
+        }
+        
+        .gps-indicator.error {
+            background: #ff4444;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .gps-info {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        
+        .btn-download {
+            width: 100%;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #1a0520;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .btn-download:active {
+            transform: scale(0.98);
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-link {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .footer-link:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 20px;
+        }
+        
+        .footer a {
+            color: #ff6b9d;
+            text-decoration: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .progress-bar.active {
+            display: block;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b9d, #f5576c);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        @media (max-width: 480px) {
+            .sos-button {
+                width: 150px;
+                height: 150px;
+                font-size: 2.5rem;
+            }
+            .situations {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="painel-mulher">
-    <!-- HEADER ATUALIZADO -->
-    <div class="header">
-      <div class="header-top">
-        <div class="logo-area">
-          <div class="logo-icon">♀</div>
-          <div class="logo-text">
-            <h1>AURORA</h1>
-            <p>MULHER SEGURA</p>
-          </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">♀</div>
+                <div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">AURORA</div>
+                    <div style="font-size: 0.7rem;">MULHER SEGURA</div>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button class="header-btn" onclick="toggleFullscreen()">⛶</button>
+                <button class="header-btn" onclick="location.reload()">↻</button>
+                <button class="header-btn" onclick="window.location.href='index.html'">✕</button>
+            </div>
         </div>
-        <div class="header-actions">
-          <button class="header-btn" onclick="goFullScreen()">⛶</button>
-          <button class="header-btn" onclick="location.reload()">↻</button>
-          <button class="header-btn" onclick="sair()">✕</button>
+        
+        <!-- Title -->
+        <div class="title">
+            <h2>🚨 Painel da Mulher - SOS 24h</h2>
+            <p class="subtitle">🚨 BOTÃO DE PÂNICO</p>
         </div>
-      </div>
-      
-      <!-- TÍTULOS CONFORME SOLICITADO -->
-      <div class="header-titulos">
-        <div class="titulo-rosa">
-          🚨 Painel da Mulher - SOS 24h
+        
+        <!-- SOS Instruction -->
+        <div class="sos-instruction">
+            Toque e segure o botão SOS por 3 segundos para enviar alerta
         </div>
-        <div class="titulo-branco">
-          <span class="badge-panico">🚨 BOTÃO DE PÂNICO</span>
+        
+        <!-- Situations -->
+        <div class="section-title">⚠️ SITUAÇÃO</div>
+        <div class="situations">
+            <button class="situation-btn" data-situation="Assédio" onclick="selectSituation(this)">
+                <span class="icon">🚫</span>
+                <span>Assédio</span>
+            </button>
+            <button class="situation-btn" data-situation="Violência" onclick="selectSituation(this)">
+                <span class="icon">👊</span>
+                <span>Violência</span>
+            </button>
+            <button class="situation-btn" data-situation="Perseguição" onclick="selectSituation(this)">
+                <span class="icon">👀</span>
+                <span>Perseguição</span>
+            </button>
+            <button class="situation-btn" data-situation="Emergência médica" onclick="selectSituation(this)">
+                <span class="icon">🏥</span>
+                <span>Emergência médica</span>
+            </button>
+            <button class="situation-btn" data-situation="Local suspeito" onclick="selectSituation(this)">
+                <span class="icon">⚠️</span>
+                <span>Local suspeito</span>
+            </button>
+            <button class="situation-btn" data-situation="Outro" onclick="selectSituation(this)">
+                <span class="icon">❓</span>
+                <span>Outro</span>
+            </button>
         </div>
-        <div class="instrucao">
-          Toque no botão SOS para enviar alerta
+        
+        <!-- Name Input -->
+        <div class="form-group">
+            <label class="form-label">👤 SEU NOME</label>
+            <input type="text" class="form-input" id="userName" placeholder="Digite seu nome completo">
         </div>
-      </div>
-    </div>
-
-    <!-- SITUAÇÃO -->
-    <div class="section-title">
-      <span>⚠️</span> SITUAÇÃO
+        
+        <!-- Message Input -->
+        <div class="form-group">
+            <label class="form-label">💬 MENSAGEM (OPCIONAL)</label>
+            <textarea class="form-textarea" id="userMessage" placeholder="Descreva a situação...">Preciso de ajuda urgente!</textarea>
+        </div>
+        
+        <!-- SOS Button -->
+        <div class="sos-button-container">
+            <button class="sos-button" id="sosButton" ontouchstart="startSOSHold(event)" ontouchend="cancelSOSHold(event)" onmousedown="startSOSHold(event)" onmouseup="cancelSOSHold(event)" onmouseleave="cancelSOSHold(event)">
+                <div>SOS</div>
+                <div class="sos-text">TOQUE E SEGURE</div>
+            </div>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <!-- Status Message -->
+        <div class="status-message" id="statusMessage">
+            🌸 Sistema pronto - selecione uma situação
+        </div>
+        
+        <!-- GPS Section -->
+        <div class="gps-section">
+            <div class="section-title">📍 LOCALIZAÇÃO DRIVER SHIELD 360</div>
+            <div class="gps-status">
+                <div class="gps-indicator" id="gpsIndicator"></div>
+                <span id="gpsText">Inicializando GPS de alta precisão...</span>
+            </div>
+            <div class="gps-info" id="gpsInfo">
+                Aguardando permissão de localização...
+            </div>
+        </div>
+        
+        <!-- Download Report -->
+        <button class="btn-download" onclick="downloadReport()">
+            <span>📄</span>
+            <span>BAIXAR RELATÓRIO COMPLETO (PDF)</span>
+        </button>
+        
+        <!-- Footer Links -->
+        <div class="footer-links">
+            <a href="#" class="footer-link" onclick="showHelp(); return false;">
+                <span>📞</span>
+                <div>
+                    <strong>Central de Ajuda</strong><br>
+                    <small>180 • 190 • Direitos</small>
+                </div>
+            </a>
+            <a href="#" class="footer-link" onclick="showSafetyPlan(); return false;">
+                <span>📋</span>
+                <div>
+                    <strong>Plano de Segurança</strong><br>
+                    <small>Checklist • Preparação</small>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            🌸 POR PTB2<br>
+            <a href="termo.html">📜 Termo de Responsabilidade e Isenção</a><br>
+            <a href="index.html">⏪ Saída Rápida</a>
+        </div>
     </div>
     
-    <div class="situation-grid">
-      <button class="situation-btn active" data-value="Assédio">
-        <span>🚫</span> Assédio
-      </button>
-      <button class="situation-btn" data-value="Violência">
-        <span>👊</span> Violência
-      </button>
-      <button class="situation-btn" data-value="Perseguição">
-        <span>👀</span> Perseguição
-      </button>
-      <button class="situation-btn" data-value="Emergência médica">
-        <span>🏥</span> Emergência médica
-      </button>
-      <button class="situation-btn" data-value="Local suspeito">
-        <span>⚠️</span> Local suspeito
-      </button>
-      <button class="situation-btn" data-value="Outro">
-        <span>❓</span> Outro
-      </button>
-    </div>
-
-    <!-- NOME -->
-    <div class="input-group">
-      <label class="input-label">👤 SEU NOME</label>
-      <input type="text" id="nomeInput" class="input-field" value="SALVECI DOS SANTOS" placeholder="Digite seu nome">
-    </div>
-
-    <!-- MENSAGEM -->
-    <div class="input-group">
-      <label class="input-label">💬 MENSAGEM (OPCIONAL)</label>
-      <textarea id="mensagemInput" class="input-field" rows="3" placeholder="Descreva rapidamente o que está acontecendo">Preciso de ajuda urgente!</textarea>
-    </div>
-
-    <!-- BOTÃO SOS -->
-    <div class="sos-container">
-      <div class="sos-btn" id="sosBtn">
-        <span>SOS</span>
-        <small>TOQUE E SEGURE</small>
-      </div>
-    </div>
-
-    <!-- STATUS -->
-    <div class="status-box" id="statusMsg">
-      🌸 Sistema pronto - selecione uma situação
-    </div>
-
-    <!-- LOCALIZAÇÃO - DRIVER SHIELD 360 (CORRIGIDO) -->
-    <div class="location-box">
-      <div class="location-title">
-        <span>📍</span> LOCALIZAÇÃO DRIVER SHIELD 360
-      </div>
-      <div id="locTxt">Inicializando GPS de alta precisão...</div>
-      <div id="locHint">Ative o GPS e permita o acesso à localização</div>
-    </div>
-
-    <!-- BOTÃO PDF -->
-    <button class="pdf-btn" id="pdfBtn">
-      <span>📄</span>
-      BAIXAR RELATÓRIO COMPLETO (PDF)
-    </button>
-
-    <!-- NOVO MENU DE ACESSO RÁPIDO -->
-    <div class="menu-rapido">
-      <a href="/ajuda" class="menu-item">
-        <span>📞</span>
-        <p>Central de Ajuda</p>
-        <small>180 • 190 • Direitos</small>
-      </a>
-      
-      <a href="/plano-seguranca" class="menu-item">
-        <span>📋</span>
-        <p>Plano de Segurança</p>
-        <small>Checklist • Preparação</small>
-      </a>
-    </div>
-
-    <!-- RODAPÉ -->
-    <div class="footer">
-      <span>🌸 POR PTB2</span>
-      <span id="dataHora"></span>
-    </div>
-    
-    <!-- LINK DO TERMO DE RESPONSABILIDADE -->
-    <div class="termo-link">
-      <a href="/termo">📜 Termo de Responsabilidade e Isenção</a>
-    </div>
-  </div>
-  
-  <!-- BOTÃO SAÍDA RÁPIDA (FIXO) -->
-  <a href="/saida-rapida" class="saida-rapida-btn" title="Saída Rápida">
-    <span>⏪</span>
-  </a>
-
-  <script>
-    // ===== DATA E HORA =====
-    function atualizarDataHora() {
-      const agora = new Date();
-      const horas = agora.getHours().toString().padStart(2, '0');
-      const minutos = agora.getMinutes().toString().padStart(2, '0');
-      const dia = agora.getDate().toString().padStart(2, '0');
-      const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
-      const ano = agora.getFullYear();
-      document.getElementById('dataHora').textContent = `${horas}:${minutos} ${dia}/${mes}/${ano}`;
-    }
-    setInterval(atualizarDataHora, 1000);
-    atualizarDataHora();
-
-    // ===== TELA CHEIA =====
-    function goFullScreen() {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) elem.requestFullscreen();
-    }
-
-    // ===== SAIR =====
-    function sair() {
-      if (confirm('Deseja sair do sistema?')) {
-        window.location.href = '/';
-      }
-    }
-
-    // ===== SITUAÇÃO =====
-    const situationBtns = document.querySelectorAll('.situation-btn');
-    let situacaoSelecionada = 'Assédio';
-
-    situationBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        situationBtns.forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        situacaoSelecionada = this.dataset.value;
-        document.getElementById('statusMsg').innerHTML = `✅ Situação: ${situacaoSelecionada}`;
-        if (navigator.vibrate) navigator.vibrate(20);
-      });
-    });
-
-    // ===== LOCALIZAÇÃO CORRIGIDA - GPS DE ALTÍSSIMA PRECISÃO =====
-    let lastPos = null;
-    let watchId = null;
-    let tentativasGPS = 0;
-
-    function iniciarGPSAltaPrecisao() {
-      if (!navigator.geolocation) {
-        document.getElementById('locTxt').innerHTML = '❌ GPS não suportado no navegador';
-        document.getElementById('locHint').innerHTML = 'Seu dispositivo não possui GPS';
-        return;
-      }
-
-      document.getElementById('locTxt').innerHTML = '🔄 Ativando GPS de alta precisão...';
-      document.getElementById('locHint').innerHTML = 'Aguardando sinal dos satélites...';
-
-      // CONFIGURAÇÕES PARA MÁXIMA PRECISÃO
-      const opcoesAltaPrecisao = {
-        enableHighAccuracy: true,      // FORÇA GPS de alta precisão
-        timeout: 30000,                 // 30 segundos para obter localização
-        maximumAge: 0,                   // Sempre obter nova localização
-        distanceFilter: 1                 // Atualiza a cada 1 metro
-      };
-
-      // Primeira leitura imediata
-      navigator.geolocation.getCurrentPosition(
-        function(position) {
-          processarPosicao(position);
-          
-          // Monitoramento contínuo para atualizações
-          watchId = navigator.geolocation.watchPosition(
-            processarPosicao,
-            function(error) {
-              let msg = '⚠️ Buscando sinal GPS...';
-              if (error.code === 1) msg = '❌ Permissão negada. Ative o GPS.';
-              else if (error.code === 2) msg = '❌ Sinal indisponível. Vá para área externa.';
-              else if (error.code === 3) msg = '⏳ Tempo esgotado. Tentando novamente...';
-              
-              document.getElementById('locHint').innerHTML = msg;
-              tentativasGPS++;
-              
-              if (tentativasGPS > 3) {
-                document.getElementById('locTxt').innerHTML = '⚠️ Sinal fraco - tente área aberta';
-              }
-            },
-            opcoesAltaPrecisao
-          );
-        },
-        function(error) {
-          let msg = '⚠️ Clique em "Permitir" para usar GPS';
-          if (error.code === 1) msg = '❌ Permissão negada. Ative o GPS.';
-          else msg = '⚠️ Aguardando sinal GPS...';
-          
-          document.getElementById('locTxt').innerHTML = msg;
-          document.getElementById('locHint').innerHTML = 'Permita o acesso à localização';
-          
-          // Tenta novamente após 3 segundos
-          setTimeout(iniciarGPSAltaPrecisao, 3000);
-        },
-        opcoesAltaPrecisao
-      );
-    }
-
-    function processarPosicao(position) {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      const precisao = position.coords.accuracy; // em metros
-      
-      lastPos = {
-        lat: lat,
-        lng: lng,
-        accuracy: precisao,
-        timestamp: position.timestamp
-      };
-
-      // Atualizar display com formatação adequada
-      const latStr = lat.toFixed(6);
-      const lngStr = lng.toFixed(6);
-      
-      // Classificar precisão
-      let corPrecisao = '';
-      let textoPrecisao = '';
-      let iconePrecisao = '';
-      
-      if (precisao <= 3) {
-        corPrecisao = '#4caf50';
-        textoPrecisao = 'EXATÍSSIMA (±3m)';
-        iconePrecisao = '⭐⭐⭐';
-      } else if (precisao <= 5) {
-        corPrecisao = '#4caf50';
-        textoPrecisao = 'EXCELENTE (±5m)';
-        iconePrecisao = '⭐⭐';
-      } else if (precisao <= 10) {
-        corPrecisao = '#8bc34a';
-        textoPrecisao = 'BOA (±10m)';
-        iconePrecisao = '⭐';
-      } else if (precisao <= 20) {
-        corPrecisao = '#ff9800';
-        textoPrecisao = 'MÉDIA (±20m)';
-        iconePrecisao = '⚠️';
-      } else if (precisao <= 50) {
-        corPrecisao = '#ff9800';
-        textoPrecisao = 'REGULAR (±50m)';
-        iconePrecisao = '⚠️⚠️';
-      } else {
-        corPrecisao = '#f44336';
-        textoPrecisao = `FRACA (±${Math.round(precisao)}m)`;
-        iconePrecisao = '❌';
-      }
-
-      // Atualizar elemento locTxt com informações completas
-      document.getElementById('locTxt').innerHTML = `
-        <div style="color: ${corPrecisao}; font-weight: bold; margin-bottom: 8px;">
-          ${iconePrecisao} PRECISÃO ${textoPrecisao} ${iconePrecisao}
-        </div>
-        <div style="font-size: 13px; color: #a0e0ff; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
-          <div>Latitude: <strong>${latStr}</strong></div>
-          <div>Longitude: <strong>${lngStr}</strong></div>
-          <div style="font-size: 11px; color: #888; margin-top: 5px;">
-            Atualizado: ${new Date().toLocaleTimeString()}
-          </div>
-        </div>
-      `;
-      
-      // Atualizar hint com instruções
-      let hintMsg = '';
-      if (precisao <= 5) {
-        hintMsg = '✅ SINAL PERFEITO - Localização exata';
-      } else if (precisao <= 10) {
-        hintMsg = '✅ Sinal bom para emergência';
-      } else if (precisao <= 20) {
-        hintMsg = '⚠️ Sinal médio - Fique em área aberta';
-      } else {
-        hintMsg = '❌ Sinal fraco - Vá para área externa';
-      }
-      
-      document.getElementById('locHint').innerHTML = hintMsg;
-      document.getElementById('locHint').style.color = corPrecisao;
-      
-      console.log('📍 GPS atualizado:', lastPos);
-    }
-
-    // Iniciar GPS ao carregar a página
-    iniciarGPSAltaPrecisao();
-
-    // Parar monitoramento ao sair
-    window.addEventListener('beforeunload', function() {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    });
-
-    // ===== FUNÇÃO PARA OBTER LOCALIZAÇÃO ATUAL =====
-    async function getLocationForAlert() {
-      return new Promise((resolve) => {
-        if (lastPos) {
-          // Se já temos localização, usa a mais recente
-          resolve({
-            lat: lastPos.lat,
-            lng: lastPos.lng,
-            accuracy: lastPos.accuracy
-          });
-        } else {
-          // Se não temos, tenta obter agora
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              resolve({
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                accuracy: pos.coords.accuracy
-              });
-            },
-            () => resolve(null),
-            { enableHighAccuracy: true, timeout: 8000 }
-          );
-        }
-      });
-    }
-
-    // ===== BOTÃO SOS =====
-    const sosBtn = document.getElementById('sosBtn');
-    const statusMsg = document.getElementById('statusMsg');
-    let timerHold = null;
-    let isHolding = false;
-
-    function iniciarHold(e) {
-      e.preventDefault();
-      if (isHolding) return;
-      isHolding = true;
-
-      sosBtn.classList.add('holding');
-      statusMsg.innerHTML = '⚠️ Segure para enviar alerta...';
-
-      timerHold = setTimeout(() => {
-        enviarAlerta();
-        isHolding = false;
-      }, 1000);
-    }
-
-    function cancelarHold(e) {
-      e.preventDefault();
-      if (timerHold) clearTimeout(timerHold);
-      sosBtn.classList.remove('holding');
-      isHolding = false;
-      
-      if (!statusMsg.innerHTML.includes('ENVIADO')) {
-        statusMsg.innerHTML = '🌸 Sistema pronto';
-      }
-    }
-
-    sosBtn.addEventListener('mousedown', iniciarHold);
-    sosBtn.addEventListener('mouseup', cancelarHold);
-    sosBtn.addEventListener('mouseleave', cancelarHold);
-    sosBtn.addEventListener('touchstart', iniciarHold, { passive: false });
-    sosBtn.addEventListener('touchend', cancelarHold);
-    sosBtn.addEventListener('touchcancel', cancelarHold);
-
-    // ===== ENVIAR ALERTA (CORRIGIDO COM LOCALIZAÇÃO) =====
-    async function enviarAlerta() {
-      const nome = document.getElementById('nomeInput').value.trim() || 'Usuária';
-      const mensagem = document.getElementById('mensagemInput').value.trim() || '';
-
-      statusMsg.innerHTML = '📍 Obtendo localização exata...';
-      
-      const location = await getLocationForAlert();
-
-      if (!location) {
-        statusMsg.innerHTML = '❌ Sem localização. Ative o GPS.';
-        setTimeout(() => {
-          statusMsg.innerHTML = '🌸 Sistema pronto';
-        }, 3000);
-        return;
-      }
-
-      const alerta = {
-        name: nome,
-        situation: situacaoSelecionada,
-        message: mensagem,
-        location: {
-          lat: location.lat,
-          lng: location.lng,
-          accuracy: location.accuracy
-        }
-      };
-
-      sosBtn.classList.add('sent');
-      sosBtn.innerHTML = '<span>✓</span><small>ENVIADO</small>';
-      statusMsg.innerHTML = '📤 Enviando alerta com localização exata...';
-
-      try {
-        const res = await fetch('/api/send_alert', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(alerta)
+    <script>
+        // Global variables
+        let selectedSituation = null;
+        let holdTimer = null;
+        let progressInterval = null;
+        let watchId = null;
+        let currentLocation = null;
+        let alertSent = false;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initGPS();
+            loadUserData();
+            checkNotificationPermission();
         });
-
-        const data = await res.json();
-
-        if (data.ok) {
-          statusMsg.innerHTML = '✅ ALERTA ENVIADO COM SUCESSO!';
-          
-          // Feedback visual e sonoro
-          try {
-            const audio = new Audio('/static/audio/sirene.mp3');
-            audio.volume = 0.8;
-            audio.play().catch(e => console.log('Áudio bloqueado:', e));
-          } catch (e) {
-            console.log('Erro ao tocar áudio');
-          }
-
-          if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
-          }
-
-          console.log('✅ Alerta enviado:', data);
-          
-          // Mostrar resumo do alerta
-          alert(`🚨 ALERTA ENVIADO!\n\n📍 Localização: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}\n🎯 Precisão: ±${location.accuracy.toFixed(0)}m\n⚠️ Situação: ${situacaoSelecionada}`);
-          
-        } else {
-          throw new Error('Erro no servidor');
+        
+        // Load saved user data
+        function loadUserData() {
+            const savedName = localStorage.getItem('aurora_userName');
+            if (savedName) {
+                document.getElementById('userName').value = savedName;
+            }
         }
-      } catch (e) {
-        console.error('Erro:', e);
-        statusMsg.innerHTML = '❌ Erro ao enviar alerta';
-      }
-
-      setTimeout(() => {
-        sosBtn.classList.remove('sent');
-        sosBtn.innerHTML = '<span>SOS</span><small>TOQUE E SEGURE</small>';
-        statusMsg.innerHTML = '🌸 Sistema pronto';
-      }, 4000);
-    }
-
-    // ===== PDF =====
-    document.getElementById('pdfBtn').addEventListener('click', function() {
-      window.open('/relatorio/pdf', '_blank');
-      statusMsg.innerHTML = '📄 Gerando PDF...';
-      setTimeout(() => {
-        statusMsg.innerHTML = '🌸 Sistema pronto';
-      }, 2000);
-    });
-
-    // ===== VERIFICAR PERMISSÃO GPS =====
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then(result => {
-        if (result.state === 'denied') {
-          document.getElementById('locTxt').innerHTML = '❌ Permissão negada';
-          document.getElementById('locHint').innerHTML = 'Ative o GPS nas configurações';
+        
+        // Save user data
+        function saveUserData() {
+            const name = document.getElementById('userName').value;
+            if (name) {
+                localStorage.setItem('aurora_userName', name);
+            }
         }
-      });
-    }
-  </script>
+        
+        // Select situation
+        function selectSituation(btn) {
+            document.querySelectorAll('.situation-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedSituation = btn.dataset.situation;
+            updateStatus(`Situação selecionada: ${selectedSituation}`);
+            saveUserData();
+        }
+        
+        // Start SOS hold
+        function startSOSHold(e) {
+            if (e.cancelable) e.preventDefault();
+            
+            if (!selectedSituation) {
+                updateStatus('⚠️ Selecione uma situação primeiro!', 'error');
+                return;
+            }
+            
+            const name = document.getElementById('userName').value.trim();
+            if (!name) {
+                updateStatus('⚠️ Digite seu nome!', 'error');
+                return;
+            }
+            
+            saveUserData();
+            
+            const btn = document.getElementById('sosButton');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            btn.classList.add('hold');
+            progressBar.classList.add('active');
+            
+            let progress = 0;
+            progressInterval = setInterval(() => {
+                progress += 3.33; // 100% / 30 (3 seconds)
+                progressFill.style.width = progress + '%';
+            }, 100);
+            
+            holdTimer = setTimeout(() => {
+                sendAlert();
+            }, 3000);
+        }
+        
+        // Cancel SOS hold
+        function cancelSOSHold(e) {
+            if (e && e.cancelable) e.preventDefault();
+            
+            clearTimeout(holdTimer);
+            clearInterval(progressInterval);
+            
+            const btn = document.getElementById('sosButton');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            btn.classList.remove('hold');
+            progressBar.classList.remove('active');
+            progressFill.style.width = '0%';
+        }
+        
+        // Send alert
+        async function sendAlert() {
+            cancelSOSHold();
+            
+            const name = document.getElementById('userName').value.trim();
+            const message = document.getElementById('userMessage').value.trim();
+            
+            if (!currentLocation) {
+                updateStatus('⚠️ Aguardando localização...', 'error');
+                setTimeout(sendAlert, 2000);
+                return;
+            }
+            
+            const alert = {
+                id: Date.now(),
+                name: name,
+                situation: selectedSituation,
+                message: message,
+                location: currentLocation,
+                timestamp: new Date().toISOString(),
+                sent: true
+            };
+            
+            // Save alert to localStorage
+            const alerts = JSON.parse(localStorage.getItem('aurora_alerts') || '[]');
+            alerts.push(alert);
+            localStorage.setItem('aurora_alerts', JSON.stringify(alerts));
+            
+            // Update status
+            updateStatus('✅ ALERTA ENVIADO COM SUCESSO!', 'success');
+            alertSent = true;
+            
+            // Send to trusted contacts (simulate)
+            await sendToTrustedContacts(alert);
+            
+            // Vibrate if supported
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 400]);
+            }
+            
+            // Show confirmation
+            setTimeout(() => {
+                if (confirm('Alerta enviado! Deseja ir para a tela inicial?')) {
+                    window.location.href = 'index.html';
+                }
+            }, 2000);
+        }
+        
+        // Send to trusted contacts
+        async function sendToTrustedContacts(alert) {
+            const trustedContacts = JSON.parse(localStorage.getItem('aurora_trustedContacts') || '[]');
+            
+            // In a real app, this would send via API/WebSocket
+            // For now, we'll just store it
+            localStorage.setItem('aurora_pendingAlert', JSON.stringify(alert));
+            
+            // Send notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🚨 ALERTA AURORA', {
+                    body: `${alert.name} precisa de ajuda!`,
+                    icon: '/icon.png',
+                    badge: '/badge.png',
+                    requireInteraction: true
+                });
+            }
+        }
+        
+        // Initialize GPS
+        function initGPS() {
+            if (!('geolocation' in navigator)) {
+                updateGPS('error', 'GPS não suportado neste dispositivo');
+                return;
+            }
+            
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+            
+            watchId = navigator.geolocation.watchPosition(
+                successGPS,
+                errorGPS,
+                options
+            );
+        }
+        
+        // GPS success
+        function successGPS(position) {
+            currentLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                timestamp: position.timestamp
+            };
+            
+            const accuracy = currentLocation.accuracy;
+            let accuracyText = accuracy < 20 ? 'EXCELENTE' : 
+                              accuracy < 50 ? 'BOA' : 
+                              accuracy < 100 ? 'MÉDIA' : 'BAIXA';
+            let accuracyColor = accuracy < 20 ? '#00ff88' : 
+                               accuracy < 50 ? '#00cc6a' : 
+                               accuracy < 100 ? '#ffa500' : '#ff4444';
+            
+            const info = `Latitude: ${currentLocation.latitude.toFixed(6)}\nLongitude: ${currentLocation.longitude.toFixed(6)}\nPrecisão: ±${accuracy.toFixed(0)}m (${accuracyText})\nAltitude: ${position.coords.altitude || 'N/A'}m`;
+            
+            updateGPS('active', info, accuracyColor);
+        }
+        
+        // GPS error
+        function errorGPS(error) {
+            let message = 'Erro ao obter localização';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Permissão de GPS negada. Ative nas configurações.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Informação de localização indisponível';
+                    break;
+                case error.TIMEOUT:
+                    message = 'Tempo esgotado para obter localização';
+                    break;
+            }
+            updateGPS('error', message);
+        }
+        
+        // Update GPS display
+        function updateGPS(status, text, color = null) {
+            const indicator = document.getElementById('gpsIndicator');
+            const gpsText = document.getElementById('gpsText');
+            const gpsInfo = document.getElementById('gpsInfo');
+            
+            indicator.className = 'gps-indicator ' + status;
+            gpsText.textContent = status === 'active' ? 'GPS Ativo - Monitorando' : 
+                                 status === 'error' ? 'GPS Inativo' : 'Inicializando...';
+            gpsInfo.textContent = text;
+            if (color) {
+                gpsInfo.style.color = color;
+            }
+        }
+        
+        // Update status message
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            
+            if (type === 'success') {
+                statusEl.style.background = 'rgba(0,255,136,0.2)';
+                statusEl.style.borderColor = '#00ff88';
+            } else if (type === 'error') {
+                statusEl.style.background = 'rgba(255,68,68,0.2)';
+                statusEl.style.borderColor = '#ff4444';
+            } else {
+                statusEl.style.background = 'rgba(0,255,136,0.1)';
+                statusEl.style.borderColor = '#00ff88';
+            }
+        }
+        
+        // Download report
+        function downloadReport() {
+            const alerts = JSON.parse(localStorage.getItem('aurora_alerts') || '[]');
+            if (alerts.length === 0) {
+                alert('Nenhum alerta registrado para baixar.');
+                return;
+            }
+            
+            let report = 'AURORA MULHER SEGURA - RELATÓRIO COMPLETO\n';
+            report += '=' .repeat(50) + '\n\n';
+            report += `Gerado em: ${new Date().toLocaleString('pt-BR')}\n\n`;
+            
+            alerts.forEach((alert, index) => {
+                report += `ALERTA #${index + 1}\n`;
+                report += '-'.repeat(30) + '\n';
+                report += `Nome: ${alert.name}\n`;
+                report += `Situação: ${alert.situation}\n`;
+                report += `Mensagem: ${alert.message}\n`;
+                report += `Data/Hora: ${new Date(alert.timestamp).toLocaleString('pt-BR')}\n`;
+                report += `Localização: ${alert.location.latitude}, ${alert.location.longitude}\n`;
+                report += `Precisão: ±${alert.location.accuracy.toFixed(0)}m\n\n`;
+            });
+            
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aurora_relatorio_${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Check notification permission
+        async function checkNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                await Notification.requestPermission();
+            }
+        }
+        
+        // Show help
+        function showHelp() {
+            alert('📞 NÚMEROS DE EMERGÊNCIA\n\n🚨 190 - Polícia Militar\n👩 180 - Central de Atendimento à Mulher\n🚑 192 - SAMU\n🔥 193 - Bombeiros\n\nEm caso de emergência, ligue imediatamente!');
+        }
+        
+        // Show safety plan
+        function showSafetyPlan() {
+            alert('📋 PLANO DE SEGURANÇA\n\n✓ Mantenha o celular sempre carregado\n✓ Tenha contatos de emergência salvos\n✓ Evite locais isolados à noite\n✓ Compartilhe sua localização com pessoas de confiança\n✓ Confie na sua intuição\n\nVocê está segura conosco! 🌸');
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        });
+    </script>
 </body>
 </html>

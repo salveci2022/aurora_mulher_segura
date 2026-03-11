@@ -1,19 +1,42 @@
-<script>
+const CACHE_NAME = "aurora-cache-v1";
 
-if ("serviceWorker" in navigator) {
+const urlsToCache = [
 
-navigator.serviceWorker.register("/static/service-worker.js")
-.then(function(reg){
+"/",
+"/panic",
+"/static/icon-192.png",
+"/static/icon-512.png"
 
-console.log("Service Worker registrado", reg);
+];
 
+self.addEventListener("install", event => {
+
+event.waitUntil(
+
+caches.open(CACHE_NAME)
+.then(cache => {
+return cache.addAll(urlsToCache);
 })
-.catch(function(err){
 
-console.log("Erro no Service Worker", err);
+);
 
 });
 
+self.addEventListener("fetch", event => {
+
+event.respondWith(
+
+caches.match(event.request)
+.then(response => {
+
+if(response){
+return response;
 }
 
-</script>
+return fetch(event.request);
+
+})
+
+);
+
+});

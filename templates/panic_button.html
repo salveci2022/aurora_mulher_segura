@@ -179,6 +179,15 @@ navigator.vibrate?.([200,100,200])
 }
 
 </script>
+<script>
 
+if ("serviceWorker" in navigator) {
+
+navigator.serviceWorker.register("/static/service-worker.js")
+.then(() => console.log("Service Worker registrado"));
+
+}
+
+</script>
 </body>
 </html>

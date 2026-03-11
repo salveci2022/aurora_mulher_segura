@@ -1,284 +1,121 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d0a40">
-    <title>Aurora - Login Admin</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #1a0520 0%, #2d0a40 50%, #1a0520 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            padding: 20px;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .logo-icon {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .logo h1 {
-            font-size: 1.8rem;
-            background: linear-gradient(135deg, #ff6b9d, #c44569);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
-        }
-        
-        .logo p {
-            opacity: 0.8;
-            font-size: 0.9rem;
-        }
-        
-        .login-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: #ff6b9d;
-            font-weight: 600;
-        }
-        
-        .form-input {
-            width: 100%;
-            background: rgba(255,255,255,0.08);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: #ff6b9d;
-        }
-        
-        .form-input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-        
-        .btn-login {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 15px;
-        }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
-        
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        
-        .btn-back {
-            width: 100%;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 1rem;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
-        
-        .btn-back:hover {
-            background: rgba(255,255,255,0.15);
-        }
-        
-        .error-message {
-            background: rgba(255,68,68,0.2);
-            border: 2px solid #ff4444;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-        
-        .error-message.active {
-            display: block;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 25px;
-            font-size: 0.8rem;
-            opacity: 0.7;
-        }
-        
-        .footer a {
-            color: #ff6b9d;
-            text-decoration: none;
-        }
-    </style>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora - Login Admin</title>
+
+<style>
+
+body{
+font-family: Arial;
+background: linear-gradient(135deg,#1a0520,#2d0a40,#1a0520);
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+}
+
+.container{
+width:350px;
+}
+
+.logo{
+text-align:center;
+margin-bottom:25px;
+}
+
+.logo h1{
+color:#ff6b9d;
+}
+
+.card{
+
+background:rgba(255,255,255,0.05);
+padding:30px;
+border-radius:20px;
+border:1px solid rgba(255,255,255,0.1);
+
+}
+
+input{
+
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:10px;
+border:none;
+background:rgba(255,255,255,0.1);
+color:white;
+
+}
+
+button{
+
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+background:linear-gradient(135deg,#667eea,#764ba2);
+color:white;
+font-weight:bold;
+cursor:pointer;
+
+}
+
+.error{
+
+background:#ff4444;
+padding:10px;
+border-radius:8px;
+margin-bottom:15px;
+text-align:center;
+
+}
+
+</style>
+
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <div class="logo-icon">🛡️</div>
-            <h1>AURORA</h1>
-            <p>Painel Administrativo</p>
-        </div>
-        
-        <div class="login-card">
-            <div class="error-message" id="errorMessage">
-                ❌ Usuário ou senha inválidos
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">👤 USUÁRIO</label>
-                <input type="text" class="form-input" id="username" placeholder="Digite seu usuário" autocomplete="username">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">🔐 SENHA</label>
-                <input type="password" class="form-input" id="password" placeholder="Digite sua senha" autocomplete="current-password">
-            </div>
-            
-            <button class="btn-login" onclick="attemptLogin()">
-                🔓 ENTRAR
-            </button>
-            
-            <a href="index.html" class="btn-back">
-                <span>⏪</span>
-                <span>Voltar ao Início</span>
-            </a>
-        </div>
-        
-        <div class="footer">
-            🌸 Aurora Mulher Segura v2.0<br>
-            <a href="index.html">Página Inicial</a>
-        </div>
-    </div>
-    
-    <script>
-        // Default admin credentials (CHANGE IN PRODUCTION!)
-        const ADMIN_USER = 'admin';
-        const ADMIN_PASS = 'aurora2026';
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check if already logged in
-            if (localStorage.getItem('aurora_admin_logged') === 'true') {
-                window.location.href = 'panel_admin.html';
-            }
-            
-            // Add enter key support
-            document.getElementById('password').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    attemptLogin();
-                }
-            });
-        });
-        
-        // Attempt login
-        function attemptLogin() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const errorEl = document.getElementById('errorMessage');
-            
-            // Validate input
-            if (!username || !password) {
-                showError('⚠️ Preencha usuário e senha!');
-                return;
-            }
-            
-            // Check credentials (IN PRODUCTION: Use backend API!)
-            if (username === ADMIN_USER && password === ADMIN_PASS) {
-                // Success
-                localStorage.setItem('aurora_admin_logged', 'true');
-                localStorage.setItem('aurora_admin_username', username);
-                
-                // Redirect
-                window.location.href = 'panel_admin.html';
-            } else {
-                // Failed
-                showError('❌ Usuário ou senha inválidos');
-                
-                // Clear password field
-                document.getElementById('password').value = '';
-                
-                // Vibrate if supported
-                if (navigator.vibrate) {
-                    navigator.vibrate(200);
-                }
-            }
-        }
-        
-        // Show error message
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
-            errorEl.classList.add('active');
-            
-            setTimeout(() => {
-                errorEl.classList.remove('active');
-            }, 4000);
-        }
-        
-        // Logout function (for other pages to use)
-        function logout() {
-            localStorage.removeItem('aurora_admin_logged');
-            localStorage.removeItem('aurora_admin_username');
-            window.location.href = 'login_admin.html';
-        }
-    </script>
+
+<div class="container">
+
+<div class="logo">
+<h1>AURORA</h1>
+<p>Painel Administrativo</p>
+</div>
+
+<div class="card">
+
+{% if error %}
+<div class="error">
+❌ {{error}}
+</div>
+{% endif %}
+
+<form method="POST">
+
+<input type="text"
+name="username"
+placeholder="Usuário"
+required>
+
+<input type="password"
+name="password"
+placeholder="Senha"
+required>
+
+<button type="submit">
+ENTRAR
+</button>
+
+</form>
+
+</div>
+
+</div>
+
 </body>
 </html>

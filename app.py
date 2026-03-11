@@ -4,125 +4,132 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-
-# chave de sessão
 app.secret_key = "aurora_secret"
 
 
-# ===============================
+# ================================
 # ARQUIVOS
-# ===============================
+# ================================
 
-ALERT_FILE = "alerts.json"
-USER_FILE = "users.json"
-
-
-# ===============================
-# FUNÇÕES AUXILIARES
-# ===============================
-
-def load_alerts():
-
-    if not os.path.exists(ALERT_FILE):
-        return []
-
-    with open(ALERT_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+USERS_FILE = "users.json"
+ALERTS_FILE = "alerts.json"
 
 
-def save_alerts(data):
+# ================================
+# GARANTIR ARQUIVOS
+# ================================
 
-    with open(ALERT_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4)
+if not os.path.exists(USERS_FILE):
+    with open(USERS_FILE, "w") as f:
+        json.dump({}, f)
 
+if not os.path.exists(ALERTS_FILE):
+    with open(ALERTS_FILE, "w") as f:
+        json.dump([], f)
+
+
+# ================================
+# SISTEMA DE USUÁRIOS
+# ================================
 
 def load_users():
-
-    if not os.path.exists(USER_FILE):
-        return {}
-
-    with open(USER_FILE, "r", encoding="utf-8") as f:
+    with open(USERS_FILE, "r") as f:
         return json.load(f)
 
 
-def save_users(data):
+def save_users(users):
+    with open(USERS_FILE, "w") as f:
+        json.dump(users, f)
 
-    with open(USER_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4)
+
+# ================================
+# ALERTAS
+# ================================
+
+def load_alerts():
+    with open(ALERTS_FILE, "r") as f:
+        return json.load(f)
 
 
-# ===============================
-# PÁGINA INICIAL
-# ===============================
+def save_alerts(alerts):
+    with open(ALERTS_FILE, "w") as f:
+        json.dump(alerts, f)
+
+
+# ================================
+# PÁGINAS PRINCIPAIS
+# ================================
 
 @app.route("/")
 def home():
     return redirect("/panic")
 
 
-# ===============================
-# BOTÃO DE PÂNICO
-# ===============================
-
 @app.route("/panic")
 def panic():
     return render_template("panic_button.html")
 
 
-# ===============================
+@app.route("/termo")
+def termo():
+    return render_template("termo.html")
+
+
+# ================================
 # API ALERTA
-# ===============================
+# ================================
 
 @app.route("/api/alert", methods=["POST"])
 def api_alert():
 
     data = request.json
-
     alerts = load_alerts()
 
-    alert = {
-
+    alerta = {
         "nome": data.get("nome"),
         "situacao": data.get("situacao"),
         "mensagem": data.get("mensagem"),
-        "localizacao": data.get("localizacao"),
+        "lat": data.get("lat"),
+        "lng": data.get("lng"),
         "hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
     }
 
-    alerts.append(alert)
-
+    alerts.append(alerta)
     save_alerts(alerts)
 
     return jsonify({"status": "ok"})
 
 
-# ===============================
-# LOGIN ADMIN
-# ===============================
+@app.route("/api/alerts")
+def api_alerts():
+    return jsonify(load_alerts())
 
-@app.route("/panel/login", methods=["GET","POST"])
+
+# ================================
+# LOGIN ADMIN
+# ================================
+
+@app.route("/panel/login", methods=["GET", "POST"])
 def login_admin():
 
     if request.method == "POST":
 
-        username = request.form.get("username")
-        password = request.form.get("password")
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
 
-        if username == "admin" and password == "123456":
+        if username == "admin" and password == "admin123":
 
             session["admin"] = True
-
             return redirect("/panel")
 
-        return "Login inválido"
+        return render_template("login_admin.html", error="Usuário ou senha inválidos")
 
     return render_template("login_admin.html")
 
 
-# ===============================
+# ================================
 # PAINEL ADMIN
-# ===============================
+# ================================
 
 @app.route("/panel")
 def panel_admin():
@@ -132,26 +139,20 @@ def panel_admin():
 
     alerts = load_alerts()
 
-    users = load_users()
-
-    return render_template(
-        "panel_admin.html",
-        alerts=alerts,
-        users=users
-    )
+    return render_template("panel_admin.html", alerts=alerts)
 
 
-# ===============================
-# CADASTRAR PESSOA DE CONFIANÇA
-# ===============================
+# ================================
+# CADASTRO PESSOA DE CONFIANÇA
+# ================================
 
-@app.route("/trusted/register", methods=["GET","POST"])
+@app.route("/trusted/register", methods=["GET", "POST"])
 def trusted_register():
 
     if request.method == "POST":
 
-        username = request.form.get("username")
-        password = request.form.get("password")
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
 
         users = load_users()
 
@@ -169,34 +170,33 @@ def trusted_register():
     return render_template("trusted_register.html")
 
 
-# ===============================
+# ================================
 # LOGIN PESSOA DE CONFIANÇA
-# ===============================
+# ================================
 
-@app.route("/trusted/login", methods=["GET","POST"])
-def login_trusted():
+@app.route("/trusted/login", methods=["GET", "POST"])
+def trusted_login():
 
     if request.method == "POST":
 
-        username = request.form.get("username")
-        password = request.form.get("password")
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
 
         users = load_users()
 
         if username in users and users[username]["password"] == password:
 
             session["trusted"] = username
-
             return redirect("/trusted/panel")
 
-        return "Login inválido"
+        return render_template("trusted_login.html", error="Login inválido")
 
-    return render_template("login_trusted.html")
+    return render_template("trusted_login.html")
 
 
-# ===============================
+# ================================
 # PAINEL PESSOA DE CONFIANÇA
-# ===============================
+# ================================
 
 @app.route("/trusted/panel")
 def trusted_panel():
@@ -206,28 +206,23 @@ def trusted_panel():
 
     alerts = load_alerts()
 
-    return render_template(
-        "panel_trusted.html",
-        alerts=alerts
-    )
+    return render_template("panel_trusted.html", alerts=alerts)
 
 
-# ===============================
+# ================================
 # LOGOUT
-# ===============================
+# ================================
 
 @app.route("/logout")
 def logout():
 
     session.clear()
+    return redirect("/")
 
-    return redirect("/panic")
 
-
-# ===============================
-# INICIAR SERVIDOR
-# ===============================
+# ================================
+# EXECUÇÃO LOCAL
+# ================================
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5000)

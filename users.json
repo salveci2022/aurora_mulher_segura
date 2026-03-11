@@ -1,12 +1,1 @@
-{
-  "admin": {
-    "password": "admin123",
-    "role": "admin",
-    "name": "Admin Aurora"
-  },
-  "magarida123": {
-    "password": "36092745",
-    "role": "trusted",
-    "name": "Magarida"
-  }
-}
+{}

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
 
 <meta charset="UTF-8">
@@ -8,15 +7,8 @@
 
 <title>Aurora Mulher Segura</title>
 
-<!-- LOGO / ÍCONES -->
-<link rel="icon" href="/static/icon.png" sizes="32x32">
-<link rel="apple-touch-icon" href="/static/icon.png">
-
-<!-- PWA -->
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#7a00ff">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
 
@@ -38,291 +30,151 @@ padding:25px;
 box-shadow:0 0 25px rgba(255,0,200,0.3);
 }
 
-.header{
-text-align:center;
-margin-bottom:15px;
-}
-
-.header h1{
-margin:0;
-font-size:22px;
-}
-
-.header small{
-color:#ff7ce8;
-}
-
-.title{
-text-align:center;
-margin:15px 0 25px 0;
-}
-
 .situations{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:12px;
+gap:10px;
 margin-bottom:20px;
 }
 
 .situation-btn{
 background:rgba(255,255,255,0.05);
 border:2px solid rgba(255,0,200,0.4);
-padding:12px;
-border-radius:12px;
+padding:10px;
+border-radius:10px;
 cursor:pointer;
-transition:0.3s;
 color:white;
-font-weight:500;
-}
-
-.situation-btn:hover{
-background:rgba(255,0,200,0.2);
 }
 
 .situation-btn.active{
 background:#ff2ac3;
-border:none;
 }
 
-.form-group{
-margin-bottom:15px;
-}
-
-.form-input,
-.form-textarea{
+.form-input{
 width:100%;
 padding:12px;
-border-radius:12px;
+border-radius:10px;
 border:none;
 background:rgba(255,255,255,0.1);
 color:white;
+margin-bottom:10px;
 }
 
-.form-textarea{
-height:60px;
-resize:none;
-}
-
-.sos-button-container{
-text-align:center;
-margin:35px 0;
-}
-
-.sos-button{
-
+.sos{
 width:180px;
 height:180px;
 border-radius:50%;
 border:none;
-
 background:radial-gradient(circle,#ff4bd1,#7a00ff);
-
 font-size:40px;
 color:white;
-font-weight:bold;
-
-box-shadow:
-0 0 40px #ff00ff,
-0 0 80px #ff00ff;
-
+margin:auto;
+display:block;
 cursor:pointer;
-transition:0.3s;
-
 }
 
-.sos-button:hover{
-transform:scale(1.05);
-}
-
-.status-message{
+.status{
 text-align:center;
-margin:15px 0;
+margin-top:15px;
+}
+
+.gps{
+margin-top:15px;
+font-size:13px;
+background:rgba(0,0,0,0.5);
 padding:10px;
 border-radius:10px;
-background:rgba(0,255,150,0.2);
-}
-
-.gps-box{
-margin-top:15px;
-background:rgba(0,0,0,0.6);
-padding:15px;
-border-radius:12px;
-font-family:monospace;
-font-size:13px;
-}
-
-.footer{
-text-align:center;
-margin-top:15px;
-font-size:12px;
-opacity:0.7;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <div class="container">
 
-<div class="header">
-<h1>♀ AURORA</h1>
-<small>Mulher Segura</small>
-</div>
-
-<div class="title">
-<h2>🚨 Painel da Mulher - SOS 24h</h2>
-<p>Toque no botão SOS para enviar alerta</p>
-</div>
+<h2 style="text-align:center">🚨 AURORA SOS</h2>
 
 <div class="situations">
 
-<button class="situation-btn" onclick="selectSituation(this,'Assédio')">🚫 Assédio</button>
-
-<button class="situation-btn" onclick="selectSituation(this,'Violência')">✊ Violência</button>
-
-<button class="situation-btn" onclick="selectSituation(this,'Perseguição')">👀 Perseguição</button>
-
-<button class="situation-btn" onclick="selectSituation(this,'Emergência médica')">🏥 Emergência</button>
-
-<button class="situation-btn" onclick="selectSituation(this,'Local suspeito')">⚠️ Local suspeito</button>
-
-<button class="situation-btn" onclick="selectSituation(this,'Outro')">❓ Outro</button>
+<button class="situation-btn" onclick="selectSituation(this,'Assédio')">Assédio</button>
+<button class="situation-btn" onclick="selectSituation(this,'Violência')">Violência</button>
+<button class="situation-btn" onclick="selectSituation(this,'Perseguição')">Perseguição</button>
+<button class="situation-btn" onclick="selectSituation(this,'Emergência')">Emergência</button>
 
 </div>
 
-<div class="form-group">
-<input id="userName" class="form-input" placeholder="Seu nome">
-</div>
+<input id="name" class="form-input" placeholder="Seu nome">
 
-<div class="form-group">
-<textarea id="userMessage" class="form-textarea">Preciso de ajuda urgente!</textarea>
-</div>
+<input id="message" class="form-input" value="Preciso de ajuda urgente!">
 
-<div class="sos-button-container">
-<button class="sos-button" onclick="sendAlert()">SOS</button>
-</div>
+<button class="sos" onclick="sendAlert()">SOS</button>
 
-<div id="statusMessage" class="status-message">
-Sistema pronto
-</div>
+<div class="status" id="status">Sistema pronto</div>
 
-<div class="gps-box" id="gpsInfo">
-Aguardando localização...
-</div>
-
-<div class="footer">
-Aurora Mulher Segura
-</div>
+<div class="gps" id="gps">Aguardando GPS...</div>
 
 </div>
 
 <script>
 
-let selectedSituation=null
-let currentLocation=null
+let situation=null
+let location=null
 
-function selectSituation(btn,situation){
+function selectSituation(btn,s){
 
 document.querySelectorAll(".situation-btn").forEach(b=>b.classList.remove("active"))
 btn.classList.add("active")
-selectedSituation=situation
+
+situation=s
 
 }
 
-function updateStatus(msg){
-document.getElementById("statusMessage").innerText=msg
-}
+navigator.geolocation.watchPosition(pos=>{
 
-function initGPS(){
-
-navigator.geolocation.watchPosition(
-
-function(pos){
-
-currentLocation={
+location={
 lat:pos.coords.latitude,
-lng:pos.coords.longitude,
-accuracy:pos.coords.accuracy
+lng:pos.coords.longitude
 }
 
-document.getElementById("gpsInfo").innerText=
-"Latitude: "+currentLocation.lat+
-"\nLongitude: "+currentLocation.lng+
-"\nPrecisão: "+currentLocation.accuracy+"m"
+document.getElementById("gps").innerText=
+"Lat: "+location.lat+
+"\nLng: "+location.lng
 
-},
-
-function(){
-updateStatus("Erro ao obter GPS")
-},
-
-{enableHighAccuracy:true}
-
-)
-
-}
+})
 
 async function sendAlert(){
 
-if(!selectedSituation){
-updateStatus("Selecione uma situação")
+if(!situation){
+alert("Selecione uma situação")
 return
 }
 
-if(!currentLocation){
-updateStatus("Aguardando GPS")
+if(!location){
+alert("GPS não encontrado")
 return
 }
 
 const data={
-
-nome:document.getElementById("userName").value,
-situacao:selectedSituation,
-mensagem:document.getElementById("userMessage").value,
-localizacao:currentLocation
-
+nome:document.getElementById("name").value,
+situacao:situation,
+mensagem:document.getElementById("message").value,
+lat:location.lat,
+lng:location.lng
 }
 
 const res=await fetch("/api/alert",{
-
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify(data)
-
 })
 
 const r=await res.json()
 
 if(r.status=="ok"){
-
-updateStatus("🚨 ALERTA ENVIADO")
+document.getElementById("status").innerText="🚨 ALERTA ENVIADO"
 navigator.vibrate?.([200,100,200])
-
-}else{
-
-updateStatus("Erro ao enviar alerta")
-
 }
-
-}
-
-initGPS()
-
-</script>
-
-<script>
-
-if ("serviceWorker" in navigator){
-
-navigator.serviceWorker.register("/static/service-worker.js")
-
-.then(function(){
-
-console.log("PWA ativo")
-
-})
 
 }
 

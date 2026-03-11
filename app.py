@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "aurora_secret"
+app.secret_key = os.getenv("SECRET_KEY", "aurora_secret")
 
 
 # ================================
@@ -13,6 +13,14 @@ app.secret_key = "aurora_secret"
 
 USERS_FILE = "users.json"
 ALERTS_FILE = "alerts.json"
+
+
+# ================================
+# ADMIN SEGURO
+# ================================
+
+ADMIN_USER = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "admin123")
 
 
 # ================================
@@ -91,6 +99,7 @@ def api_alert():
         "mensagem": data.get("mensagem"),
         "lat": data.get("lat"),
         "lng": data.get("lng"),
+        "foto": data.get("foto"),   # FOTO DA CAMERA
         "hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     }
 
@@ -106,6 +115,21 @@ def api_alerts():
 
 
 # ================================
+# ULTIMO ALERTA
+# ================================
+
+@app.route("/api/last_alert")
+def last_alert():
+
+    alerts = load_alerts()
+
+    if len(alerts) == 0:
+        return jsonify({"alert": None})
+
+    return jsonify({"alert": alerts[-1]})
+
+
+# ================================
 # LOGIN ADMIN
 # ================================
 
@@ -117,7 +141,7 @@ def login_admin():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "").strip()
 
-        if username == "admin" and password == "admin123":
+        if username == ADMIN_USER and password == ADMIN_PASS:
 
             session["admin"] = True
             return redirect("/panel")
@@ -218,6 +242,15 @@ def logout():
 
     session.clear()
     return redirect("/")
+
+
+# ================================
+# HEALTH CHECK (Render)
+# ================================
+
+@app.route("/health")
+def health():
+    return {"status": "ok"}
 
 
 # ================================

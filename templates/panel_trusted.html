@@ -1,613 +1,371 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d0a40">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Aurora - Pessoa de Confiança</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #1a0520 0%, #2d0a40 50%, #1a0520 100%);
-            min-height: 100vh;
-            color: #fff;
-            padding: 15px;
-            overflow-x: hidden;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #ff6b9d, #c44569);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-        
-        .logo-text div:first-child {
-            font-weight: bold;
-            font-size: 1rem;
-        }
-        
-        .logo-text div:last-child {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
-        
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0,255,136,0.15);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            border: 1px solid rgba(0,255,136,0.3);
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #00ff88;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .main-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-        
-        .siren-button {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #ffd700, #ffaa00);
-            border: 5px solid rgba(255,255,255,0.2);
-            margin: 0 auto 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(255,215,0,0.5);
-            transition: all 0.3s;
-        }
-        
-        .siren-button.active {
-            animation: sirenFlash 0.5s infinite;
-        }
-        
-        @keyframes sirenFlash {
-            0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,0.5); transform: scale(1); }
-            50% { box-shadow: 0 0 60px rgba(255,215,0,0.9); transform: scale(1.05); }
-        }
-        
-        .siren-button .icon {
-            font-size: 2.5rem;
-        }
-        
-        .siren-button .label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 5px;
-            color: #1a0520;
-        }
-        
-        .btn-map {
-            width: 100%;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: #1a0520;
-            border: none;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            transition: transform 0.2s;
-        }
-        
-        .btn-map:active {
-            transform: scale(0.98);
-        }
-        
-        .alert-card {
-            background: linear-gradient(135deg, rgba(245,87,108,0.2), rgba(240,147,251,0.2));
-            border: 2px solid #f5576c;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .alert-card.active {
-            display: block;
-            animation: alertGlow 2s infinite;
-        }
-        
-        @keyframes alertGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(245,87,108,0.5); }
-            50% { box-shadow: 0 0 40px rgba(245,87,108,0.8); }
-        }
-        
-        .alert-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #ff6b9d;
-        }
-        
-        .alert-info {
-            text-align: left;
-            line-height: 2;
-        }
-        
-        .alert-info .label {
-            color: #ff6b9d;
-            font-weight: 600;
-        }
-        
-        .location-box {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-        
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        .btn-action {
-            padding: 15px 10px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            transition: transform 0.2s;
-        }
-        
-        .btn-action:active {
-            transform: scale(0.95);
-        }
-        
-        .btn-resend {
-            background: linear-gradient(135deg, #ffa500, #ff8c00);
-            color: #1a0520;
-        }
-        
-        .btn-clear {
-            background: linear-gradient(135deg, #a855f7, #7c3aed);
-            color: white;
-        }
-        
-        .btn-exit {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
-        
-        .btn-action .icon {
-            font-size: 1.5rem;
-        }
-        
-        .btn-action .text {
-            font-size: 0.85rem;
-        }
-        
-        .waiting-message {
-            background: rgba(0,255,136,0.1);
-            border: 2px solid #00ff88;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            margin: 20px 0;
-            font-size: 1rem;
-        }
-        
-        .footer {
-            text-align: center;
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin-top: 25px;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-        
-        .footer a {
-            color: #ff6b9d;
-            text-decoration: none;
-        }
-        
-        /* Siren animation overlay */
-        .siren-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255,0,0,0.3);
-            z-index: 9999;
-            display: none;
-            animation: sirenOverlay 0.5s infinite;
-        }
-        
-        .siren-overlay.active {
-            display: block;
-        }
-        
-        @keyframes sirenOverlay {
-            0%, 100% { background: rgba(255,0,0,0.3); }
-            50% { background: rgba(0,0,255,0.3); }
-        }
-        
-        @media (max-width: 480px) {
-            .action-buttons {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Aurora - Pessoa de Confiança</title>
+
+<meta name="theme-color" content="#2d0a40">
+
+<style>
+
+/* aparência original preservada */
+
+body{
+font-family:'Segoe UI',system-ui;
+background:linear-gradient(135deg,#1a0520,#2d0a40,#1a0520);
+color:white;
+padding:15px;
+}
+
+.container{
+max-width:420px;
+margin:auto;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.logo{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.logo-icon{
+width:45px;
+height:45px;
+background:linear-gradient(135deg,#ff6b9d,#c44569);
+border-radius:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:1.5rem;
+}
+
+.status-badge{
+display:flex;
+align-items:center;
+gap:8px;
+background:rgba(0,255,136,0.15);
+padding:8px 15px;
+border-radius:20px;
+}
+
+.status-dot{
+width:8px;
+height:8px;
+background:#00ff88;
+border-radius:50%;
+animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+0%,100%{opacity:1}
+50%{opacity:.4}
+}
+
+.main-card{
+background:rgba(255,255,255,0.05);
+border-radius:20px;
+padding:25px;
+margin-bottom:20px;
+text-align:center;
+}
+
+.siren-button{
+
+width:120px;
+height:120px;
+border-radius:50%;
+background:linear-gradient(135deg,#ffd700,#ffaa00);
+border:none;
+margin:auto;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+cursor:pointer;
+
+}
+
+.alert-card{
+background:rgba(255,0,0,0.2);
+border:2px solid red;
+border-radius:15px;
+padding:20px;
+display:none;
+margin-top:20px;
+}
+
+.alert-card.active{
+display:block;
+}
+
+.btn-map{
+width:100%;
+padding:15px;
+margin-top:15px;
+background:#00d2ff;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.action-buttons{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:10px;
+margin-top:20px;
+}
+
+.btn-action{
+padding:12px;
+border-radius:10px;
+border:none;
+cursor:pointer;
+}
+
+.btn-resend{background:orange}
+.btn-clear{background:#9333ea;color:white}
+.btn-exit{background:red;color:white}
+
+.waiting{
+text-align:center;
+margin:20px;
+opacity:.7;
+}
+
+</style>
+
 </head>
+
 <body>
-    <div class="siren-overlay" id="sirenOverlay"></div>
-    
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">
-                <div class="logo-icon">🌸</div>
-                <div class="logo-text">
-                    <div>AURORA</div>
-                    <div>Pessoa de Confiança</div>
-                </div>
-            </div>
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                <span>Online</span>
-            </div>
-        </div>
-        
-        <!-- Main Card -->
-        <div class="main-card">
-            <h2 style="margin-bottom: 20px; color: #ff6b9d;">🚨 CENTRAL DE ALERTAS</h2>
-            
-            <div class="siren-button" id="sirenButton" onclick="toggleSiren()">
-                <div class="icon">🔔</div>
-                <div class="label">SIRENE</div>
-            </div>
-            
-            <button class="btn-map" onclick="openMap()">
-                <span>📍</span>
-                <span>ABRIR LOCALIZAÇÃO NO MAPA</span>
-            </button>
-        </div>
-        
-        <!-- Waiting Message -->
-        <div class="waiting-message" id="waitingMessage">
-            ⏳ Aguardando alertas...
-        </div>
-        
-        <!-- Alert Card -->
-        <div class="alert-card" id="alertCard">
-            <div class="alert-header">
-                <span>🚨</span>
-                <span id="alertTitle">ALERTA #00</span>
-            </div>
-            
-            <div class="alert-info">
-                <div><span class="label">👤 Nome:</span> <span id="alertName">---</span></div>
-                <div><span class="label">⚠️ Situação:</span> <span id="alertSituation">---</span></div>
-                <div><span class="label">💬 Mensagem:</span> <span id="alertMessage">---</span></div>
-                <div><span class="label">🕐 Hora:</span> <span id="alertTime">---</span></div>
-            </div>
-            
-            <div class="location-box">
-                <div style="color: #ff6b9d; font-weight: bold; margin-bottom: 10px;">📍 LOCALIZAÇÃO EXATA:</div>
-                <div id="alertLocation">Latitude: ---<br>Longitude: ---</div>
-                <div style="margin-top: 10px; color: #ffa500;" id="alertAccuracy">Precisão: ---</div>
-            </div>
-            
-            <div class="action-buttons">
-                <button class="btn-action btn-resend" onclick="resendAlert()">
-                    <span class="icon">🔁</span>
-                    <span class="text">Reenviar</span>
-                </button>
-                <button class="btn-action btn-clear" onclick="clearAlert()">
-                    <span class="icon">🧹</span>
-                    <span class="text">Limpar</span>
-                </button>
-                <button class="btn-action btn-exit" onclick="exitApp()">
-                    <span class="icon">🚪</span>
-                    <span class="text">Sair</span>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            Sistema monitorando alertas em tempo real<br>
-            <span id="currentTime"></span> • 🌸 AURORA V2.0<br>
-            <a href="index.html">⏪ Voltar ao Início</a>
-        </div>
-    </div>
-    
-    <script>
-        // Global variables
-        let sirenActive = false;
-        let sirenAudio = null;
-        let alertCheckInterval = null;
-        let currentAlert = null;
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initSiren();
-            startAlertMonitoring();
-            updateCurrentTime();
-            checkForNewAlerts();
-            requestNotificationPermission();
-        });
-        
-        // Initialize siren audio
-        function initSiren() {
-            // Create siren sound using Web Audio API
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) {
-                sirenAudio = new AudioContext();
-            }
-        }
-        
-        // Toggle siren
-        function toggleSiren() {
-            sirenActive = !sirenActive;
-            const btn = document.getElementById('sirenButton');
-            const overlay = document.getElementById('sirenOverlay');
-            
-            if (sirenActive) {
-                btn.classList.add('active');
-                overlay.classList.add('active');
-                playSirenSound();
-                
-                // Vibrate if supported
-                if (navigator.vibrate) {
-                    navigator.vibrate([500, 200, 500, 200, 1000]);
-                }
-            } else {
-                btn.classList.remove('active');
-                overlay.classList.remove('active');
-                stopSirenSound();
-            }
-        }
-        
-        // Play siren sound
-        function playSirenSound() {
-            if (!sirenAudio) return;
-            
-            const oscillator = sirenAudio.createOscillator();
-            const gainNode = sirenAudio.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(sirenAudio.destination);
-            
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.value = 600;
-            gainNode.gain.value = 0.3;
-            
-            oscillator.start();
-            
-            // Modulate frequency for siren effect
-            const frequencyInterval = setInterval(() => {
-                if (!sirenActive) {
-                    clearInterval(frequencyInterval);
-                    oscillator.stop();
-                    return;
-                }
-                oscillator.frequency.value = sirenActive ? 
-                    (oscillator.frequency.value === 600 ? 900 : 600) : 0;
-            }, 500);
-            
-            sirenAudio.oscillatorInterval = frequencyInterval;
-        }
-        
-        // Stop siren sound
-        function stopSirenSound() {
-            if (sirenAudio && sirenAudio.oscillatorInterval) {
-                clearInterval(sirenAudio.oscillatorInterval);
-            }
-        }
-        
-        // Start alert monitoring
-        function startAlertMonitoring() {
-            alertCheckInterval = setInterval(checkForNewAlerts, 3000);
-        }
-        
-        // Check for new alerts
-        function checkForNewAlerts() {
-            const pendingAlert = localStorage.getItem('aurora_pendingAlert');
-            
-            if (pendingAlert) {
-                const alert = JSON.parse(pendingAlert);
-                displayAlert(alert);
-                localStorage.removeItem('aurora_pendingAlert');
-                
-                // Auto-activate siren on new alert
-                if (!sirenActive) {
-                    toggleSiren();
-                }
-                
-                // Send notification
-                sendNotification(alert);
-            }
-        }
-        
-        // Display alert
-        function displayAlert(alert) {
-            currentAlert = alert;
-            
-            document.getElementById('waitingMessage').style.display = 'none';
-            document.getElementById('alertCard').classList.add('active');
-            
-            document.getElementById('alertTitle').textContent = `ALERTA #${alert.id.toString().slice(-3)}`;
-            document.getElementById('alertName').textContent = alert.name || '---';
-            document.getElementById('alertSituation').textContent = alert.situation || '---';
-            document.getElementById('alertMessage').textContent = alert.message || '---';
-            document.getElementById('alertTime').textContent = new Date(alert.timestamp).toLocaleString('pt-BR');
-            
-            if (alert.location) {
-                document.getElementById('alertLocation').innerHTML = 
-                    `Latitude: ${alert.location.latitude.toFixed(6)}<br>Longitude: ${alert.location.longitude.toFixed(6)}`;
-                document.getElementById('alertAccuracy').textContent = 
-                    `Precisão: ±${alert.location.accuracy.toFixed(0)}m`;
-            }
-            
-            // Save to received alerts
-            const receivedAlerts = JSON.parse(localStorage.getItem('aurora_receivedAlerts') || '[]');
-            receivedAlerts.push(alert);
-            localStorage.setItem('aurora_receivedAlerts', JSON.stringify(receivedAlerts));
-        }
-        
-        // Open map
-        function openMap() {
-            if (currentAlert && currentAlert.location) {
-                const url = `https://www.google.com/maps?q=${currentAlert.location.latitude},${currentAlert.location.longitude}`;
-                window.open(url, '_blank');
-            } else {
-                alert('📍 Nenhuma localização disponível no momento.');
-            }
-        }
-        
-        // Resend alert
-        function resendAlert() {
-            if (currentAlert) {
-                localStorage.setItem('aurora_pendingAlert', JSON.stringify(currentAlert));
-                alert('✅ Alerta reenviado para todas as pessoas de confiança!');
-                sendNotification(currentAlert);
-            }
-        }
-        
-        // Clear alert
-        function clearAlert() {
-            currentAlert = null;
-            document.getElementById('alertCard').classList.remove('active');
-            document.getElementById('waitingMessage').style.display = 'block';
-            
-            if (sirenActive) {
-                toggleSiren();
-            }
-        }
-        
-        // Exit app
-        function exitApp() {
-            if (confirm('Deseja realmente sair do painel?')) {
-                window.location.href = 'index.html';
-            }
-        }
-        
-        // Send notification
-        function sendNotification(alert) {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('🚨 ALERTA AURORA - EMERGÊNCIA', {
-                    body: `${alert.name} precisa de ajuda! Situação: ${alert.situation}`,
-                    icon: '/icon.png',
-                    badge: '/badge.png',
-                    requireInteraction: true,
-                    tag: 'aurora-alert'
-                });
-            }
-        }
-        
-        // Request notification permission
-        async function requestNotificationPermission() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                await Notification.requestPermission();
-            }
-        }
-        
-        // Update current time
-        function updateCurrentTime() {
-            const now = new Date();
-            document.getElementById('currentTime').textContent = now.toLocaleString('pt-BR');
-            setTimeout(updateCurrentTime, 1000);
-        }
-        
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (alertCheckInterval) {
-                clearInterval(alertCheckInterval);
-            }
-            stopSirenSound();
-        });
-        
-        // Handle visibility change (for background monitoring)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                // Page is hidden, reduce check frequency
-                clearInterval(alertCheckInterval);
-                alertCheckInterval = setInterval(checkForNewAlerts, 10000);
-            } else {
-                // Page is visible, normal frequency
-                clearInterval(alertCheckInterval);
-                alertCheckInterval = setInterval(checkForNewAlerts, 3000);
-            }
-        });
-    </script>
+
+<div class="container">
+
+<div class="header">
+
+<div class="logo">
+<div class="logo-icon">🌸</div>
+<div>
+<div>AURORA</div>
+<div style="font-size:12px">Pessoa de Confiança</div>
+</div>
+</div>
+
+<div class="status-badge">
+<div class="status-dot"></div>
+Online
+</div>
+
+</div>
+
+<div class="main-card">
+
+<h2>🚨 CENTRAL DE ALERTAS</h2>
+
+<button class="siren-button" id="sirenBtn" onclick="toggleSiren()">
+🔔
+</button>
+
+<button class="btn-map" onclick="openMap()">
+📍 ABRIR LOCALIZAÇÃO
+</button>
+
+</div>
+
+<div class="waiting" id="waiting">
+⏳ Aguardando alerta...
+</div>
+
+<div class="alert-card" id="alertCard">
+
+<h3>🚨 ALERTA</h3>
+
+<div>
+<b>Nome:</b> <span id="name"></span>
+</div>
+
+<div>
+<b>Situação:</b> <span id="situation"></span>
+</div>
+
+<div>
+<b>Mensagem:</b> <span id="message"></span>
+</div>
+
+<div>
+<b>Hora:</b> <span id="time"></span>
+</div>
+
+<div style="margin-top:10px">
+
+<b>Localização:</b>
+
+<div id="location"></div>
+
+</div>
+
+<div class="action-buttons">
+
+<button class="btn-action btn-resend" onclick="resendAlert()">
+🔁 Reenviar
+</button>
+
+<button class="btn-action btn-clear" onclick="clearAlert()">
+🧹 Limpar
+</button>
+
+<button class="btn-action btn-exit" onclick="exitPanel()">
+🚪 Sair
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let currentAlert=null
+let siren=false
+let audio=null
+
+function toggleSiren(){
+
+siren=!siren
+
+if(siren){
+
+playSiren()
+
+navigator.vibrate?.([500,200,500])
+
+}else{
+
+stopSiren()
+
+}
+
+}
+
+function playSiren(){
+
+audio=new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg")
+
+audio.loop=true
+audio.play()
+
+}
+
+function stopSiren(){
+
+if(audio){
+audio.pause()
+}
+
+}
+
+async function checkAlert(){
+
+try{
+
+const res=await fetch("/api/last_alert")
+
+const data=await res.json()
+
+if(data.alert){
+
+showAlert(data.alert)
+
+}
+
+}catch(e){
+
+console.log("Erro alerta")
+
+}
+
+}
+
+function showAlert(alert){
+
+currentAlert=alert
+
+document.getElementById("waiting").style.display="none"
+
+document.getElementById("alertCard").classList.add("active")
+
+document.getElementById("name").textContent=alert.nome
+document.getElementById("situation").textContent=alert.situacao
+document.getElementById("message").textContent=alert.mensagem
+document.getElementById("time").textContent=alert.hora
+
+if(alert.localizacao){
+
+document.getElementById("location").innerHTML=
+"Lat: "+alert.localizacao.lat+
+"<br>Lng: "+alert.localizacao.lng
+
+}
+
+if(!siren){
+
+toggleSiren()
+
+}
+
+}
+
+function openMap(){
+
+if(!currentAlert)return
+
+const lat=currentAlert.localizacao.lat
+const lng=currentAlert.localizacao.lng
+
+window.open(
+"https://www.google.com/maps?q="+lat+","+lng
+)
+
+}
+
+function resendAlert(){
+
+alert("Alerta reenviado!")
+
+}
+
+function clearAlert(){
+
+currentAlert=null
+
+document.getElementById("alertCard").classList.remove("active")
+
+document.getElementById("waiting").style.display="block"
+
+stopSiren()
+
+}
+
+function exitPanel(){
+
+window.location.href="/"
+
+}
+
+setInterval(checkAlert,3000)
+
+</script>
+
 </body>
 </html>

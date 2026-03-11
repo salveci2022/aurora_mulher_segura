@@ -8,11 +8,15 @@
 
 <title>Aurora Mulher Segura</title>
 
-<link rel="icon" href="/static/icon.png">
+<!-- LOGO / ÍCONES -->
+<link rel="icon" href="/static/icon.png" sizes="32x32">
 <link rel="apple-touch-icon" href="/static/icon.png">
 
+<!-- PWA -->
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#7a00ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <style>
 
@@ -228,9 +232,7 @@ selectedSituation=situation
 }
 
 function updateStatus(msg){
-
 document.getElementById("statusMessage").innerText=msg
-
 }
 
 function initGPS(){
@@ -246,18 +248,14 @@ accuracy:pos.coords.accuracy
 }
 
 document.getElementById("gpsInfo").innerText=
-
-"Precisão GPS\n\n"+
-"Latitude: "+currentLocation.lat+"\n"+
-"Longitude: "+currentLocation.lng+"\n"+
-"Precisão: "+currentLocation.accuracy+"m"
+"Latitude: "+currentLocation.lat+
+"\nLongitude: "+currentLocation.lng+
+"\nPrecisão: "+currentLocation.accuracy+"m"
 
 },
 
 function(){
-
 updateStatus("Erro ao obter GPS")
-
 },
 
 {enableHighAccuracy:true}
@@ -269,29 +267,20 @@ updateStatus("Erro ao obter GPS")
 async function sendAlert(){
 
 if(!selectedSituation){
-
 updateStatus("Selecione uma situação")
-
 return
-
 }
 
 if(!currentLocation){
-
 updateStatus("Aguardando GPS")
-
 return
-
 }
 
 const data={
 
 nome:document.getElementById("userName").value,
-
 situacao:selectedSituation,
-
 mensagem:document.getElementById("userMessage").value,
-
 localizacao:currentLocation
 
 }
@@ -299,11 +288,7 @@ localizacao:currentLocation
 const res=await fetch("/api/alert",{
 
 method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
+headers:{"Content-Type":"application/json"},
 body:JSON.stringify(data)
 
 })
@@ -313,7 +298,6 @@ const r=await res.json()
 if(r.status=="ok"){
 
 updateStatus("🚨 ALERTA ENVIADO")
-
 navigator.vibrate?.([200,100,200])
 
 }else{

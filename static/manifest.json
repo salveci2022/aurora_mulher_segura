@@ -1,11 +1,8 @@
 {
-"name": "Aurora Mulher Segura",
-"short_name": "Aurora",
-"description": "Sistema de alerta SOS para proteção feminina",
-"start_url": "/",
-"display": "standalone",
-"background_color": "#1a0028",
-"theme_color": "#7a00ff",
+"name":"Aurora Mulher Segura",
+"short_name":"Aurora",
+"start_url":"/panic",
+"display":"standalone",
 
 "icons":[
 {
@@ -19,5 +16,4 @@
 "type":"image/png"
 }
 ]
-
 }

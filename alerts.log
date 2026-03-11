@@ -60,5 +60,18 @@
       "lat": -16.020127687925072,
       "lng": -48.0207610589574
     }
+  },
+  {
+    "id": 7,
+    "nome": "",
+    "situacao": "Ass\u00e9dio",
+    "mensagem": "Preciso de ajuda urgente!",
+    "hora": "11/03/2026 00:52:16",
+    "localizacao": {
+      "lat": -16.02018318918639,
+      "lng": -48.02076002042285,
+      "accuracy": 94
+    },
+    "selfie": null
   }
 ]

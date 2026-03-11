@@ -1,509 +1,93 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#ff4fc8">
-    <title>Termo de Responsabilidade · Aurora</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
-        }
 
-        body {
-            background: linear-gradient(135deg, #1a0033, #2d005a);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .termo-container {
-            max-width: 800px;
-            width: 100%;
-            background: linear-gradient(145deg, #2d005a, #1a0033);
-            border-radius: 40px;
-            padding: 32px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-            border: 1px solid rgba(255,79,200,0.3);
-        }
+<title>Termo de Responsabilidade</title>
 
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid rgba(255,79,200,0.3);
-        }
+<style>
 
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: radial-gradient(circle at 30% 30%, rgba(255,121,218,0.9), rgba(164,92,255,0.75));
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            box-shadow: 0 10px 20px -5px rgba(255,79,200,0.5);
-        }
+body{
 
-        .header-text h1 {
-            color: white;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
+font-family:Arial;
+background:#1a0028;
+color:white;
+padding:30px;
 
-        .header-text p {
-            color: #ff4fc8;
-            font-size: 14px;
-            font-weight: 500;
-        }
+}
 
-        .data-atualizacao {
-            background: rgba(255,79,200,0.1);
-            padding: 8px 16px;
-            border-radius: 30px;
-            color: #cdb7e6;
-            font-size: 13px;
-            margin-bottom: 24px;
-            display: inline-block;
-        }
+.container{
 
-        .termo-conteudo {
-            background: rgba(0,0,0,0.2);
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 24px;
-            max-height: 500px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #ff4fc8 #1a0033;
-        }
+max-width:600px;
+margin:auto;
+background:#2a0040;
+padding:30px;
+border-radius:15px;
 
-        .termo-conteudo::-webkit-scrollbar {
-            width: 8px;
-        }
+}
 
-        .termo-conteudo::-webkit-scrollbar-track {
-            background: #1a0033;
-            border-radius: 10px;
-        }
+h1{
 
-        .termo-conteudo::-webkit-scrollbar-thumb {
-            background: #ff4fc8;
-            border-radius: 10px;
-        }
+text-align:center;
 
-        .clausula {
-            margin-bottom: 24px;
-        }
+}
 
-        .clausula h2 {
-            color: #ff4fc8;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
+button{
 
-        .clausula h3 {
-            color: #ffb0f0;
-            font-size: 16px;
-            font-weight: 500;
-            margin: 16px 0 8px;
-        }
+width:100%;
+padding:15px;
+margin-top:20px;
+border:none;
+border-radius:10px;
+background:#ff2ac3;
+color:white;
+font-size:16px;
+cursor:pointer;
 
-        .clausula p {
-            color: #e0d0ff;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 12px;
-        }
+}
 
-        .clausula ul {
-            color: #cdb7e6;
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 8px 0 16px 24px;
-        }
+</style>
 
-        .clausula li {
-            margin-bottom: 8px;
-        }
-
-        .destaque {
-            background: rgba(255,79,200,0.1);
-            border-left: 4px solid #ff4fc8;
-            padding: 16px;
-            border-radius: 12px;
-            margin: 16px 0;
-        }
-
-        .destaque p {
-            color: white;
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-
-        .destaque small {
-            color: #cdb7e6;
-            font-size: 12px;
-        }
-
-        .check-box {
-            background: rgba(0,0,0,0.2);
-            border-radius: 30px;
-            padding: 20px;
-            margin: 24px 0;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            border: 2px solid rgba(255,79,200,0.3);
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .check-box:hover {
-            border-color: #ff4fc8;
-            background: rgba(255,79,200,0.1);
-        }
-
-        .check-box input[type="checkbox"] {
-            width: 24px;
-            height: 24px;
-            accent-color: #ff4fc8;
-            transform: scale(1.2);
-            margin-top: 2px;
-            cursor: pointer;
-        }
-
-        .check-box label {
-            color: white;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            line-height: 1.5;
-        }
-
-        .check-box small {
-            display: block;
-            color: #cdb7e6;
-            font-size: 13px;
-            margin-top: 6px;
-        }
-
-        .botoes {
-            display: flex;
-            gap: 16px;
-            margin-top: 24px;
-        }
-
-        .btn-aceitar {
-            flex: 2;
-            background: linear-gradient(135deg, #ff4fc8, #a45cff);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 18px 24px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 10px 20px -5px rgba(255,79,200,0.5);
-        }
-
-        .btn-aceitar:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px -5px rgba(255,79,200,0.7);
-        }
-
-        .btn-aceitar:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .btn-recusar {
-            flex: 1;
-            background: transparent;
-            color: #cdb7e6;
-            border: 2px solid rgba(255,79,200,0.3);
-            border-radius: 50px;
-            padding: 18px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-recusar:hover {
-            border-color: #f44336;
-            color: #f44336;
-        }
-
-        .footer {
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,79,200,0.15);
-            text-align: center;
-            color: #665a7a;
-            font-size: 12px;
-        }
-
-        .footer a {
-            color: #ff4fc8;
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        .alerta {
-            background: rgba(244, 67, 54, 0.2);
-            border: 2px solid #f44336;
-            border-radius: 30px;
-            padding: 16px;
-            margin: 20px 0;
-            color: #f44336;
-            text-align: center;
-            font-weight: 600;
-            animation: piscar 1.5s infinite;
-        }
-
-        @keyframes piscar {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-    </style>
 </head>
+
 <body>
-    <div class="termo-container">
-        <div class="header">
-            <div class="logo-icon">♀️</div>
-            <div class="header-text">
-                <h1>AURORA</h1>
-                <p>Termo de Responsabilidade e Isenção</p>
-            </div>
-        </div>
 
-        <div class="data-atualizacao">
-            📅 Última atualização: 08 de março de 2026
-        </div>
+<div class="container">
 
-        <div class="alerta" id="alertaObrigatorio" style="display: none;">
-            ⚠️ Você precisa ler e aceitar os termos para continuar
-        </div>
+<h1>Termo de Responsabilidade</h1>
 
-        <div class="termo-conteudo" id="termoConteudo">
-            <div class="clausula">
-                <h2>1. ACEITAÇÃO DOS TERMOS</h2>
-                <p>Ao acessar ou utilizar o sistema Aurora, você declara ter lido, compreendido e concordado com todos os termos e condições descritos neste documento. Caso não concorde com qualquer disposição, você não deverá utilizar a Plataforma.</p>
-                <div class="destaque">
-                    <p>⚠️ IMPORTANTE:</p>
-                    <small>O Aurora é um serviço de apoio e NÃO substitui os órgãos oficiais de emergência (190, 192, 193).</small>
-                </div>
-            </div>
+<p>
 
-            <div class="clausula">
-                <h2>2. ISENÇÃO DE RESPONSABILIDADE</h2>
-                <p>2.1. O Aurora NÃO É UM SERVIÇO DE EMERGÊNCIA OFICIAL e não substitui a Polícia Militar (190), o SAMU (192), o Corpo de Bombeiros (193) ou qualquer outro órgão público de atendimento emergencial.</p>
-                <p>2.2. Em situações de perigo iminente, a Usuária deve contatar PRIMEIRAMENTE as autoridades competentes através dos canais oficiais.</p>
-                <p>2.3. O Aurora é uma ferramenta de apoio complementar, e não garante:</p>
-                <ul>
-                    <li>O envio ou recebimento de alertas em 100% dos casos;</li>
-                    <li>A precisão absoluta da localização geográfica;</li>
-                    <li>A disponibilidade ininterrupta do serviço;</li>
-                    <li>O funcionamento em dispositivos com bateria insuficiente, sem conexão com internet ou com GPS desativado.</li>
-                </ul>
-            </div>
+O sistema Aurora Mulher Segura é uma ferramenta de apoio e envio de alertas.
 
-            <div class="clausula">
-                <h2>3. DADOS COLETADOS</h2>
-                <p>3.1. O Aurora coleta os seguintes dados fornecidos voluntariamente pela Usuária:</p>
-                <ul>
-                    <li><strong>Nome</strong> - podendo ser parcial, apelido ou fictício;</li>
-                    <li><strong>Mensagem de texto</strong> - descrição opcional da situação;</li>
-                    <li><strong>Localização geográfica</strong> - obtida via GPS no momento do acionamento do botão de pânico, mediante autorização expressa.</li>
-                </ul>
-                <p>3.2. O Aurora NÃO COLETA:</p>
-                <ul>
-                    <li>Fotografias ou imagens;</li>
-                    <li>Contatos da agenda telefônica;</li>
-                    <li>Histórico de navegação;</li>
-                    <li>Dados bancários ou financeiros.</li>
-                </ul>
-            </div>
+Ao utilizar este sistema você concorda que:
 
-            <div class="clausula">
-                <h2>4. COMPARTILHAMENTO DE DADOS</h2>
-                <p>4.1. Os dados de alerta são compartilhados exclusivamente com:</p>
-                <ul>
-                    <li>As pessoas de confiança previamente cadastradas pela Usuária;</li>
-                    <li>O administrador do sistema para fins de suporte técnico.</li>
-                </ul>
-                <p>4.2. O Aurora NÃO VENDE, ALUGA OU COMERCIALIZA dados pessoais para terceiros.</p>
-                <p>4.3. Em caso de requisição judicial, o Aurora poderá compartilhar informações com as autoridades competentes.</p>
-            </div>
+</p>
 
-            <div class="clausula">
-                <h2>5. ARMAZENAMENTO E EXCLUSÃO</h2>
-                <p>5.1. Os alertas gerados são armazenados pelo período máximo de 30 (trinta) dias, sendo automaticamente excluídos após este prazo.</p>
-                <p>5.2. A Usuária pode solicitar a exclusão antecipada de seus dados a qualquer momento através do e-mail: <strong style="color:#ff4fc8;">contato@aurorasegura.com.br</strong></p>
-            </div>
+<ul>
 
-            <div class="clausula">
-                <h2>6. SEGURANÇA DOS DADOS</h2>
-                <p>6.1. O Aurora utiliza criptografia para proteção dos dados de localização armazenados em seu banco de dados.</p>
-                <p>6.2. A Usuária reconhece que nenhum sistema é totalmente inviolável e que o envio de informações pela internet está sujeito a riscos de segurança.</p>
-            </div>
+<li>As informações enviadas serão compartilhadas com pessoas de confiança.</li>
 
-            <div class="clausula">
-                <h2>7. MENORES DE IDADE</h2>
-                <p>7.1. O Aurora é destinado a maiores de 18 (dezoito) anos.</p>
-                <p>7.2. Menores de idade somente poderão utilizar o serviço com autorização expressa dos responsáveis legais.</p>
-            </div>
+<li>O sistema depende de GPS e conexão de internet.</li>
 
-            <div class="clausula">
-                <h2>8. DIREITOS DA USUÁRIA (LGPD)</h2>
-                <p>Em conformidade com a Lei Geral de Proteção de Dados (Lei 13.709/2018), a Usuária possui direito de acessar, corrigir, excluir e portar seus dados pessoais.</p>
-            </div>
+<li>O Aurora não substitui serviços oficiais de emergência.</li>
 
-            <div class="clausula">
-                <h2>9. FORO DE ELEIÇÃO</h2>
-                <p>9.1. Para quaisquer controvérsias, fica eleito o foro da comarca de São Paulo/SP.</p>
-            </div>
+</ul>
 
-            <div class="clausula">
-                <h2>10. CONTATO</h2>
-                <p>📧 <strong style="color:#ff4fc8;">E-mail:</strong> contato@aurorasegura.com.br</p>
-                <p>📞 <strong style="color:#ff4fc8;">WhatsApp:</strong> (11) 99999-9999</p>
-            </div>
+<form method="POST">
 
-            <div class="destaque">
-                <p>📜 AO CLICAR EM "ACEITO" OU UTILIZAR O SERVIÇO, A USUÁRIA DECLARA TER LIDO, COMPREENDIDO E CONCORDADO COM TODOS OS TERMOS ACIMA.</p>
-            </div>
-        </div>
+<button type="submit">
 
-        <div class="check-box" id="checkBox" onclick="toggleCheckbox()">
-            <input type="checkbox" id="aceitoTermos" onclick="event.stopPropagation()">
-            <div>
-                <label for="aceitoTermos">Li e concordo com todos os termos e condições acima</label>
-                <small>Confirmo que tenho 18 anos ou mais e entendi que o Aurora não substitui os órgãos oficiais de emergência</small>
-            </div>
-        </div>
+Aceito os termos e continuar
 
-        <div class="botoes">
-            <button class="btn-recusar" onclick="recusarTermos()">✕ Recusar</button>
-            <button class="btn-aceitar" id="btnAceitar" onclick="aceitarTermos()" disabled>✅ ACEITO OS TERMOS</button>
-        </div>
+</button>
 
-        <div class="footer">
-            <p>🌸 AURORA · Proteção e Apoio para Mulheres · v2.0</p>
-            <p><a href="/" style="color:#665a7a;">Voltar ao início</a></p>
-        </div>
-    </div>
+</form>
 
-    <script>
-        // Elementos
-        const checkbox = document.getElementById('aceitoTermos');
-        const btnAceitar = document.getElementById('btnAceitar');
-        const alertaObrigatorio = document.getElementById('alertaObrigatorio');
-        const termoConteudo = document.getElementById('termoConteudo');
+</div>
 
-        // ===== FUNÇÃO PARA MARCAR/DESMARCAR CHECKBOX =====
-        function toggleCheckbox() {
-            checkbox.checked = !checkbox.checked;
-            verificarCheckbox();
-        }
-
-        // ===== VERIFICAR SE CHECKBOX ESTÁ MARCADO =====
-        function verificarCheckbox() {
-            if (checkbox.checked) {
-                btnAceitar.disabled = false;
-                alertaObrigatorio.style.display = 'none';
-            } else {
-                btnAceitar.disabled = true;
-            }
-        }
-
-        // ===== VERIFICAR SCROLL ATÉ O FINAL =====
-        termoConteudo.addEventListener('scroll', function() {
-            const scrollPos = termoConteudo.scrollTop + termoConteudo.clientHeight;
-            const scrollTotal = termoConteudo.scrollHeight;
-            
-            // Se chegou perto do final (últimos 100px)
-            if (scrollTotal - scrollPos < 100) {
-                // Pequeno destaque visual
-                termoConteudo.style.border = '2px solid #4caf50';
-                setTimeout(() => {
-                    termoConteudo.style.border = '2px solid rgba(255,79,200,0.3)';
-                }, 1000);
-            }
-        });
-
-        // ===== VERIFICAR MUDANÇAS NO CHECKBOX =====
-        checkbox.addEventListener('change', verificarCheckbox);
-
-        // ===== ACEITAR TERMOS =====
-        function aceitarTermos() {
-            if (!checkbox.checked) {
-                alertaObrigatorio.style.display = 'block';
-                alertaObrigatorio.innerHTML = '⚠️ Você precisa marcar a caixa de confirmação para aceitar os termos';
-                return;
-            }
-
-            // Salvar no localStorage
-            localStorage.setItem('aurora_termo_aceito', 'true');
-            localStorage.setItem('aurora_termo_data', new Date().toISOString());
-            
-            // Feedback visual
-            btnAceitar.innerHTML = '✅ REDIRECIONANDO...';
-            btnAceitar.disabled = true;
-            
-            // Mostrar mensagem de sucesso
-            alert('✅ Termos aceitos com sucesso! Redirecionando para o sistema...');
-            
-            // Redirecionar para o painel
-            setTimeout(() => {
-                window.location.href = '/panic';
-            }, 1500);
-        }
-
-        // ===== RECUSAR TERMOS =====
-        function recusarTermos() {
-            if (confirm('Você precisa aceitar os termos para utilizar o sistema. Deseja realmente sair?')) {
-                window.location.href = 'https://www.google.com';
-            }
-        }
-
-        // ===== VERIFICAR SE JÁ ACEITOU ANTES =====
-        window.onload = function() {
-            const jaAceitou = localStorage.getItem('aurora_termo_aceito');
-            
-            if (jaAceitou === 'true') {
-                // Se já aceitou, redireciona direto
-                console.log('Usuária já aceitou os termos anteriormente');
-                window.location.href = '/panic';
-            }
-            
-            // Forçar scroll para o topo
-            termoConteudo.scrollTop = 0;
-        };
-
-        // ===== EVITAR FECHAR A PÁGINA ACIDENTALMENTE =====
-        window.onbeforeunload = function() {
-            if (!localStorage.getItem('aurora_termo_aceito')) {
-                return 'Você ainda não aceitou os termos. Deseja realmente sair?';
-            }
-        };
-    </script>
 </body>
 </html>

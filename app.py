@@ -1,129 +1,233 @@
 from flask import Flask, render_template, request, redirect, session, jsonify
 import json
-from datetime import datetime
 import os
+from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "aurora_segura_2026"
 
-ALERT_FILE = "alerts.log"
+# chave de sessão
+app.secret_key = "aurora_secret"
 
-if not os.path.exists(ALERT_FILE):
-    with open(ALERT_FILE,"w") as f:
-        json.dump([],f)
 
+# ===============================
+# ARQUIVOS
+# ===============================
+
+ALERT_FILE = "alerts.json"
+USER_FILE = "users.json"
+
+
+# ===============================
+# FUNÇÕES AUXILIARES
+# ===============================
 
 def load_alerts():
 
-    try:
-        with open(ALERT_FILE,"r") as f:
-            return json.load(f)
-    except:
+    if not os.path.exists(ALERT_FILE):
         return []
+
+    with open(ALERT_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def save_alerts(data):
 
-    with open(ALERT_FILE,"w") as f:
-        json.dump(data,f,indent=2)
+    with open(ALERT_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
 
 
-# =========================
-# PAGINA INICIAL
-# =========================
+def load_users():
+
+    if not os.path.exists(USER_FILE):
+        return {}
+
+    with open(USER_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_users(data):
+
+    with open(USER_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+
+
+# ===============================
+# PÁGINA INICIAL
+# ===============================
 
 @app.route("/")
 def home():
-
-    if not session.get("termo_aceito"):
-        return redirect("/termo")
-
     return redirect("/panic")
 
 
-# =========================
-# TERMO DE RESPONSABILIDADE
-# =========================
-
-@app.route("/termo", methods=["GET","POST"])
-def termo():
-
-    if request.method == "POST":
-
-        session["termo_aceito"] = True
-        session["data_aceite"] = datetime.now().strftime("%d/%m/%Y %H:%M")
-
-        return redirect("/panic")
-
-    return render_template("termo_responsabilidade.html")
-
-
-# =========================
-# PAINEL DA MULHER (SOS)
-# =========================
+# ===============================
+# BOTÃO DE PÂNICO
+# ===============================
 
 @app.route("/panic")
 def panic():
-
-    if not session.get("termo_aceito"):
-        return redirect("/termo")
-
     return render_template("panic_button.html")
 
 
-# =========================
-# RECEBER ALERTA
-# =========================
+# ===============================
+# API ALERTA
+# ===============================
 
 @app.route("/api/alert", methods=["POST"])
-def receive_alert():
+def api_alert():
 
     data = request.json
 
     alerts = load_alerts()
 
-    alerta = {
+    alert = {
 
-        "id": len(alerts)+1,
         "nome": data.get("nome"),
         "situacao": data.get("situacao"),
         "mensagem": data.get("mensagem"),
-        "hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-        "localizacao": data.get("localizacao")
+        "localizacao": data.get("localizacao"),
+        "hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     }
 
-    alerts.append(alerta)
+    alerts.append(alert)
 
     save_alerts(alerts)
 
-    return jsonify({"status":"ok"})
+    return jsonify({"status": "ok"})
 
 
-# =========================
-# ULTIMO ALERTA
-# =========================
+# ===============================
+# LOGIN ADMIN
+# ===============================
 
-@app.route("/api/last_alert")
-def last_alert():
+@app.route("/panel/login", methods=["GET","POST"])
+def login_admin():
+
+    if request.method == "POST":
+
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == "admin" and password == "123456":
+
+            session["admin"] = True
+
+            return redirect("/panel")
+
+        return "Login inválido"
+
+    return render_template("login_admin.html")
+
+
+# ===============================
+# PAINEL ADMIN
+# ===============================
+
+@app.route("/panel")
+def panel_admin():
+
+    if not session.get("admin"):
+        return redirect("/panel/login")
 
     alerts = load_alerts()
 
-    if not alerts:
-        return {"alert":None}
+    users = load_users()
 
-    return {"alert":alerts[-1]}
+    return render_template(
+        "panel_admin.html",
+        alerts=alerts,
+        users=users
+    )
 
 
-# =========================
-# HISTORICO
-# =========================
+# ===============================
+# CADASTRAR PESSOA DE CONFIANÇA
+# ===============================
 
-@app.route("/api/alerts")
-def alerts():
+@app.route("/trusted/register", methods=["GET","POST"])
+def trusted_register():
 
-    return jsonify(load_alerts())
+    if request.method == "POST":
 
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        users = load_users()
+
+        if len(users) >= 3:
+            return "Limite de 3 pessoas de confiança atingido"
+
+        users[username] = {
+            "password": password
+        }
+
+        save_users(users)
+
+        return redirect("/trusted/login")
+
+    return render_template("trusted_register.html")
+
+
+# ===============================
+# LOGIN PESSOA DE CONFIANÇA
+# ===============================
+
+@app.route("/trusted/login", methods=["GET","POST"])
+def login_trusted():
+
+    if request.method == "POST":
+
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        users = load_users()
+
+        if username in users and users[username]["password"] == password:
+
+            session["trusted"] = username
+
+            return redirect("/trusted/panel")
+
+        return "Login inválido"
+
+    return render_template("login_trusted.html")
+
+
+# ===============================
+# PAINEL PESSOA DE CONFIANÇA
+# ===============================
+
+@app.route("/trusted/panel")
+def trusted_panel():
+
+    if not session.get("trusted"):
+        return redirect("/trusted/login")
+
+    alerts = load_alerts()
+
+    return render_template(
+        "panel_trusted.html",
+        alerts=alerts
+    )
+
+
+# ===============================
+# LOGOUT
+# ===============================
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    return redirect("/panic")
+
+
+# ===============================
+# INICIAR SERVIDOR
+# ===============================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+
+    app.run(host="0.0.0.0", port=5000)

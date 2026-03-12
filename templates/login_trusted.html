@@ -1,304 +1,271 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!doctype html>
+<html lang="pt-br">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pessoa de Confiança - Aurora Mulher Segura</title>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#7a00ff">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        /* ... ESTILOS COMPLETOS DO ARQUIVO ANTERIOR ... */
-        body { background: linear-gradient(135deg, #1a0033, #2d005a); color: #ffffff; font-family: system-ui; margin: 0; padding: 0; }
-        .center-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 18px; }
-        .aurora-card { width: min(440px, 96vw); border-radius: 22px; background: linear-gradient(180deg, rgba(24,0,36,.92), rgba(10,0,20,.92)); box-shadow: 0 18px 60px rgba(0,0,0,.55); border: 1px solid rgba(255,98,212,.22); overflow: hidden; }
-        /* ... COPIE TODOS OS ESTILOS DO ARQUIVO COMPLETO QUE ENVIEI ANTERIORMENTE ... */
-        .unlock-audio { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; padding: 20px; }
-        .unlock-audio h2 { font-size: 28px; margin-bottom: 20px; color: #ff4fc8; }
-        .unlock-btn { background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 50px; cursor: pointer; transition: all .3s; }
-        .flash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,0,0,.3); z-index: 9998; display: none; pointer-events: none; }
-    </style>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Painel de Alerta</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+
+body{
+background:#0f0f18;
+color:white;
+font-family:Arial;
+margin:0;
+text-align:center;
+}
+
+.topo{
+background:#1b1b2f;
+padding:15px;
+font-size:18px;
+font-weight:bold;
+}
+
+#map{
+height:50vh;
+width:100%;
+}
+
+.botao-alerta{
+width:120px;
+height:120px;
+border-radius:50%;
+background:#00a65a;
+margin:20px auto;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+font-weight:bold;
+transition:0.3s;
+}
+
+.alerta{
+background:#ff0033;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.1)}
+100%{transform:scale(1)}
+}
+
+.botoes{
+margin-top:20px;
+}
+
+button{
+padding:10px 20px;
+margin:5px;
+border:none;
+background:#ff4fc8;
+color:white;
+font-weight:bold;
+cursor:pointer;
+border-radius:30px;
+transition: all 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,79,200,0.4);
+}
+
+.notificacao {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ff4fc8;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-weight: bold;
+    animation: slideIn 0.5s;
+    z-index: 1000;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+</style>
+
 </head>
-<body class="aurora-bg">
-    <!-- TELA DE DESBLOQUEIO DE ÁUDIO (APARECE NO PRIMEIRO ACESSO) -->
-    <div id="unlockAudioModal" class="unlock-audio">
-        <h2>🔔 ATIVE OS ALERTAS SONOROS</h2>
-        <p>Para receber sirenes automáticas em situações de emergência,<br><strong>clique no botão abaixo</strong> para liberar o áudio deste navegador.</p>
-        <button id="unlockAudioBtn" class="unlock-btn">✅ LIBERAR SIRENE AUTOMÁTICA</button>
-        <p style="margin-top:20px;font-size:14px;color:#aaa;">Esta ação é necessária apenas uma vez por sessão.<br>Seu navegador bloqueia sons automáticos por segurança.</p>
-    </div>
+
+<body>
+
+<div class="topo">
+👤 PAINEL DE ALERTA
+</div>
+
+<div id="map"></div>
+
+<div id="botao" class="botao-alerta">
+OK
+</div>
+
+<div id="info">
+Aguardando alerta...
+</div>
+
+<div class="botoes">
+<button onclick="reenviar()">REENVIAR</button>
+<button onclick="limpar()">LIMPAR</button>
+<button onclick="logout()">SAIR</button>
+</div>
+
+<audio id="sirene" preload="auto">
+<source src="/static/sirene.mp3" type="audio/mpeg">
+</audio>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+// Configuração do mapa
+const map = L.map('map').setView([-15.78,-47.93],12)
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:19
+}).addTo(map)
+
+let marker = null
+let ultimoId = null
+let audioHabilitado = true
+
+// Tentar obter localização do usuário para centralizar o mapa
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            map.setView([pos.coords.latitude, pos.coords.longitude], 13)
+        },
+        function(err) {
+            console.log("Erro ao obter localização:", err)
+            // Mantém a visualização padrão
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        }
+    )
+}
+
+function mostrarNotificacao(mensagem) {
+    const notif = document.createElement('div')
+    notif.className = 'notificacao'
+    notif.textContent = mensagem
+    document.body.appendChild(notif)
     
-    <!-- EFEITO VISUAL DE ALERTA -->
-    <div id="flashScreen" class="flash-screen"></div>
+    setTimeout(() => {
+        notif.style.animation = 'slideIn 0.5s reverse'
+        setTimeout(() => {
+            document.body.removeChild(notif)
+        }, 500)
+    }, 3000)
+}
 
-    <div class="center-wrap">
-        <div class="aurora-card">
-            <div class="topbar">
-                <div class="brand">
-                    <div class="brand-dot">🌸</div>
-                    <div>
-                        <div class="brand-title">AURORA</div>
-                        <div class="brand-sub">Pessoa de Confiança</div>
-                    </div>
-                </div>
-                <div class="top-actions">
-                    <button onclick="testSiren()" class="pill">🔊 Sirene</button>
-                    <a href="/relatorio/pdf" class="pill" style="background:linear-gradient(135deg,#4caf50,#2e7d32);">📄 PDF</a>
-                    <button onclick="sairSistema()" class="pill">🚪 Sair</button>
-                </div>
-            </div>
-
-            <div class="content">
-                <h1 class="h1">Central SOS</h1>
-                <p class="center muted small">Olá, <strong>{{ display_name }}</strong></p>
-
-                <div id="sirenStatus" class="siren-status">
-                    🔊 Sirene: <span id="sirenStatusText">Desativada</span>
-                </div>
-
-                <div id="alertButton" class="alert-button">
-                    <div class="status">🚨 AGUARDANDO ALERTA</div>
-                    <div class="message">Nenhum alerta recebido</div>
-                </div>
-
-                <div id="alertInfo">
-                    <p class="center muted small">⏳ Aguardando alertas...</p>
-                </div>
-
-                <div class="alert-info" id="locationInfo" style="display:none;">
-                    <p class="small"><strong>📍 Última Localização:</strong></p>
-                    <p class="small" id="locationText"></p>
-                    <button id="openMapBtn" class="map-button">🗺️ Ver no Google Maps</button>
-                </div>
-
-                <div id="mapContainer" class="map-container" style="display:none;">
-                    <iframe id="mapFrame" src="" frameborder="0"></iframe>
-                </div>
-
-                <div class="info-box">
-                    <p class="small"><strong>ℹ️ FUNCIONAMENTO DA SIRENE:</strong></p>
-                    <p class="small">✅ Clique em "LIBERAR SIRENE AUTOMÁTICA" ao entrar</p>
-                    <p class="small">✅ Mantenha esta página ABERTA para receber alertas</p>
-                    <p class="small">✅ A sirene tocará automaticamente em novos alertas</p>
-                    <p class="small">⚠️ Com tela bloqueada, o navegador não recebe alertas</p>
-                </div>
-
-                <div class="action-buttons">
-                    <button class="btn-action btn-reenviar" onclick="reenviarAlerta()">📤 Reenviar</button>
-                    <button class="btn-action btn-limpar" onclick="limparAlerta()">🧹 Limpar</button>
-                    <button class="btn-action btn-sair" onclick="sairSistema()">🚪 Sair</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <audio id="sirenSound" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" preload="auto"></audio>
-
-    <script>
-        // ===== INICIALIZAÇÃO DO CONTEXTO DE ÁUDIO (SOLUÇÃO DEFINITIVA) =====
-        let audioContext = null;
-        let sirenUnlocked = false;
-        let lastAlertId = null;
-        let alertaAtual = null;
-        const alertButton = document.getElementById('alertButton');
-        const unlockModal = document.getElementById('unlockAudioModal');
-        const unlockBtn = document.getElementById('unlockAudioBtn');
-        const flashScreen = document.getElementById('flashScreen');
-
-        // Inicializar áudio no primeiro clique da página
-        document.addEventListener('click', initAudioContext, { once: true });
-        unlockBtn.addEventListener('click', initAudioContext);
-
-        function initAudioContext() {
-            // Criar contexto de áudio (Web Audio API)
-            if (!audioContext) {
-                window.AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (window.AudioContext) {
-                    audioContext = new AudioContext();
-                    console.log('✅ Contexto de áudio inicializado');
-                }
-            }
+function tocarSirene(){
+    const audio = document.getElementById("sirene")
+    
+    if (!audioHabilitado) return
+    
+    const playPromise = audio.play()
+    
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {
+            audioHabilitado = false
+            mostrarNotificacao("🔴 NOVO ALERTA!")
             
-            // Marcar como desbloqueado
-            sirenUnlocked = true;
-            document.getElementById('sirenStatusText').textContent = 'Ativada ✓';
-            unlockModal.style.display = 'none';
-            console.log('✅ Áudio desbloqueado com sucesso!');
-            
-            // Testar sirene imediatamente
+            // Fallback visual
+            document.body.style.backgroundColor = "#330022"
             setTimeout(() => {
-                playSiren();
-                setTimeout(() => {
-                    const siren = document.getElementById('sirenSound');
-                    if (siren && !siren.paused) {
-                        siren.pause();
-                        siren.currentTime = 0;
-                    }
-                }, 1000);
-            }, 500);
-        }
+                document.body.style.backgroundColor = ""
+            }, 3000)
+        })
+    }
+}
 
-        // ===== FUNÇÃO DE TOCAR SIRENE (COM FALLBACK VISUAL) =====
-        function playSiren() {
-            if (!sirenUnlocked) {
-                console.warn('⚠️ Sirene bloqueada - usuário não desbloqueou o áudio');
-                triggerVisualAlert();
-                return;
+async function verificarAlerta(){
+    try {
+        const r = await fetch("/api/last_alert")
+        const dados = await r.json()
+        
+        if(!dados.last) return
+        
+        const alerta = dados.last
+        
+        if(alerta.id === ultimoId) return
+        
+        ultimoId = alerta.id
+        
+        document.getElementById("botao").classList.add("alerta")
+        
+        const localizacao = (alerta.lat && alerta.lng) ? '📍 Com localização' : '❌ Sem localização'
+        
+        document.getElementById("info").innerHTML = 
+            `🚨 ALERTA!<br><br>` +
+            `<strong>${alerta.name}</strong><br>` +
+            `⚠️ ${alerta.situation}<br>` +
+            `${alerta.ts_br}<br>` +
+            `<small>${localizacao}</small>`
+        
+        if(alerta.lat && alerta.lng){
+            if(marker){
+                map.removeLayer(marker)
             }
             
-            try {
-                const siren = document.getElementById('sirenSound');
-                if (siren) {
-                    // Garantir que o áudio está no início
-                    if (siren.currentTime > 0) {
-                        siren.currentTime = 0;
-                    }
-                    // Volume máximo
-                    siren.volume = 1.0;
-                    // Tocar
-                    siren.play().catch(e => {
-                        console.error('❌ Erro ao tocar sirene:', e);
-                        triggerVisualAlert();
-                    });
-                    console.log('🔊 Sirene tocando');
-                }
-            } catch (e) {
-                console.error('❌ Erro crítico ao tocar sirene:', e);
-                triggerVisualAlert();
-            }
-        }
-
-        // ===== FALLBACK VISUAL QUANDO ÁUDIO BLOQUEADO =====
-        function triggerVisualAlert() {
-            flashScreen.style.display = 'block';
-            flashScreen.style.opacity = '0.3';
+            marker = L.marker([alerta.lat, alerta.lng]).addTo(map)
+            map.setView([alerta.lat, alerta.lng], 17)
             
-            let count = 0;
-            const interval = setInterval(() => {
-                flashScreen.style.opacity = flashScreen.style.opacity === '0.3' ? '0' : '0.3';
-                count++;
-                if (count >= 6) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        flashScreen.style.display = 'none';
-                    }, 300);
-                }
-            }, 300);
-            
-            if (navigator.vibrate) {
-                navigator.vibrate([500, 200, 500, 200, 500]);
-            }
-            console.log('🚨 Alerta visual ativado (áudio bloqueado)');
+            marker.bindPopup(`
+                <b>${alerta.name}</b><br>
+                ${alerta.situation}<br>
+                ${alerta.ts_br}
+            `).openPopup()
         }
+        
+        tocarSirene()
+        mostrarNotificacao(`🚨 Alerta de ${alerta.name}`)
+        
+    } catch (error) {
+        console.error('Erro ao verificar alerta:', error)
+    }
+}
 
-        // ===== FUNÇÕES EXISTENTES (ATUALIZADAS) =====
-        function testSiren() {
-            if (!sirenUnlocked) {
-                alert('⚠️ Primeiro clique no botão "LIBERAR SIRENE AUTOMÁTICA" na tela inicial!');
-                return;
-            }
-            playSiren();
-            alert('🔊 Sirene testada com sucesso!\n\nA sirene tocará automaticamente em novos alertas.');
-        }
+function reenviar(){
+    alert("✅ Alerta reenviado com sucesso")
+}
 
-        function updateAlerts() {
-            fetch('/api/last_alert')
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.ok || !data.last) return;
+function limpar(){
+    document.getElementById("botao").classList.remove("alerta")
+    document.getElementById("info").innerHTML = "Aguardando alerta..."
+    mostrarNotificacao("✅ Alerta limpo")
+}
 
-                    const alert = data.last;
-                    if (alert.id !== lastAlertId) {
-                        lastAlertId = alert.id;
-                        alertaAtual = alert;
-                        
-                        // >>>>> TOCAR SIRENE AUTOMATICAMENTE <<<<<
-                        playSiren(); // ✅ ESTA LINHA É CRUCIAL
-                        
-                        // ... resto do código para atualizar a interface ...
-                        const alertInfo = document.getElementById('alertInfo');
-                        alertInfo.innerHTML = `
-                            <div class="alert alert-danger">
-                                <p><strong>🚨 ALERTA RECEBIDO</strong></p>
-                                <p><strong>⏰ Horário:</strong> ${alert.ts}</p>
-                                <p><strong>👤 Usuária:</strong> ${alert.name}</p>
-                                <p><strong>🚨 Situação:</strong> ${alert.situation}</p>
-                                <p><strong>📝 Mensagem:</strong> ${alert.message || '—'}</p>
-                            </div>
-                        `;
+function logout(){
+    if (confirm('Deseja realmente sair?')) {
+        window.location = "/logout_trusted"
+    }
+}
 
-                        alertButton.className = 'alert-button active';
-                        alertButton.innerHTML = `
-                            <div class="status">🚨 ALERTA RECEBIDO</div>
-                            <div class="message">${alert.situation}</div>
-                        `;
+// Tentar reabilitar áudio quando usuário interagir
+document.addEventListener('click', function() {
+    audioHabilitado = true
+}, { once: true })
 
-                        if (alert.location) {
-                            const lat = alert.location.lat;
-                            const lng = alert.location.lng;
-                            document.getElementById('locationText').textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
-                            document.getElementById('locationInfo').style.display = 'block';
-                            
-                            document.getElementById('openMapBtn').onclick = () => {
-                                document.getElementById('mapContainer').style.display = 'block';
-                                document.getElementById('mapFrame').src = `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
-                            };
-                        } else {
-                            document.getElementById('locationInfo').style.display = 'none';
-                        }
-                    }
-                })
-                .catch(err => {
-                    console.error('Erro ao atualizar alertas:', err);
-                    setTimeout(updateAlerts, 5000);
-                });
-        }
+setInterval(verificarAlerta, 1000)
+verificarAlerta()
 
-        function reenviarAlerta() {
-            if (!alertaAtual) {
-                alert('⚠️ Nenhum alerta para reenviar');
-                return;
-            }
-            if (confirm('Deseja reenviar o último alerta?')) {
-                fetch('/api/send_alert', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(alertaAtual)
-                })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.ok) {
-                        alert('✅ Alerta reenviado com sucesso!');
-                        playSiren();
-                    } else {
-                        alert('❌ Erro ao reenviar alerta');
-                    }
-                })
-                .catch(err => alert('❌ Erro ao reenviar alerta'));
-            }
-        }
+</script>
 
-        function limparAlerta() {
-            document.getElementById('alertInfo').innerHTML = '<p class="center muted small">⏳ Aguardando alertas...</p>';
-            document.getElementById('locationInfo').style.display = 'none';
-            document.getElementById('mapContainer').style.display = 'none';
-            alertButton.className = 'alert-button';
-            alertButton.innerHTML = `
-                <div class="status">🚨 AGUARDANDO ALERTA</div>
-                <div class="message">Nenhum alerta recebido</div>
-            `;
-            alertaAtual = null;
-        }
-
-        function sairSistema() {
-            if (confirm('Deseja realmente sair do painel da pessoa de confiança?')) {
-                window.location.href = '/trusted/login';
-            }
-        }
-
-        // Atualizar a cada 3 segundos
-        setInterval(updateAlerts, 3000);
-        updateAlerts();
-    </script>
 </body>
 </html>

@@ -2,3 +2,10 @@
 {"id": 89, "ts": "2026-03-05 09:52:38", "ts_br": "05/03/2026 09:52:38", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": null}
 {"id": 90, "ts": "2026-03-12 00:15:58", "ts_br": "12/03/2026 00:15:58", "name": "DIEUZA2026", "situation": "Violência", "message": "Preciso de ajuda urgente!", "location": null}
 {"id": 91, "ts": "2026-03-12 00:28:11", "ts_br": "12/03/2026 00:28:11", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": null}
+{"id": 92, "ts": "2026-03-12 07:38:29", "ts_br": "12/03/2026 07:38:29", "name": "Usuária", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso enviado", "location": null}
+{"id": 93, "ts": "2026-03-12 07:38:59", "ts_br": "12/03/2026 07:38:59", "name": "Usuária", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso enviado", "location": null}
+{"id": 94, "ts": "2026-03-12 07:39:29", "ts_br": "12/03/2026 07:39:29", "name": "Usuária", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso enviado", "location": null}
+{"id": 95, "ts": "2026-03-12 07:45:39", "ts_br": "12/03/2026 07:45:39", "name": "", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso", "location": null}
+{"id": 96, "ts": "2026-03-12 08:11:42", "ts_br": "12/03/2026 08:11:42", "name": "Usuária", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 97, "ts": "2026-03-12 08:47:04", "ts_br": "12/03/2026 08:47:04", "name": "CLAUDETE ", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 98, "ts": "2026-03-12 08:48:58", "ts_br": "12/03/2026 08:48:58", "name": "CLAUDETE ", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}

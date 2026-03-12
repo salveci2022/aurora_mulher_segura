@@ -88,6 +88,28 @@
             font-size: 30px;
             margin: 10px 0;
         }
+        
+        .toast-mensagem {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4caf50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: fadeInOut 2s ease;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
     </style>
 </head>
 <body>
@@ -158,7 +180,7 @@
         
         <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; text-align: center;">
             <p>Vencimento em 3 dias úteis</p>
-            <button class="botao-copiar">📄 GERAR BOLETO</button>
+            <button class="botao-copiar" onclick="gerarBoleto()">📄 GERAR BOLETO</button>
         </div>
         
         <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,79,200,0.3);">
@@ -168,11 +190,58 @@
     </div>
     
     <script>
+        function mostrarToast(mensagem) {
+            const toast = document.createElement('div')
+            toast.className = 'toast-mensagem'
+            toast.textContent = mensagem
+            document.body.appendChild(toast)
+            setTimeout(() => {
+                document.body.removeChild(toast)
+            }, 2000)
+        }
+        
+        function fallbackCopiar(texto) {
+            try {
+                const input = document.createElement('input')
+                input.value = texto
+                input.style.position = 'absolute'
+                input.style.left = '-9999px'
+                document.body.appendChild(input)
+                input.select()
+                document.execCommand('copy')
+                document.body.removeChild(input)
+                mostrarToast('✅ Chave Pix copiada!')
+                return true
+            } catch (e) {
+                console.error('Erro no fallback:', e)
+                return false
+            }
+        }
+        
         function copiarPix() {
             const chave = document.getElementById('chavePix').innerText;
-            navigator.clipboard.writeText(chave).then(() => {
-                alert('Chave Pix copiada!');
-            });
+            
+            // Verifica se a API Clipboard está disponível
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(chave).then(() => {
+                    mostrarToast('✅ Chave Pix copiada!')
+                }).catch(() => {
+                    // Se falhar, tenta o método fallback
+                    if (!fallbackCopiar(chave)) {
+                        alert('❌ Não foi possível copiar. Selecione e copie manualmente.')
+                    }
+                })
+            } else {
+                // Se não tiver API Clipboard, usa fallback
+                if (!fallbackCopiar(chave)) {
+                    alert('❌ Não foi possível copiar. Selecione e copie manualmente.')
+                }
+            }
+        }
+        
+        function gerarBoleto() {
+            mostrarToast('📄 Boleto gerado com sucesso!')
+            // Aqui você implementaria a lógica real de geração de boleto
         }
     </script>
 </body>

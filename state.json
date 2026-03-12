@@ -1,1 +1,13 @@
-{"last_id": 91}
+{
+  "last_id": 98,
+  "total_alerts": 98,
+  "last_update": "2026-03-12T20:30:00.000Z",
+  "version": "2.0",
+  "stats": {
+    "today": 5,
+    "week": 23,
+    "month": 78,
+    "with_location": 82,
+    "without_location": 16
+  }
+}

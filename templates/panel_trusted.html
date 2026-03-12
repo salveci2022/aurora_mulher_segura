@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
 <meta charset="UTF-8"/>
@@ -12,9 +13,11 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 
-<style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-/* TODO O SEU CSS ORIGINAL FOI MANTIDO */
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
 
 *{margin:0;padding:0;box-sizing:border-box;}
 
@@ -38,8 +41,6 @@ box-shadow:0 30px 60px rgba(0,0,0,0.7);
 border:1px solid rgba(255,79,200,0.3);
 }
 
-/* BOTÃO ALERTA */
-
 .sirene-btn.alerta{
 background: radial-gradient(circle at 50% 45%, #ff3b3b, #b30000);
 box-shadow:
@@ -55,6 +56,13 @@ animation: alertaPulse 1s infinite;
 100%{transform:scale(1);}
 }
 
+#mapa{
+height:300px;
+border-radius:15px;
+margin-top:15px;
+display:none;
+}
+
 </style>
 
 </head>
@@ -63,32 +71,12 @@ animation: alertaPulse 1s infinite;
 
 <div class="painel-confianca">
 
-<div class="topo">
-
-<div class="brand">
-
-<div class="brand-dot">🌸</div>
-
-<div>
-
-<div class="brand-title">AURORA</div>
-
-<div class="brand-sub">Pessoa de Confiança</div>
-
-</div>
-
-</div>
-
-<div class="status-conexao" id="statusConexao">🟢 Online</div>
-
-</div>
-
-<h1 style="color:white;text-align:center;margin-bottom:5px;">
+<h1 style="color:white;text-align:center;margin-bottom:10px;">
 CENTRAL DE ALERTAS
 </h1>
 
-<p style="margin-bottom:20px;text-align:center;">
-Olá <strong style="color:#ff4fc8;">{{ display_name }}</strong>
+<p style="text-align:center;color:#ff4fc8;">
+{{ display_name }}
 </p>
 
 <div class="sirene-container">
@@ -105,17 +93,17 @@ Olá <strong style="color:#ff4fc8;">{{ display_name }}</strong>
 
 <button class="mapa-btn" id="mapaBtn">
 
-<span>📍</span>
-
-ABRIR LOCALIZAÇÃO NO MAPA
+📍 ABRIR LOCALIZAÇÃO
 
 </button>
+
+<div id="mapa"></div>
 
 <div id="alertBox">
 
 <div id="lastMeta">
 
-⏳ Aguardando alertas...
+⏳ aguardando alertas
 
 </div>
 
@@ -123,45 +111,9 @@ ABRIR LOCALIZAÇÃO NO MAPA
 
 </div>
 
-<div class="acoes-grid">
+<!-- HISTÓRICO DE ALERTAS -->
 
-<button class="acao-btn reenviar" id="reenviarBtn">
-
-<span>🔄</span>
-
-Reenviar
-
-</button>
-
-<button class="acao-btn limpar" id="limparBtn">
-
-<span>🗑️</span>
-
-Limpar
-
-</button>
-
-<button class="acao-btn sair" id="sairBtn">
-
-<span>🚪</span>
-
-Sair
-
-</button>
-
-</div>
-
-<div class="status-bar" id="statusBar">
-
-Sistema monitorando alertas em tempo real
-
-</div>
-
-<div class="rodape">
-
-<span id="dataHora"></span> • 🌸 AURORA V2.0
-
-</div>
+<div id="historicoAlertas" style="margin-top:15px;color:white;font-size:13px;"></div>
 
 </div>
 
@@ -171,47 +123,106 @@ const lastMeta=document.getElementById('lastMeta')
 const details=document.getElementById('details')
 const alertBox=document.getElementById('alertBox')
 const sireneBtn=document.getElementById('sireneBtn')
-const mapaBtn=document.getElementById('mapaBtn')
-const statusBar=document.getElementById('statusBar')
 
 let lastId=0
-let sireneAtiva=true
 let ultimoAlerta=null
 
 const sireneAudio=new Audio('/static/audio/sirene.mp3')
-sireneAudio.loop=true
 
-sireneBtn.addEventListener('click',()=>{
-sireneAtiva=!sireneAtiva
-sireneBtn.classList.toggle('ativa',sireneAtiva)
-if(!sireneAtiva){
-sireneAudio.pause()
-sireneAudio.currentTime=0
+let mapa
+let marcador
+
+function iniciarMapa(lat,lng){
+
+document.getElementById("mapa").style.display="block"
+
+if(!mapa){
+
+mapa=L.map('mapa').setView([lat,lng],16)
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa)
+
+marcador=L.marker([lat,lng]).addTo(mapa)
+
+carregarMapaAlertas()
+
+}else{
+
+mapa.setView([lat,lng],16)
+
+marcador.setLatLng([lat,lng])
+
 }
+
+}
+
+function piscarPainel(){
+
+const painel=document.querySelector(".painel-confianca")
+
+painel.style.boxShadow="0 0 40px red"
+
+setTimeout(()=>{
+
+painel.style.boxShadow="0 30px 60px rgba(0,0,0,0.7)"
+
+},3000)
+
+}
+
+async function carregarHistorico(){
+
+try{
+
+const r = await fetch("/api/alerts")
+
+const dados = await r.json()
+
+let html = "<b>📊 Histórico recente</b><br><br>"
+
+dados.slice(-5).reverse().forEach(a=>{
+
+html += `🚨 ${a.id} - ${a.name} (${a.situation})<br>`
+
 })
 
-document.getElementById('limparBtn').onclick=()=>{
+document.getElementById("historicoAlertas").innerHTML = html
 
-lastMeta.innerHTML='⏳ Alertas limpos'
-details.innerHTML=''
+}catch(e){
 
-alertBox.classList.remove('novo')
-
-mapaBtn.classList.remove('visivel')
-
-sireneBtn.classList.remove('alerta')
-
-sireneAudio.pause()
-sireneAudio.currentTime=0
-
-statusBar.innerHTML='🧹 Alerta limpo manualmente'
+console.log("erro historico",e)
 
 }
 
-document.getElementById('sairBtn').onclick=()=>{
-if(confirm('Deseja realmente sair?')){
-window.location.href='/logout_trusted'
 }
+
+async function carregarMapaAlertas(){
+
+try{
+
+const r = await fetch("/api/alerts")
+
+const dados = await r.json()
+
+dados.forEach(a=>{
+
+if(a.location){
+
+const lat=a.location.lat
+const lng=a.location.lng || a.location.lon
+
+L.marker([lat,lng]).addTo(mapa)
+
+}
+
+})
+
+}catch(e){
+
+console.log("erro mapa",e)
+
+}
+
 }
 
 async function buscarAlertas(){
@@ -229,62 +240,52 @@ const alerta=data.last
 if(alerta.id>lastId){
 
 lastId=alerta.id
+
 ultimoAlerta=alerta
 
-/* MUDA COR DO BOTÃO */
+piscarPainel()
 
 sireneBtn.classList.add("alerta")
-
-alertBox.classList.add('novo')
-
-if(sireneAtiva){
 
 sireneAudio.play().catch(()=>{})
 
 setTimeout(()=>{
+
 sireneAudio.pause()
-sireneAudio.currentTime=0
+
+sireneBtn.classList.remove("alerta")
+
 },10000)
 
-}
-
-statusBar.innerHTML=`🚨 NOVO ALERTA #${alerta.id}`
-
-lastMeta.innerHTML=`<strong>🚨 ALERTA #${alerta.id}</strong>`
+lastMeta.innerHTML=`🚨 ALERTA ${alerta.id}`
 
 let html=''
 
-html+=`👤 <strong>Nome:</strong> ${alerta.name || 'Não informado'}<br>`
+html+=`👤 ${alerta.name}<br>`
 
-html+=`⚠️ <strong>Situação:</strong> ${alerta.situation}<br>`
+html+=`⚠️ ${alerta.situation}<br>`
 
 if(alerta.message){
 
-html+=`💬 <strong>Mensagem:</strong> ${alerta.message}<br>`
+html+=`💬 ${alerta.message}<br>`
 
 }
 
 if(alerta.location){
 
-const{lat,lng}=alerta.location
+const lat=alerta.location.lat
 
-html+=`📍 <strong>Localização:</strong> ${lat}, ${lng}`
+const lng=alerta.location.lng || alerta.location.lon
 
-mapaBtn.classList.add('visivel')
+html+=`📍 ${lat}, ${lng}`
 
-}else{
-
-mapaBtn.classList.remove('visivel')
+iniciarMapa(lat,lng)
 
 }
 
 details.innerHTML=html
 
-setTimeout(()=>{
-
-alertBox.classList.remove('novo')
-
-},5000)
+carregarHistorico()
 
 }
 
@@ -298,7 +299,13 @@ console.log(e)
 
 }
 
-setInterval(buscarAlertas,2000)
+setInterval(()=>{
+
+buscarAlertas()
+
+carregarHistorico()
+
+},1000)
 
 buscarAlertas()
 

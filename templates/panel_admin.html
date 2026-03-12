@@ -215,11 +215,19 @@
             font-size: 14px;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .trusted-delete:hover {
+        .trusted-delete:hover:not(:disabled) {
             background: #f44336;
             transform: scale(1.1);
+        }
+        
+        .trusted-delete:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .form-group {
@@ -297,6 +305,25 @@
             border-top: 2px solid rgba(255,79,200,0.3);
             color: #cdb7e6;
             font-size: 12px;
+        }
+        
+        .toast-mensagem {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
@@ -385,7 +412,7 @@
                         <div class="trusted-name">{{ info.name }}</div>
                         <div class="trusted-user">@{{ username }}</div>
                     </div>
-                    <button class="trusted-delete" onclick="deleteTrusted('{{ username }}')">✕</button>
+                    <button class="trusted-delete" onclick="deleteTrusted('{{ username }}', this)">✕</button>
                 </div>
                 {% endfor %}
             {% else %}
@@ -419,6 +446,21 @@
     </div>
 
     <script>
+        function mostrarToast(mensagem, tipo = 'sucesso') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-mensagem';
+            toast.style.background = tipo === 'sucesso' ? '#4caf50' : '#f44336';
+            toast.textContent = mensagem;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s reverse';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
         function atualizarDataHora() {
             const agora = new Date();
             const horas = agora.getHours().toString().padStart(2, '0');
@@ -431,19 +473,38 @@
         setInterval(atualizarDataHora, 1000);
         atualizarDataHora();
 
-        function deleteTrusted(username) {
-            if (confirm('Deseja realmente excluir esta pessoa?')) {
-                fetch('/panel/delete_trusted', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'username=' + encodeURIComponent(username)
-                })
-                .then(response => {
-                    if (response.ok) window.location.reload();
-                    else alert('Erro ao excluir');
-                })
-                .catch(() => alert('Erro ao excluir'));
+        function deleteTrusted(username, botao) {
+            if (!confirm(`Deseja realmente excluir @${username}?`)) {
+                return;
             }
+            
+            // Feedback visual de loading
+            const textoOriginal = botao.innerText;
+            botao.innerText = '⌛';
+            botao.disabled = true;
+            
+            fetch('/panel/delete_trusted', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'username=' + encodeURIComponent(username)
+            })
+            .then(response => {
+                if (response.ok) {
+                    mostrarToast(`✅ @${username} excluído com sucesso`);
+                    // Remove o item da lista ou recarrega
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Erro ao excluir');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                mostrarToast(`❌ Erro ao excluir @${username}`, 'erro');
+                botao.innerText = textoOriginal;
+                botao.disabled = false;
+            });
         }
     </script>
 </body>

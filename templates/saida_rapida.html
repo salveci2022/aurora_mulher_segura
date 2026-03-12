@@ -135,7 +135,7 @@
             
             <button class="botao" onclick="adicionar('0')">0</button>
             <button class="botao" onclick="adicionar('.')">.</button>
-            <button class="botao igual" colspan="2" onclick="calcular()">=</button>
+            <button class="botao igual" onclick="calcular()">=</button>
         </div>
         
         <button class="voltar-btn" onclick="window.location.href='/panic'">← Voltar</button>
@@ -159,8 +159,22 @@
         
         function calcular() {
             try {
-                // Avalia a expressão matemática com segurança
-                const resultado = eval(display.innerText);
+                // Versão segura sem eval()
+                const expressao = display.innerText;
+                
+                // Verifica se a expressão contém apenas caracteres permitidos
+                if (!/^[0-9+\-*/().\s]+$/.test(expressao)) {
+                    throw new Error('Expressão inválida');
+                }
+                
+                // Usa Function que é mais seguro que eval
+                const resultado = new Function('return ' + expressao)();
+                
+                // Verifica se o resultado é um número válido
+                if (isNaN(resultado) || !isFinite(resultado)) {
+                    throw new Error('Resultado inválido');
+                }
+                
                 display.innerText = resultado;
             } catch {
                 display.innerText = 'Erro';

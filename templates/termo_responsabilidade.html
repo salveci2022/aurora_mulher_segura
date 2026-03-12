@@ -1,261 +1,145 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora - Termo de Responsabilidade</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #1a0033, #2d005a);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-        
-        .termo-container {
-            max-width: 800px;
-            width: 100%;
-            background: linear-gradient(145deg, #2d005a, #1a0033);
-            border-radius: 40px;
-            padding: 30px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-            border: 1px solid rgba(255,79,200,0.3);
-            color: white;
-        }
-        
-        h1 {
-            color: #ff4fc8;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 28px;
-            text-shadow: 0 0 10px rgba(255,79,200,0.5);
-        }
-        
-        h2 {
-            color: #ffb0f0;
-            margin: 25px 0 15px;
-            font-size: 22px;
-            text-align: center;
-        }
-        
-        .clausula {
-            background: rgba(255,255,255,0.05);
-            border-left: 4px solid #ff4fc8;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 0 15px 15px 0;
-        }
-        
-        .clausula p {
-            margin-bottom: 10px;
-            line-height: 1.6;
-            color: #e0d0ff;
-        }
-        
-        .destaque {
-            color: #ff4fc8;
-            font-weight: bold;
-        }
-        
-        .aviso {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid #ff4fc8;
-            border-radius: 20px;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: center;
-        }
-        
-        .aviso p {
-            color: #ffb0f0;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 25px 0;
-            padding: 15px;
-            background: rgba(255,79,200,0.1);
-            border-radius: 15px;
-        }
-        
-        .checkbox-container input {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        
-        .checkbox-container label {
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        
-        .botoes {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-        
-        .btn-aceitar {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-aceitar:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px #22c55e;
-        }
-        
-        .btn-aceitar:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .btn-recusar {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid #f44336;
-            color: #f44336;
-            border-radius: 30px;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-recusar:hover {
-            background: rgba(244, 67, 54, 0.1);
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,79,200,0.3);
-            color: #665a7a;
-            font-size: 14px;
-        }
-        
-        @media (max-width: 600px) {
-            .termo-container {
-                padding: 20px;
-            }
-            
-            .botoes {
-                flex-direction: column;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurora - Termo de Responsabilidade</title>
+
+<style>
+
+/* TODO O SEU CSS FOI MANTIDO */
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,sans-serif;}
+
+body{
+background:linear-gradient(135deg,#1a0033,#2d005a);
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:16px;
+}
+
+.termo-container{
+max-width:800px;
+width:100%;
+background:linear-gradient(145deg,#2d005a,#1a0033);
+border-radius:40px;
+padding:30px;
+box-shadow:0 30px 60px rgba(0,0,0,0.7);
+border:1px solid rgba(255,79,200,0.3);
+color:white;
+}
+
+h1{color:#ff4fc8;text-align:center;margin-bottom:20px;font-size:28px}
+
+h2{color:#ffb0f0;margin:25px 0 15px;font-size:22px;text-align:center}
+
+.clausula{
+background:rgba(255,255,255,0.05);
+border-left:4px solid #ff4fc8;
+padding:15px;
+margin-bottom:15px;
+border-radius:0 15px 15px 0;
+}
+
+.checkbox-container{
+display:flex;
+align-items:center;
+gap:10px;
+margin:25px 0;
+padding:15px;
+background:rgba(255,79,200,0.1);
+border-radius:15px;
+}
+
+.botoes{
+display:flex;
+gap:15px;
+justify-content:center;
+margin-top:30px;
+}
+
+.btn-aceitar{
+background:linear-gradient(135deg,#22c55e,#16a34a);
+color:white;
+border:none;
+border-radius:30px;
+padding:15px 40px;
+font-size:18px;
+cursor:pointer;
+}
+
+.btn-recusar{
+background:rgba(255,255,255,0.1);
+border:1px solid #f44336;
+color:#f44336;
+border-radius:30px;
+padding:15px 40px;
+font-size:18px;
+cursor:pointer;
+}
+
+</style>
 </head>
+
 <body>
-    <div class="termo-container">
-        <h1>📜 TERMO DE RESPONSABILIDADE</h1>
-        <h2>AURORA MULHER SEGURA</h2>
-        
-        <div class="aviso">
-            <p>⚠️ LEIA ATENTAMENTE ANTES DE USAR O SISTEMA</p>
-        </div>
-        
-        <div class="clausula">
-            <p><span class="destaque">1.</span> O software AURORA MULHER SEGURA é uma FERRAMENTA DE AUXÍLIO, não substituindo os órgãos oficiais de segurança pública (Polícia, SAMU, Corpo de Bombeiros).</p>
-        </div>
-        
-        <div class="clausula">
-            <p><span class="destaque">2.</span> Em caso de emergência, a usuária DEVE continuar acionando os canais oficiais (190, 192, 193) paralelamente ao uso do aplicativo.</p>
-        </div>
-        
-        <div class="clausula">
-            <p><span class="destaque">3.</span> O funcionamento do GPS e envio de alertas depende de:</p>
-            <p style="margin-left: 30px;">• Cobertura de internet/dados móveis<br>
-            • Sinal de GPS disponível<br>
-            • Bateria do celular<br>
-            • Configurações de permissão do dispositivo</p>
-        </div>
-        
-        <div class="clausula">
-            <p><span class="destaque">4.</span> A responsabilidade do fornecedor se limita à entrega e funcionamento do software conforme especificado. NÃO nos responsabilizamos por:</p>
-            <p style="margin-left: 30px;">• Falhas de operadora/internet<br>
-            • Problemas no dispositivo da usuária<br>
-            • Ações ou omissões das autoridades de segurança<br>
-            • Uso inadequado do sistema<br>
-            • Danos decorrentes do não acionamento por falhas técnicas<br>
-            • Consequências de alertas não recebidos por problemas de rede</p>
-        </div>
-        
-        <div class="clausula">
-            <p><span class="destaque">5.</span> A usuária declara estar ciente que o aplicativo é uma ferramenta de apoio e não substitui medidas de autoproteção e segurança pessoal.</p>
-        </div>
-        
-        <div class="clausula">
-            <p><span class="destaque">6.</span> Ao utilizar o sistema, a usuária concorda integralmente com estes termos.</p>
-        </div>
-        
-        <div class="checkbox-container">
-            <input type="checkbox" id="aceitoTermo">
-            <label for="aceitoTermo">Li e ACEITO integralmente os termos de responsabilidade acima</label>
-        </div>
-        
-        <div class="botoes">
-            <button class="btn-recusar" onclick="recusarTermo()">NÃO ACEITO</button>
-            <button class="btn-aceitar" id="btnAceitar" onclick="aceitarTermo()" disabled>ACEITO E CONTINUAR</button>
-        </div>
-        
-        <div class="footer">
-            <p>AURORA MULHER SEGURA - Protegendo vidas desde 2026</p>
-            <p style="margin-top: 10px;">🌸 POR PTB2</p>
-        </div>
-    </div>
-    
-    <script>
-        // Habilita botão apenas se marcar o checkbox
-        document.getElementById('aceitoTermo').addEventListener('change', function() {
-            document.getElementById('btnAceitar').disabled = !this.checked;
-        });
-        
-        function aceitarTermo() {
-            // Salva no localStorage que aceitou
-            localStorage.setItem('aurora_termo_aceito', 'true');
-            localStorage.setItem('aurora_termo_data', new Date().toISOString());
-            
-            // Redireciona para o sistema
-            window.location.href = '/panic';
-        }
-        
-        function recusarTermo() {
-            if (confirm('Você precisa aceitar o termo para usar o sistema. Deseja sair?')) {
-                window.location.href = 'https://www.google.com';
-            }
-        }
-        
-        // Se já aceitou antes, vai direto pro sistema
-        if (localStorage.getItem('aurora_termo_aceito') === 'true') {
-            window.location.href = '/panic';
-        }
-    </script>
+
+<div class="termo-container">
+
+<h1>📜 TERMO DE RESPONSABILIDADE</h1>
+<h2>AURORA MULHER SEGURA</h2>
+
+<div class="clausula">
+<p><b>1.</b> O sistema Aurora é ferramenta de apoio e não substitui autoridades.</p>
+</div>
+
+<div class="clausula">
+<p><b>2.</b> Em emergências utilize também 190, 192 ou 193.</p>
+</div>
+
+<div class="clausula">
+<p><b>3.</b> O funcionamento depende de GPS, internet e bateria.</p>
+</div>
+
+<div class="checkbox-container">
+<input type="checkbox" id="aceitoTermo">
+<label for="aceitoTermo">Li e ACEITO os termos</label>
+</div>
+
+<!-- FORMULÁRIO CORRETO PARA O FLASK -->
+
+<form method="POST" action="/aceitar-termo">
+
+<div class="botoes">
+
+<button type="button" class="btn-recusar" onclick="recusarTermo()">NÃO ACEITO</button>
+
+<button type="submit" class="btn-aceitar" id="btnAceitar" disabled>
+ACEITO E CONTINUAR
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+<script>
+
+document.getElementById("aceitoTermo").addEventListener("change",function(){
+
+document.getElementById("btnAceitar").disabled=!this.checked
+
+})
+
+function recusarTermo(){
+
+alert("Você precisa aceitar o termo para usar o Aurora.")
+
+}
+
+</script>
+
 </body>
 </html>

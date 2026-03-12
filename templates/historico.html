@@ -2,44 +2,226 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Histórico · Aurora</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Central de Monitoramento">
+    <title>Central · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <style>
+        .monitoring-status {
+            text-align: center;
+            padding: 14px;
+            border-radius: 14px;
+            margin: 14px 0;
+            background: rgba(10, 0, 20, 0.55);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+        }
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-right: 8px;
+            animation: blink 1s infinite;
+        }
+        .status-indicator.active {
+            background: #4caf50;
+        }
+        .status-indicator.inactive {
+            background: #f44336;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 14px 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(40, 0, 60, 0.35);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            min-width: 80px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--hot);
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .alert-live {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: rgba(244, 67, 54, 0.4);
+            animation: pulse-alert 2s infinite;
+        }
+        @keyframes pulse-alert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+        }
+    </style>
 </head>
-<body class="aurora-bg">
-    <div class="center-wrap">
-        <div class="aurora-card" style="max-width: 800px;">
-            <div class="topbar">
-                <div class="brand">
-                    <div class="brand-dot">📋</div>
-                    <div>
-                        <div class="brand-title">AURORA</div>
-                        <div class="brand-sub">Histórico</div>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🚨</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Central</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/" class="pill">← Voltar</a>
                     </div>
                 </div>
-                <div class="top-actions">
-                    <a href="/panic" class="pill">🚨 SOS</a>
-                </div>
-            </div>
-
-            <div class="content">
-                <h1 class="h1">Histórico de Alertas</h1>
-
-                {% if alerts %}
-                    {% for alerta in alerts|reverse %}
-                    <div style="background:rgba(255,79,200,0.1); padding:15px; margin:10px 0; border-radius:10px;">
-                        <div><strong>ID {{ alerta.id }}</strong> • {{ alerta.ts }}</div>
-                        <div><strong>{{ alerta.name }}</strong> - ⚠️ {{ alerta.situation }}</div>
-                        {% if alerta.location %}
-                        <div style="font-size:11px;">📍 {{ alerta.location.lat }}, {{ alerta.location.lon }}</div>
-                        {% endif %}
+                
+                <div class="content">
+                    <h1 class="h1">🚨 CENTRAL DE MONITORAMENTO</h1>
+                    <p class="center muted">Acompanhamento em tempo real</p>
+                    
+                    <div class="monitoring-status">
+                        <span class="status-indicator active" id="statusIndicator"></span>
+                        <span id="statusText">🟢 Sistema ativo - Monitorando</span>
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="center">Nenhum alerta</div>
-                {% endif %}
+                    
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalAlerts">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="todayAlerts">0</div>
+                            <div class="stat-label">Hoje</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="pendingAlerts">0</div>
+                            <div class="stat-label">Pendentes</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert center" id="lastAlertBox">
+                        ⏳ Aguardando alertas...
+                    </div>
+                    
+                    <div class="list" id="alertsList">
+                        <!-- Alertas serão carregados via JS -->
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="refreshAlerts()">🔄 ATUALIZAR AGORA</button>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            🔄 <strong>Auto-refresh:</strong> Atualiza a cada 30 segundos<br>
+                            🔔 <strong>Notificações:</strong> Ative para receber alertas em tempo real<br>
+                            📍 <strong>GPS:</strong> Localização enviada com cada alerta
+                        </p>
+                    </div>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/panel" class="link">⚙️ Painel Admin</a>
+                        <a href="/trusted/panel" class="link">👤 Painel Confiança</a>
+                        <a href="/historico" class="link">📋 Histórico Completo</a>
+                        <a href="/ajuda" class="link">📞 Central de Ajuda</a>
+                    </div>
+                    
+                    <p class="center small muted" style="margin-top: 14px;">
+                        🌸 AURORA MULHER SEGURA - v2.0
+                    </p>
+                </div>
             </div>
         </div>
     </div>
+    
+    <script>
+        // Carregar alertas
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/alerts');
+                const alerts = await response.json();
+                
+                if (alerts && alerts.length > 0) {
+                    document.getElementById('totalAlerts').textContent = alerts.length;
+                    
+                    // Contar alertas de hoje
+                    const hoje = new Date().toLocaleDateString('pt-BR');
+                    const todayCount = alerts.filter(a => {
+                        const dataAlerta = new Date(a.ts || a.timestamp).toLocaleDateString('pt-BR');
+                        return dataAlerta === hoje;
+                    }).length;
+                    document.getElementById('todayAlerts').textContent = todayCount;
+                    
+                    // Contar pendentes (offline)
+                    const pendentes = JSON.parse(localStorage.getItem('alertas_pendentes') || '[]');
+                    document.getElementById('pendingAlerts').textContent = pendentes.length;
+                    
+                    // Mostrar último alerta
+                    const lastAlert = alerts[alerts.length - 1];
+                    const alertBox = document.getElementById('lastAlertBox');
+                    alertBox.className = 'alert alert-live center';
+                    alertBox.innerHTML = `
+                        <strong>⚠️ ${lastAlert.situation || 'Emergência'}</strong><br>
+                        <span class="small muted">${lastAlert.name || 'Usuária'} • ${lastAlert.ts_br || lastAlert.ts || 'Agora'}</span>
+                        ${lastAlert.lat ? `<br><span class="small" style="color: #4caf50;">📍 GPS disponível</span>` : ''}
+                    `;
+                    
+                    // Preencher lista
+                    const listEl = document.getElementById('alertsList');
+                    listEl.innerHTML = '';
+                    
+                    alerts.slice(-5).reverse().forEach(alert => {
+                        const item = document.createElement('div');
+                        item.className = 'item';
+                        item.innerHTML = `
+                            <div>
+                                <div style="font-weight: 900; color: var(--hot);">⚠️ ${alert.situation || 'Emergência'}</div>
+                                <div class="small muted">${alert.name || 'Usuária'} • ${alert.ts_br || alert.ts || 'Agora'}</div>
+                                ${alert.lat ? `<div class="small" style="color: #4caf50;">📍 GPS: ${alert.lat}, ${alert.lng}</div>` : ''}
+                            </div>
+                        `;
+                        listEl.appendChild(item);
+                    });
+                }
+                
+                document.getElementById('statusIndicator').className = 'status-indicator active';
+                document.getElementById('statusText').textContent = '🟢 Sistema ativo - Monitorando';
+                
+            } catch (error) {
+                console.error('Erro ao carregar alertas:', error);
+                document.getElementById('statusIndicator').className = 'status-indicator inactive';
+                document.getElementById('statusText').textContent = '🔴 Erro de conexão';
+            }
+        }
+        
+        // Atualizar alertas
+        function refreshAlerts() {
+            loadAlerts();
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
+        
+        // Carregar ao iniciar
+        document.addEventListener('DOMContentLoaded', loadAlerts);
+        
+        // Auto-refresh a cada 30 segundos
+        setInterval(loadAlerts, 30000);
+        
+        // Monitorar conexão
+        window.addEventListener('online', loadAlerts);
+        window.addEventListener('offline', () => {
+            document.getElementById('statusIndicator').className = 'status-indicator inactive';
+            document.getElementById('statusText').textContent = '🔴 Offline - Aguardando conexão';
+        });
+    </script>
 </body>
 </html>

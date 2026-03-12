@@ -2,52 +2,81 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termos - Aurora</title>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#7a00ff">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Termos, Privacidade e Aviso Legal">
+    <title>Termos · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <style>
+        .legal-section {
+            margin: 14px 0;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+        }
+        .legal-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--hot);
+            margin-bottom: 8px;
+        }
+        .legal-text {
+            font-size: 12px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+        .legal-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0;
+        }
+        .legal-list li {
+            padding: 4px 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .legal-list li:before {
+            content: "• ";
+            color: var(--hot);
+            font-weight: 900;
+        }
+    </style>
 </head>
-<body class="aurora-bg">
-    <div class="center-wrap">
-        <div class="aurora-card">
-            <div class="topbar">
-                <div class="brand">
-                    <div class="brand-dot">🌸</div>
-                    <div>
-                        <div class="brand-title">AURORA</div>
-                        <div class="brand-sub">Termos</div>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">📜</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Termos</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/" class="pill">← Voltar</a>
                     </div>
                 </div>
-                <div class="top-actions">
-                    <a href="/" class="pill">← Voltar</a>
-                </div>
-            </div>
-
-            <div class="content">
-                <h1 class="h1">Termos · Privacidade · Aviso Legal</h1>
-
-                <div class="info-box">
-                    <p class="small"><strong>Aviso Legal</strong></p>
-                    <p class="small">O Aurora Mulher Segura é uma ferramenta tecnológica de apoio à segurança pessoal. Ele não substitui serviços oficiais de emergência (polícia, SAMU, bombeiros).</p>
-                </div>
-
-                <div class="info-box">
-                    <p class="small"><strong>Política de Privacidade (LGPD)</strong></p>
-                    <p class="small">• Coleta mínima: nome (opcional), data/hora do alerta, tipo de situação, mensagem (opcional)</p>
-                    <p class="small">• Localização: somente quando a usuária marcar "Compartilhar localização"</p>
-                    <p class="small">• Finalidade: registrar alertas e exibir para pessoas de confiança</p>
-                    <p class="small">• Compartilhamento: não compartilhamos com terceiros</p>
-                </div>
-
-                <div class="info-box">
-                    <p class="small"><strong>Termos de Uso</strong></p>
-                    <p class="small">• Uso voluntário e pessoal como ferramenta de apoio</p>
-                    <p class="small">• O usuário é responsável pelas informações inseridas</p>
-                    <p class="small">• A localização só é enviada com autorização explícita</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+                
+                <div class="content">
+                    <h1 class="h1">📜 TERMOS · PRIVACIDADE · LEGAL</h1>
+                    <p class="center muted">Informações importantes</p>
+                    
+                    <div class="legal-section">
+                        <div class="legal-title">⚖️ AVISO LEGAL</div>
+                        <div class="legal-text">
+                            O Aurora Mulher Segura é uma ferramenta tecnológica de apoio à segurança pessoal. 
+                            <strong>Ele não substitui serviços oficiais de emergência</strong> (polícia, SAMU, bombeiros).
+                            Em caso de emergência, ligue sempre para os números oficiais (190, 180, 192, 193).
+                        </div>
+                    </div>
+                    
+                    <div class="legal-section">
+                        <div class="legal-title">🔒 POLÍTICA DE PRIVACIDADE (LGPD)</div>
+                        <ul class="legal-list">
+                            <li><strong>Coleta mínima:</strong> nome (opcional), data/hora do alerta, tipo de situação, mensagem (opcional)</li>
+                            <li><strong>Localização:</strong> somente quando a usuária permitir acesso ao GPS</li>
+                            <li><strong>Finalidade:</strong>

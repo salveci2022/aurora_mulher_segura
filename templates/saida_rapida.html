@@ -1,214 +1,181 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Calculadora (Saída Rápida)">
+    <title>Calculadora · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        body {
-            background: #f5f5f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-        
-        .calculadora {
-            max-width: 350px;
+        .calc-display {
             width: 100%;
-            background: white;
-            border-radius: 40px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        
-        .display {
-            background: #eee;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 16px;
+            font-size: 28px;
             text-align: right;
-            font-size: 32px;
-            font-weight: 300;
-            color: #333;
-            min-height: 80px;
-            word-wrap: break-word;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 98, 212, 0.30);
+            background: rgba(10, 0, 20, 0.75);
+            color: var(--text);
+            margin-bottom: 14px;
+            font-family: monospace;
         }
-        
-        .botoes {
+        .calc-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
-        
-        .botao {
-            background: #f0f0f0;
-            border: none;
-            border-radius: 20px;
-            padding: 20px;
-            font-size: 20px;
+        .calc-btn {
+            padding: 16px;
+            font-size: 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            background: rgba(40, 0, 60, 0.35);
+            color: var(--text);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
-        
-        .botao:hover {
-            background: #e0e0e0;
+        .calc-btn:hover {
+            background: rgba(60, 0, 80, 0.45);
         }
-        
-        .botao.operador {
-            background: #ff4fc8;
-            color: white;
+        .calc-btn.operator {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.35), rgba(164, 92, 255, 0.18));
+            border-color: rgba(255, 121, 218, 0.55);
         }
-        
-        .botao.operador:hover {
-            background: #e63eaf;
+        .calc-btn.equals {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.95), rgba(164, 92, 255, 0.75));
+            color: #180013;
+            font-weight: 900;
         }
-        
-        .botao.igual {
-            background: #4caf50;
-            color: white;
-        }
-        
-        .botao.limpar {
-            background: #f44336;
-            color: white;
-        }
-        
-        .voltar-btn {
-            background: #2196f3;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            padding: 15px;
-            width: 100%;
-            margin-top: 20px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .voltar-btn:hover {
-            background: #1976d2;
-            transform: translateY(-2px);
-        }
-        
-        .info {
-            text-align: center;
-            margin-top: 15px;
-            color: #999;
-            font-size: 12px;
+        .calc-btn.clear {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: rgba(244, 67, 54, 0.4);
         }
     </style>
 </head>
 <body>
-    <div class="calculadora">
-        <div class="display" id="display">0</div>
-        
-        <div class="botoes">
-            <button class="botao limpar" onclick="limpar()">C</button>
-            <button class="botao" onclick="adicionar('(')">(</button>
-            <button class="botao" onclick="adicionar(')')">)</button>
-            <button class="botao operador" onclick="adicionar('/')">÷</button>
-            
-            <button class="botao" onclick="adicionar('7')">7</button>
-            <button class="botao" onclick="adicionar('8')">8</button>
-            <button class="botao" onclick="adicionar('9')">9</button>
-            <button class="botao operador" onclick="adicionar('*')">×</button>
-            
-            <button class="botao" onclick="adicionar('4')">4</button>
-            <button class="botao" onclick="adicionar('5')">5</button>
-            <button class="botao" onclick="adicionar('6')">6</button>
-            <button class="botao operador" onclick="adicionar('-')">-</button>
-            
-            <button class="botao" onclick="adicionar('1')">1</button>
-            <button class="botao" onclick="adicionar('2')">2</button>
-            <button class="botao" onclick="adicionar('3')">3</button>
-            <button class="botao operador" onclick="adicionar('+')">+</button>
-            
-            <button class="botao" onclick="adicionar('0')">0</button>
-            <button class="botao" onclick="adicionar('.')">.</button>
-            <button class="botao igual" onclick="calcular()">=</button>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🔢</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Calculadora</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">🔢 CALCULADORA</h1>
+                    <p class="center muted">Saída rápida (disfarce)</p>
+                    
+                    <input type="text" id="calcDisplay" class="calc-display" readonly value="0">
+                    
+                    <div class="calc-grid">
+                        <button class="calc-btn clear" onclick="clearCalc()">C</button>
+                        <button class="calc-btn operator" onclick="appendCalc('(')">(</button>
+                        <button class="calc-btn operator" onclick="appendCalc(')')">)</button>
+                        <button class="calc-btn operator" onclick="appendCalc('/')">÷</button>
+                        
+                        <button class="calc-btn" onclick="appendCalc('7')">7</button>
+                        <button class="calc-btn" onclick="appendCalc('8')">8</button>
+                        <button class="calc-btn" onclick="appendCalc('9')">9</button>
+                        <button class="calc-btn operator" onclick="appendCalc('*')">×</button>
+                        
+                        <button class="calc-btn" onclick="appendCalc('4')">4</button>
+                        <button class="calc-btn" onclick="appendCalc('5')">5</button>
+                        <button class="calc-btn" onclick="appendCalc('6')">6</button>
+                        <button class="calc-btn operator" onclick="appendCalc('-')">-</button>
+                        
+                        <button class="calc-btn" onclick="appendCalc('1')">1</button>
+                        <button class="calc-btn" onclick="appendCalc('2')">2</button>
+                        <button class="calc-btn" onclick="appendCalc('3')">3</button>
+                        <button class="calc-btn operator" onclick="appendCalc('+')">+</button>
+                        
+                        <button class="calc-btn" onclick="appendCalc('0')">0</button>
+                        <button class="calc-btn" onclick="appendCalc('.')">.</button>
+                        <button class="calc-btn equals" onclick="calculate()">=</button>
+                        <button class="calc-btn clear" onclick="deleteLast()">←</button>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            🎭 <strong>Disfarce:</strong> Esta calculadora serve como saída rápida em situações de risco.
+                        </p>
+                    </div>
+                    
+                    <a href="/panic" class="btn btn-primary">🚨 VOLTAR AO SOS</a>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
+                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <button class="voltar-btn" onclick="window.location.href='/panic'">← Voltar</button>
-        <div class="info">Calculadora Simples</div>
     </div>
     
     <script>
-        let display = document.getElementById('display');
+        let display = document.getElementById('calcDisplay');
+        let currentExpression = '';
         
-        function adicionar(valor) {
-            if (display.innerText === '0' && valor !== '.') {
-                display.innerText = valor;
+        function appendCalc(value) {
+            if (currentExpression === '0' && value !== '.') {
+                currentExpression = value;
             } else {
-                display.innerText += valor;
+                currentExpression += value;
             }
+            display.value = currentExpression;
         }
         
-        function limpar() {
-            display.innerText = '0';
+        function clearCalc() {
+            currentExpression = '0';
+            display.value = '0';
         }
         
-        function calcular() {
+        function deleteLast() {
+            if (currentExpression.length > 1) {
+                currentExpression = currentExpression.slice(0, -1);
+            } else {
+                currentExpression = '0';
+            }
+            display.value = currentExpression;
+        }
+        
+        function calculate() {
             try {
-                // Versão segura sem eval()
-                const expressao = display.innerText;
-                
-                // Verifica se a expressão contém apenas caracteres permitidos
-                if (!/^[0-9+\-*/().\s]+$/.test(expressao)) {
-                    throw new Error('Expressão inválida');
+                // Segurança: apenas operações matemáticas básicas
+                if (/^[0-9+\-*/().]+$/.test(currentExpression)) {
+                    const result = eval(currentExpression);
+                    display.value = result;
+                    currentExpression = result.toString();
+                } else {
+                    display.value = 'Erro';
+                    currentExpression = '0';
                 }
-                
-                // Usa Function que é mais seguro que eval
-                const resultado = new Function('return ' + expressao)();
-                
-                // Verifica se o resultado é um número válido
-                if (isNaN(resultado) || !isFinite(resultado)) {
-                    throw new Error('Resultado inválido');
-                }
-                
-                display.innerText = resultado;
-            } catch {
-                display.innerText = 'Erro';
-                setTimeout(() => {
-                    display.innerText = '0';
-                }, 1500);
+            } catch (e) {
+                display.value = 'Erro';
+                currentExpression = '0';
             }
         }
         
-        // Suporte para teclado
-        document.addEventListener('keydown', function(event) {
-            const key = event.key;
-            
-            if (key >= '0' && key <= '9') {
-                adicionar(key);
-            } else if (key === '.') {
-                adicionar('.');
-            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
-                adicionar(key);
-            } else if (key === 'Enter' || key === '=') {
-                event.preventDefault();
-                calcular();
-            } else if (key === 'Escape') {
-                limpar();
-            } else if (key === '(' || key === ')') {
-                adicionar(key);
-            } else if (key === 'Backspace') {
-                // Apaga último caractere
-                let atual = display.innerText;
-                if (atual.length > 1) {
-                    display.innerText = atual.slice(0, -1);
-                } else {
-                    display.innerText = '0';
-                }
+        // Teclado físico
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9' || e.key === '.' || e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/' || e.key === '(' || e.key === ')') {
+                appendCalc(e.key);
+            } else if (e.key === 'Enter' || e.key === '=') {
+                calculate();
+            } else if (e.key === 'Backspace') {
+                deleteLast();
+            } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
+                clearCalc();
             }
         });
     </script>

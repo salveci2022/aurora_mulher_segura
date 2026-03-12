@@ -1,244 +1,214 @@
-<!doctype html>
-<html lang="pt-br">
-
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Central Aurora</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-<style>
-
-body{
-background:#0f0f18;
-color:white;
-font-family:Arial;
-margin:0;
-transition: background-color 0.5s;
-}
-
-.topo{
-background:#1b1b2f;
-padding:15px;
-font-size:20px;
-font-weight:bold;
-border-bottom:1px solid #333;
-}
-
-#map{
-height:65vh;
-width:100%;
-}
-
-#lista{
-padding:10px;
-}
-
-.alerta{
-background:#1c1c2b;
-padding:10px;
-margin-bottom:10px;
-border-left:5px solid #ff4fc8;
-transition: all 0.3s;
-}
-
-.alerta-novo{
-animation:pulse 1s infinite;
-}
-
-@keyframes pulse{
-0%{background:#1c1c2b;}
-50%{background:#5a004f;}
-100%{background:#1c1c2b;}
-}
-
-.alerta-global{
-animation:flash 1s infinite;
-}
-
-@keyframes flash{
-0%{background:#0f0f18;}
-50%{background:#330022;}
-100%{background:#0f0f18;}
-}
-
-.notificacao-visual {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #ff4fc8;
-    color: white;
-    padding: 15px 25px;
-    border-radius: 50px;
-    font-weight: bold;
-    box-shadow: 0 5px 15px rgba(255,79,200,0.5);
-    animation: slideIn 0.5s;
-    z-index: 1000;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Histórico de Alertas">
+    <title>Histórico · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <style>
+        .alert-item {
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            background: rgba(10, 0, 20, 0.45);
+            border-radius: 16px;
+            padding: 12px;
+            margin: 8px 0;
+            transition: all 0.2s ease;
+        }
+        .alert-item:hover {
+            border-color: rgba(255, 79, 200, 0.5);
+            background: rgba(40, 0, 60, 0.55);
+        }
+        .alert-id {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .alert-situation {
+            font-weight: 900;
+            color: var(--hot);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .alert-info {
+            font-size: 12px;
+            color: var(--text);
+        }
+        .alert-gps {
+            font-size: 11px;
+            color: #4caf50;
+            margin-top: 6px;
+        }
+        .alert-message {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+            font-style: italic;
+        }
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 14px 0;
+        }
+        .filter-chip {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-chip.active {
+            background: rgba(255, 79, 200, 0.2);
+            border-color: rgba(255, 79, 200, 0.5);
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="topo">
-🚨 CENTRAL AURORA - MONITORAMENTO
-</div>
-
-<div id="map"></div>
-
-<div id="lista"></div>
-
-<audio id="sirene" preload="auto">
-<source src="/static/sirene.mp3" type="audio/mpeg">
-</audio>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<script>
-
-const map = L.map('map').setView([-15.78,-47.93],12)
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map)
-
-let markers={}
-let ultimoId=null
-let audioHabilitado = true
-
-function mostrarNotificacaoVisual(mensagem) {
-    const notificacao = document.createElement('div')
-    notificacao.className = 'notificacao-visual'
-    notificacao.innerHTML = `🔴 ${mensagem}`
-    document.body.appendChild(notificacao)
-    
-    setTimeout(() => {
-        notificacao.style.animation = 'slideIn 0.5s reverse'
-        setTimeout(() => {
-            document.body.removeChild(notificacao)
-        }, 500)
-    }, 3000)
-}
-
-function tocarSirene(){
-    const audio=document.getElementById("sirene")
-    
-    if (!audioHabilitado) return
-    
-    // Tenta tocar o áudio
-    const playPromise = audio.play()
-    
-    if (playPromise !== undefined) {
-        playPromise.catch(() => {
-            // Fallback visual se não conseguir tocar áudio
-            audioHabilitado = false
-            mostrarNotificacaoVisual('NOVO ALERTA - Áudio bloqueado pelo navegador')
-            
-            // Piscar a tela como fallback
-            document.body.classList.add("alerta-global")
-            setTimeout(() => {
-                document.body.classList.remove("alerta-global")
-            }, 3000)
-        })
-    }
-}
-
-function alertaTela(){
-    document.body.classList.add("alerta-global")
-    setTimeout(() => {
-        document.body.classList.remove("alerta-global")
-    }, 5000)
-}
-
-async function carregarAlertas(){
-    try {
-        const r = await fetch("/api/alerts")
-        const dados = await r.json()
-        
-        const lista=document.getElementById("lista")
-        lista.innerHTML=""
-        
-        dados.reverse().forEach(alerta=>{
-            const div=document.createElement("div")
-            div.className="alerta"
-            
-            if(alerta.id===ultimoId){
-                div.classList.add("alerta-novo")
-            }
-            
-            const localizacao = (alerta.lat && alerta.lng) ? '📍 Com localização' : '❌ Sem localização'
-            
-            div.innerHTML=`
-                <b>${alerta.name}</b><br>
-                ${alerta.situation}<br>
-                ${alerta.ts_br}<br>
-                <small>${localizacao}</small>
-            `
-            
-            lista.appendChild(div)
-            
-            if(alerta.lat && alerta.lng){
-                if(!markers[alerta.id]){
-                    markers[alerta.id]=L.marker([alerta.lat,alerta.lng]).addTo(map)
-                    markers[alerta.id].bindPopup(`
-                        <b>${alerta.name}</b><br>
-                        ${alerta.situation}<br>
-                        ${alerta.ts_br}
-                    `)
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">📋</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Histórico</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/relatorio/pdf" class="pill">📄 PDF</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">📋 HISTÓRICO DE ALERTAS</h1>
+                    <p class="center muted">Todos os alertas registrados</p>
                     
-                    map.setView([alerta.lat,alerta.lng],16)
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalCount">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="gpsCount">0</div>
+                            <div class="stat-label">Com GPS</div>
+                        </div>
+                    </div>
                     
-                    if(ultimoId !== null){
-                        tocarSirene()
-                        alertaTela()
-                        mostrarNotificacaoVisual(`NOVO ALERTA: ${alerta.name}`)
-                    }
-                }
-            }
-        })
-        
-        if(dados.length){
-            ultimoId=dados[dados.length-1].id
-        }
-        
-    } catch (error) {
-        console.error('Erro ao carregar alertas:', error)
-        lista.innerHTML = '<div style="color: #f44336; padding: 20px;">❌ Erro ao conectar com servidor</div>'
-    }
-}
-
-// Tentar reabilitar áudio se o usuário interagir com a página
-document.addEventListener('click', function() {
-    audioHabilitado = true
-}, { once: true })
-
-setInterval(carregarAlertas,500)
-
-carregarAlertas()
-
-// Tentar obter localização do usuário para centralizar o mapa
-if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-        function(pos) {
-            map.setView([pos.coords.latitude, pos.coords.longitude], 13)
-        },
-        function() {
-            console.log("Usando localização padrão (Brasília)")
-        }
-    )
-}
-
-</script>
-
+                    <div class="filter-chips">
+                        <div class="filter-chip active" data-filter="all">Todos</div>
+                        <div class="filter-chip" data-filter="gps">Com GPS</div>
+                        <div class="filter-chip" data-filter="nogps">Sem GPS</div>
+                    </div>
+                    
+                    <div id="alertsContainer">
+                        {% if alerts %}
+                            {% for alerta in alerts|reverse %}
+                            <div class="alert-item" data-has-gps="{{ 'true' if alerta.lat else 'false' }}">
+                                <div class="alert-id">
+                                    ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts or 'Data não disponível' }}
+                                </div>
+                                <div class="alert-situation">
+                                    ⚠️ {{ alerta.situation or 'Emergência' }}
+                                </div>
+                                <div class="alert-info">
+                                    👤 {{ alerta.name or 'Usuária' }}
+                                </div>
+                                {% if alerta.message %}
+                                <div class="alert-message">
+                                    💬 "{{ alerta.message }}"
+                                </div>
+                                {% endif %}
+                                {% if alerta.lat and alerta.lng %}
+                                <div class="alert-gps">
+                                    📍 {{ alerta.lat }}, {{ alerta.lng }}
+                                    {% if alerta.accuracy %}
+                                    (±{{ alerta.accuracy }}m)
+                                    {% endif %}
+                                    <br>
+                                    <a href="https://www.google.com/maps?q={{ alerta.lat }},{{ alerta.lng }}" 
+                                       target="_blank" 
+                                       class="link" 
+                                       style="display: inline-block; margin-top: 4px;">
+                                        🗺️ ABRIR NO MAPS
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="alert-gps" style="color: #f44336;">
+                                    📍 GPS não disponível
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert center">
+                                ⏳ Nenhum alerta registrado ainda
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="/relatorio/pdf" class="btn btn-primary">📄 BAIXAR RELATÓRIO COMPLETO (PDF)</a>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            📊 <strong>Estatísticas:</strong> Total de alertas e quantos tiveram GPS<br>
+                            🗺️ <strong>Maps:</strong> Clique em "Abrir no Maps" para ver localização<br>
+                            📄 <strong>PDF:</strong> Baixe relatório completo para imprimir
+                        </p>
+                    </div>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/panic" class="link">🚨 Voltar ao Botão SOS</a>
+                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
+                        <a href="/ajuda" class="link">📞 Central de Ajuda</a>
+                    </div>
+                    
+                    <p class="center small muted" style="margin-top: 14px;">
+                        🌸 AURORA MULHER SEGURA - Protegendo vidas
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Contar alertas
+        document.addEventListener('DOMContentLoaded', function() {
+            const alertItems = document.querySelectorAll('.alert-item');
+            const gpsItems = document.querySelectorAll('.alert-item[data-has-gps="true"]');
+            
+            document.getElementById('totalCount').textContent = alertItems.length;
+            document.getElementById('gpsCount').textContent = gpsItems.length;
+            
+            // Filtros
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    alertItems.forEach(item => {
+                        if (filter === 'all') {
+                            item.style.display = 'block';
+                        } else if (filter === 'gps' && item.dataset.hasGps === 'true') {
+                            item.style.display = 'block';
+                        } else if (filter === 'nogps' && item.dataset.hasGps === 'false') {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>

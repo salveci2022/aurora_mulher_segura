@@ -2,43 +2,121 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora Mulher Segura - Sistema de Emergência SOS">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Aurora SOS">
     <title>Aurora Mulher Segura</title>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#7a00ff">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <link rel="apple-touch-icon" href="/static/img/icon-192.png">
 </head>
-<body class="aurora-bg">
-    <div class="center-wrap">
-        <div class="aurora-card">
-            <div class="topbar">
-                <div class="brand">
-                    <div class="brand-dot">🌸</div>
-                    <div>
-                        <div class="brand-title">AURORA</div>
-                        <div class="brand-sub">Mulher Segura</div>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🌸</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Mulher Segura</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/legal" class="pill">Termos</a>
+                        <a href="/ajuda" class="pill">Ajuda</a>
                     </div>
                 </div>
-            </div>
-
-            <div class="content" style="text-align:center;">
-                <h1 class="h1">Aurora Mulher Segura</h1>
-                <p class="center muted small">Sistema de Emergência SOS</p>
-
-                <div class="alert alert-ok center" style="margin:20px 0;">✅ Sistema rodando</div>
-
-                <div style="display:grid;gap:10px;margin:20px 0;">
-                    <a href="/panic" class="btn btn-primary">🚨 Botão de Pânico</a>
-                    <a href="/panel/login" class="btn btn-primary">⚙️ Login Admin</a>
-                    <a href="/trusted/login" class="btn btn-primary">👥 Login Confiança</a>
-                </div>
-
-                <div class="info-box" style="margin-top:20px;">
-                    <p class="small"><strong>Dica:</strong> no celular, use Adicionar à tela inicial para criar um atalho (PWA).</p>
-                    <p class="small"><strong>Importante:</strong> a sirene toca somente no painel da Pessoa de Confiança.</p>
+                
+                <div class="content">
+                    <h1 class="h1">Sistema de Emergência SOS</h1>
+                    <p class="center muted">Protegendo vidas desde 2024</p>
+                    
+                    <div class="alert alert-ok center" id="installAlert" style="display: none;">
+                        📱 <strong>Toque em "Adicionar à tela inicial"</strong> para criar atalho!
+                    </div>
+                    
+                    <div class="sos-wrap">
+                        <a href="/panic" class="sos" id="sosBtn">
+                            <div>
+                                <div class="sos-text">SOS</div>
+                                <div class="sos-sub">TOQUE PARA INICIAR</div>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <button id="installBtn" class="btn btn-primary" style="display: none;">
+                        📱 INSTALAR APP NA TELA INICIAL
+                    </button>
+                    
+                    <div class="list">
+                        <div class="item">
+                            <span>🚨 Botão de Pânico</span>
+                            <a href="/panic" class="link">Acessar →</a>
+                        </div>
+                        <div class="item">
+                            <span>⚙️ Login Admin</span>
+                            <a href="/panel/login" class="link">Acessar →</a>
+                        </div>
+                        <div class="item">
+                            <span>👥 Login Confiança</span>
+                            <a href="/trusted/login" class="link">Acessar →</a>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            💡 <strong>ATALHO:</strong> No celular, use <strong>Adicionar à tela inicial</strong> no menu do navegador para criar um atalho rápido!
+                        </p>
+                        <p class="small muted">
+                            ⚠️ A sirene toca automaticamente no painel da Pessoa de Confiança.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/js/sw.js')
+                .then(reg => console.log('✅ SW registrado:', reg.scope))
+                .catch(err => console.error('❌ Erro SW:', err));
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        const installAlert = document.getElementById('installAlert');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+            installAlert.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+                installAlert.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ App instalado!');
+            installBtn.style.display = 'none';
+            installAlert.style.display = 'none';
+        });
+    </script>
 </body>
 </html>

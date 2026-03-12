@@ -12,8 +12,7 @@ const urlsToCache = [
     '/panic',
     '/static/css/style.css',
     '/static/js/panic.js',
-    '/static/audio/sirene.mp3',
-    '/static/img/logo.png',
+    '/static/js/sw.js',
     '/static/manifest.json'
 ];
 
@@ -27,7 +26,6 @@ self.addEventListener('install', event => {
                 console.log('📦 Cacheando arquivos estáticos...');
                 return cache.addAll(urlsToCache).catch(error => {
                     console.error('❌ Erro ao cachear:', error);
-                    // Tenta cachear um por um
                     return Promise.all(
                         urlsToCache.map(url => 
                             cache.add(url).catch(err => 
@@ -65,7 +63,7 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Estratégia de cache: Stale-While-Revalidate para navegação, Network First para APIs
+// Estratégia de cache
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
@@ -75,17 +73,11 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // Ignora requisições de análise/estatísticas
-    if (url.pathname.includes('analytics') || url.pathname.includes('ga')) {
-        return;
-    }
-    
     // Para navegação (páginas HTML)
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request)
                 .then(response => {
-                    // Cache da resposta
                     const responseClone = response.clone();
                     caches.open(CACHE_NAME).then(cache => {
                         cache.put(request, responseClone);
@@ -93,19 +85,16 @@ self.addEventListener('fetch', event => {
                     return response;
                 })
                 .catch(() => {
-                    // Fallback para cache ou página offline
                     return caches.match(request).then(response => {
                         if (response) {
                             return response;
                         }
-                        // Tenta achar no cache estático
                         return caches.match('/offline').then(offlineResponse => {
                             if (offlineResponse) {
                                 return offlineResponse;
                             }
-                            // Último recurso - página offline padrão
                             return new Response(
-                                '<!DOCTYPE html><html><head><title>Offline</title><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{background:#1a0033;color:white;font-family:Arial;text-align:center;padding:50px;}</style></head><body><h1>📴 Offline</h1><p>Sem conexão com internet</p><button onclick="location.reload()">Tentar novamente</button></body></html>',
+                                '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Offline</title></head><body><h1>📴 Offline</h1><p>Sem conexão com internet</p></body></html>',
                                 { headers: { 'Content-Type': 'text/html' } }
                             );
                         });
@@ -115,12 +104,11 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // Para arquivos estáticos (CSS, JS, imagens)
+    // Para arquivos estáticos
     event.respondWith(
         caches.match(request)
             .then(response => {
                 if (response) {
-                    // Atualiza o cache em segundo plano
                     fetch(request)
                         .then(networkResponse => {
                             if (networkResponse && networkResponse.status === 200) {
@@ -134,29 +122,24 @@ self.addEventListener('fetch', event => {
                     return response;
                 }
                 
-                // Não está no cache, busca da rede
                 return fetch(request)
                     .then(networkResponse => {
                         if (networkResponse && networkResponse.status === 200) {
                             const responseClone = networkResponse.clone();
-                            caches.open(STATIC_CACHE).then(cache => {
+                            caches.open(STATIC_CACHE).then(cache => { 
                                 cache.put(request, responseClone);
                             });
                         }
                         return networkResponse;
                     })
                     .catch(() => {
-                        // Se falhar, tenta um fallback genérico
-                        if (request.url.match(/\.(jpg|jpeg|png|gif|svg|ico)$/i)) {
-                            return new Response('', { status: 404, statusText: 'Not Found' });
-                        }
                         return new Response('', { status: 404, statusText: 'Not Found' });
                     });
             })
     );
 });
 
-// Sincronização em segundo plano (para alertas offline)
+// Sincronização em segundo plano
 self.addEventListener('sync', event => {
     if (event.tag === 'sync-alerts') {
         console.log('🔄 Sincronizando alertas pendentes...');

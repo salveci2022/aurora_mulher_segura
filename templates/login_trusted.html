@@ -1,271 +1,73 @@
-<!doctype html>
-<html lang="pt-br">
-
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Painel de Alerta</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-<style>
-
-body{
-background:#0f0f18;
-color:white;
-font-family:Arial;
-margin:0;
-text-align:center;
-}
-
-.topo{
-background:#1b1b2f;
-padding:15px;
-font-size:18px;
-font-weight:bold;
-}
-
-#map{
-height:50vh;
-width:100%;
-}
-
-.botao-alerta{
-width:120px;
-height:120px;
-border-radius:50%;
-background:#00a65a;
-margin:20px auto;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:22px;
-font-weight:bold;
-transition:0.3s;
-}
-
-.alerta{
-background:#ff0033;
-animation:pulse 1s infinite;
-}
-
-@keyframes pulse{
-0%{transform:scale(1)}
-50%{transform:scale(1.1)}
-100%{transform:scale(1)}
-}
-
-.botoes{
-margin-top:20px;
-}
-
-button{
-padding:10px 20px;
-margin:5px;
-border:none;
-background:#ff4fc8;
-color:white;
-font-weight:bold;
-cursor:pointer;
-border-radius:30px;
-transition: all 0.3s;
-}
-
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255,79,200,0.4);
-}
-
-.notificacao {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #ff4fc8;
-    color: white;
-    padding: 15px 25px;
-    border-radius: 50px;
-    font-weight: bold;
-    animation: slideIn 0.5s;
-    z-index: 1000;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Login Pessoa de Confiança">
+    <title>Confiança · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
 </head>
-
 <body>
-
-<div class="topo">
-👤 PAINEL DE ALERTA
-</div>
-
-<div id="map"></div>
-
-<div id="botao" class="botao-alerta">
-OK
-</div>
-
-<div id="info">
-Aguardando alerta...
-</div>
-
-<div class="botoes">
-<button onclick="reenviar()">REENVIAR</button>
-<button onclick="limpar()">LIMPAR</button>
-<button onclick="logout()">SAIR</button>
-</div>
-
-<audio id="sirene" preload="auto">
-<source src="/static/sirene.mp3" type="audio/mpeg">
-</audio>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<script>
-
-// Configuração do mapa
-const map = L.map('map').setView([-15.78,-47.93],12)
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map)
-
-let marker = null
-let ultimoId = null
-let audioHabilitado = true
-
-// Tentar obter localização do usuário para centralizar o mapa
-if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-        function(pos) {
-            map.setView([pos.coords.latitude, pos.coords.longitude], 13)
-        },
-        function(err) {
-            console.log("Erro ao obter localização:", err)
-            // Mantém a visualização padrão
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        }
-    )
-}
-
-function mostrarNotificacao(mensagem) {
-    const notif = document.createElement('div')
-    notif.className = 'notificacao'
-    notif.textContent = mensagem
-    document.body.appendChild(notif)
-    
-    setTimeout(() => {
-        notif.style.animation = 'slideIn 0.5s reverse'
-        setTimeout(() => {
-            document.body.removeChild(notif)
-        }, 500)
-    }, 3000)
-}
-
-function tocarSirene(){
-    const audio = document.getElementById("sirene")
-    
-    if (!audioHabilitado) return
-    
-    const playPromise = audio.play()
-    
-    if (playPromise !== undefined) {
-        playPromise.catch(() => {
-            audioHabilitado = false
-            mostrarNotificacao("🔴 NOVO ALERTA!")
-            
-            // Fallback visual
-            document.body.style.backgroundColor = "#330022"
-            setTimeout(() => {
-                document.body.style.backgroundColor = ""
-            }, 3000)
-        })
-    }
-}
-
-async function verificarAlerta(){
-    try {
-        const r = await fetch("/api/last_alert")
-        const dados = await r.json()
-        
-        if(!dados.last) return
-        
-        const alerta = dados.last
-        
-        if(alerta.id === ultimoId) return
-        
-        ultimoId = alerta.id
-        
-        document.getElementById("botao").classList.add("alerta")
-        
-        const localizacao = (alerta.lat && alerta.lng) ? '📍 Com localização' : '❌ Sem localização'
-        
-        document.getElementById("info").innerHTML = 
-            `🚨 ALERTA!<br><br>` +
-            `<strong>${alerta.name}</strong><br>` +
-            `⚠️ ${alerta.situation}<br>` +
-            `${alerta.ts_br}<br>` +
-            `<small>${localizacao}</small>`
-        
-        if(alerta.lat && alerta.lng){
-            if(marker){
-                map.removeLayer(marker)
-            }
-            
-            marker = L.marker([alerta.lat, alerta.lng]).addTo(map)
-            map.setView([alerta.lat, alerta.lng], 17)
-            
-            marker.bindPopup(`
-                <b>${alerta.name}</b><br>
-                ${alerta.situation}<br>
-                ${alerta.ts_br}
-            `).openPopup()
-        }
-        
-        tocarSirene()
-        mostrarNotificacao(`🚨 Alerta de ${alerta.name}`)
-        
-    } catch (error) {
-        console.error('Erro ao verificar alerta:', error)
-    }
-}
-
-function reenviar(){
-    alert("✅ Alerta reenviado com sucesso")
-}
-
-function limpar(){
-    document.getElementById("botao").classList.remove("alerta")
-    document.getElementById("info").innerHTML = "Aguardando alerta..."
-    mostrarNotificacao("✅ Alerta limpo")
-}
-
-function logout(){
-    if (confirm('Deseja realmente sair?')) {
-        window.location = "/logout_trusted"
-    }
-}
-
-// Tentar reabilitar áudio quando usuário interagir
-document.addEventListener('click', function() {
-    audioHabilitado = true
-}, { once: true })
-
-setInterval(verificarAlerta, 1000)
-verificarAlerta()
-
-</script>
-
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🌸</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Pessoa de Confiança</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">👤 LOGIN CONFIANÇA</h1>
+                    <p class="center muted">Acesse o painel de alertas</p>
+                    
+                    {% if error %}
+                    <div class="alert alert-danger center">
+                        ❌ Usuário ou senha inválidos. Tente novamente.
+                    </div>
+                    {% endif %}
+                    
+                    {% if request.args.get('msg') %}
+                    <div class="alert alert-ok center">
+                        ✅ {{ request.args.get('msg').replace('+', ' ') }}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" action="/trusted/login">
+                        <label class="label">Usuário</label>
+                        <input type="text" name="user" class="input" placeholder="Digite seu usuário" required autocomplete="username">
+                        
+                        <label class="label">Senha</label>
+                        <input type="password" name="password" class="input" placeholder="Digite sua senha" required autocomplete="current-password">
+                        
+                        <button type="submit" class="btn btn-primary">ENTRAR</button>
+                    </form>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/trusted/recover" class="link">🔐 Esqueci minha senha</a>
+                        <a href="/panic" class="link">← Voltar ao botão SOS</a>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            ℹ️ <strong>Informações:</strong><br>
+                            • Você receberá alertas em tempo real<br>
+                            • Poderá ver a localização da usuária<br>
+                            • A sirene toca quando há novo alerta
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

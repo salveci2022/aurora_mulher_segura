@@ -2,59 +2,278 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora - Modo Offline</title>
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <meta name="theme-color" content="#7a00ff">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Modo Offline">
+    <title>Offline · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <style>
+        .offline-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 14px;
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+        }
+        .offline-step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.95), rgba(164, 92, 255, 0.75));
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 14px;
+            color: #180013;
+            flex-shrink: 0;
+        }
+        .offline-step-content {
+            flex: 1;
+        }
+        .offline-step-title {
+            font-weight: 900;
+            color: var(--hot);
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .offline-step-desc {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .emergency-numbers {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 14px 0;
+        }
+        .emergency-btn {
+            text-decoration: none;
+            text-align: center;
+            padding: 12px 8px;
+            border-radius: 14px;
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            color: var(--text);
+            font-weight: 900;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        .emergency-btn:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+        .emergency-number {
+            display: block;
+            font-size: 20px;
+            margin-top: 4px;
+            color: var(--hot);
+        }
+        .connection-status {
+            text-align: center;
+            padding: 14px;
+            border-radius: 14px;
+            margin: 14px 0;
+            background: rgba(10, 0, 20, 0.55);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+        }
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-dot.offline {
+            background: #f44336;
+            animation: blink 1s infinite;
+        }
+        .status-dot.online {
+            background: #4caf50;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
 </head>
-<body class="aurora-bg">
-    <div class="center-wrap">
-        <div class="aurora-card">
-            <div class="topbar">
-                <div class="brand">
-                    <div class="brand-dot">📴</div>
-                    <div>
-                        <div class="brand-title">AURORA</div>
-                        <div class="brand-sub">Modo Offline</div>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">📴</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Modo Offline</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">📴 MODO OFFLINE</h1>
+                    <p class="center muted">Sem conexão com internet</p>
+                    
+                    <div class="connection-status">
+                        <span class="status-dot offline" id="statusDot"></span>
+                        <span id="statusText">⏳ Aguardando conexão...</span>
+                    </div>
+                    
+                    <div class="alert alert-ok center">
+                        ✅ Seu alerta está salvo no armazenamento do celular
+                    </div>
+                    
+                    <div class="offline-step">
+                        <div class="offline-step-number">1</div>
+                        <div class="offline-step-content">
+                            <div class="offline-step-title">SEU ALERTA ESTÁ SALVO</div>
+                            <div class="offline-step-desc">No armazenamento do celular (localStorage)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="offline-step">
+                        <div class="offline-step-number">2</div>
+                        <div class="offline-step-content">
+                            <div class="offline-step-title">SERÁ ENVIADO AUTOMATICAMENTE</div>
+                            <div class="offline-step-desc">Quando a internet voltar, o sistema enviará sozinho</div>
+                        </div>
+                    </div>
+                    
+                    <div class="offline-step">
+                        <div class="offline-step-number">3</div>
+                        <div class="offline-step-content">
+                            <div class="offline-step-title">EM CASO DE EMERGÊNCIA</div>
+                            <div class="offline-step-desc">Ligue imediatamente para os números abaixo</div>
+                        </div>
+                    </div>
+                    
+                    <h2 class="h1" style="font-size: 16px; margin-top: 14px;">🚨 NÚMEROS DE EMERGÊNCIA</h2>
+                    
+                    <div class="emergency-numbers">
+                        <a href="tel:190" class="emergency-btn">
+                            🚔 Polícia
+                            <span class="emergency-number">190</span>
+                        </a>
+                        <a href="tel:180" class="emergency-btn">
+                            👩 Central Mulher
+                            <span class="emergency-number">180</span>
+                        </a>
+                        <a href="tel:192" class="emergency-btn">
+                            🚑 SAMU
+                            <span class="emergency-number">192</span>
+                        </a>
+                    </div>
+                    
+                    <div class="alert" id="pendingAlerts">
+                        📱 Alertas pendentes: <strong id="pendingCount">0</strong>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="checkConnection()">🔄 TENTAR RECONNECTAR</button>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            💡 <strong>Dicas:</strong><br>
+                            • Ative os dados móveis ou Wi-Fi<br>
+                            • Verifique se o avião está desligado<br>
+                            • Os alertas serão enviados em fila quando online
+                        </p>
+                    </div>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/ajuda" class="link">📞 Central de Ajuda</a>
+                        <a href="/panic" class="link">← Voltar ao Botão SOS</a>
                     </div>
                 </div>
             </div>
-
-            <div class="content" style="text-align:center;">
-                <h1 class="h1">MODO OFFLINE</h1>
-                <p class="muted small">SEM CONEXÃO COM INTERNET</p>
-
-                <div style="margin:30px 0;">
-                    <p class="small"><strong>1</strong> SEU ALERTA ESTÁ SALVO</p>
-                    <p class="small muted">No armazenamento do celular</p>
-                </div>
-
-                <div style="margin:20px 0;">
-                    <p class="small"><strong>2</strong> SERÁ ENVIADO AUTOMATICAMENTE</p>
-                    <p class="small muted">Quando a internet voltar</p>
-                </div>
-
-                <div style="margin:20px 0;">
-                    <p class="small"><strong>3</strong> EM CASO DE EMERGÊNCIA</p>
-                    <p class="small muted">Ligue imediatamente</p>
-                    <p class="small" style="margin-top:10px;">
-                        <strong>190</strong> Polícia<br>
-                        <strong>180</strong> Central da Mulher<br>
-                        <strong>192</strong> SAMU
-                    </p>
-                </div>
-
-                <div style="margin:30px 0;">
-                    <p class="small">📱 Alertas pendentes: <strong>1</strong></p>
-                    <p class="small muted">⏳ Aguardando conexão...</p>
-                </div>
-
-                <button class="btn btn-primary" onclick="location.reload()">
-                    🔄 Tentar reconectar
-                </button>
-            </div>
         </div>
     </div>
+    
+    <script>
+        // Contar alertas pendentes
+        function countPendingAlerts() {
+            try {
+                const pendentes = JSON.parse(localStorage.getItem('alertas_pendentes') || '[]');
+                document.getElementById('pendingCount').textContent = pendentes.length;
+                return pendentes.length;
+            } catch (e) {
+                document.getElementById('pendingCount').textContent = '0';
+                return 0;
+            }
+        }
+        
+        // Verificar conexão
+        function checkConnection() {
+            if (navigator.onLine) {
+                document.getElementById('statusDot').className = 'status-dot online';
+                document.getElementById('statusText').textContent = '✅ Conexão restabelecida!';
+                
+                // Tentar enviar alertas pendentes
+                sendPendingAlerts();
+            } else {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = '⏳ Aguardando conexão...';
+                alert('❌ Ainda sem conexão. Verifique sua internet.');
+            }
+        }
+        
+        // Enviar alertas pendentes
+        async function sendPendingAlerts() {
+            try {
+                const pendentes = JSON.parse(localStorage.getItem('alertas_pendentes') || '[]');
+                
+                if (pendentes.length === 0) {
+                    return;
+                }
+                
+                document.getElementById('statusText').textContent = '📤 Enviando alertas pendentes...';
+                
+                for (const alerta of pendentes) {
+                    await fetch('/api/send_alert', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(alerta)
+                    });
+                }
+                
+                // Limpar pendentes após envio
+                localStorage.setItem('alertas_pendentes', '[]');
+                document.getElementById('pendingCount').textContent = '0';
+                document.getElementById('statusText').textContent = '✅ Alertas enviados com sucesso!';
+                
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                
+                setTimeout(() => {
+                    window.location.href = '/panic';
+                }, 2000);
+                
+            } catch (e) {
+                console.error('Erro ao enviar pendentes:', e);
+                document.getElementById('statusText').textContent = '⚠️ Erro ao enviar alertas';
+            }
+        }
+        
+        // Monitorar conexão
+        window.addEventListener('online', () => {
+            checkConnection();
+        });
+        
+        window.addEventListener('offline', () => {
+            document.getElementById('statusDot').className = 'status-dot offline';
+            document.getElementById('statusText').textContent = '⏳ Aguardando conexão...';
+        });
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            countPendingAlerts();
+            checkConnection();
+        });
+    </script>
 </body>
 </html>

@@ -1,315 +1,313 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
-<meta charset="UTF-8"/>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-
-<title>Confiança · Aurora</title>
-
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<style>
-
-*{margin:0;padding:0;box-sizing:border-box;}
-
-body{
-background:linear-gradient(135deg,#1a0033,#2d005a);
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:15px;
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-}
-
-.painel-confianca{
-max-width:480px;
-width:100%;
-background:linear-gradient(145deg,#2d005a,#1a0033);
-border-radius:40px;
-padding:24px;
-box-shadow:0 30px 60px rgba(0,0,0,0.7);
-border:1px solid rgba(255,79,200,0.3);
-}
-
-.sirene-btn.alerta{
-background: radial-gradient(circle at 50% 45%, #ff3b3b, #b30000);
-box-shadow:
-0 0 0 10px rgba(255,0,0,0.25),
-0 0 0 25px rgba(255,0,0,0.15),
-0 0 50px rgba(255,0,0,0.9);
-animation: alertaPulse 1s infinite;
-}
-
-@keyframes alertaPulse{
-0%{transform:scale(1);}
-50%{transform:scale(1.08);}
-100%{transform:scale(1);}
-}
-
-#mapa{
-height:300px;
-border-radius:15px;
-margin-top:15px;
-display:none;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <title>Confiança · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <style>
+        .alert-live {
+            animation: pulse-alert 1s infinite;
+            border-color: #f44336 !important;
+            background: rgba(244, 67, 54, 0.2) !important;
+        }
+        @keyframes pulse-alert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            50% { box-shadow: 0 0 0 20px rgba(244, 67, 54, 0); }
+        }
+        .siren-active {
+            animation: siren-flash 0.5s infinite;
+        }
+        @keyframes siren-flash {
+            0%, 100% { background: rgba(244, 67, 54, 0.3); }
+            50% { background: rgba(255, 79, 200, 0.3); }
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="painel-confianca">
-
-<h1 style="color:white;text-align:center;margin-bottom:10px;">
-CENTRAL DE ALERTAS
-</h1>
-
-<p style="text-align:center;color:#ff4fc8;">
-{{ display_name }}
-</p>
-
-<div class="sirene-container">
-
-<div class="sirene-btn" id="sireneBtn">
-
-<span>🔔</span>
-
-<small>SIRENE</small>
-
-</div>
-
-</div>
-
-<button class="mapa-btn" id="mapaBtn">
-
-📍 ABRIR LOCALIZAÇÃO
-
-</button>
-
-<div id="mapa"></div>
-
-<div id="alertBox">
-
-<div id="lastMeta">
-
-⏳ aguardando alertas
-
-</div>
-
-<div id="details"></div>
-
-</div>
-
-<!-- HISTÓRICO DE ALERTAS -->
-
-<div id="historicoAlertas" style="margin-top:15px;color:white;font-size:13px;"></div>
-
-</div>
-
-<script>
-
-const lastMeta=document.getElementById('lastMeta')
-const details=document.getElementById('details')
-const alertBox=document.getElementById('alertBox')
-const sireneBtn=document.getElementById('sireneBtn')
-
-let lastId=0
-let ultimoAlerta=null
-
-const sireneAudio=new Audio('/static/audio/sirene.mp3')
-
-let mapa
-let marcador
-
-function iniciarMapa(lat,lng){
-
-document.getElementById("mapa").style.display="block"
-
-if(!mapa){
-
-mapa=L.map('mapa').setView([lat,lng],16)
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapa)
-
-marcador=L.marker([lat,lng]).addTo(mapa)
-
-carregarMapaAlertas()
-
-}else{
-
-mapa.setView([lat,lng],16)
-
-marcador.setLatLng([lat,lng])
-
-}
-
-}
-
-function piscarPainel(){
-
-const painel=document.querySelector(".painel-confianca")
-
-painel.style.boxShadow="0 0 40px red"
-
-setTimeout(()=>{
-
-painel.style.boxShadow="0 30px 60px rgba(0,0,0,0.7)"
-
-},3000)
-
-}
-
-async function carregarHistorico(){
-
-try{
-
-const r = await fetch("/api/alerts")
-
-const dados = await r.json()
-
-let html = "<b>📊 Histórico recente</b><br><br>"
-
-dados.slice(-5).reverse().forEach(a=>{
-
-html += `🚨 ${a.id} - ${a.name} (${a.situation})<br>`
-
-})
-
-document.getElementById("historicoAlertas").innerHTML = html
-
-}catch(e){
-
-console.log("erro historico",e)
-
-}
-
-}
-
-async function carregarMapaAlertas(){
-
-try{
-
-const r = await fetch("/api/alerts")
-
-const dados = await r.json()
-
-dados.forEach(a=>{
-
-if(a.location){
-
-const lat=a.location.lat
-const lng=a.location.lng || a.location.lon
-
-L.marker([lat,lng]).addTo(mapa)
-
-}
-
-})
-
-}catch(e){
-
-console.log("erro mapa",e)
-
-}
-
-}
-
-async function buscarAlertas(){
-
-try{
-
-const res=await fetch('/api/last_alert?ts='+Date.now())
-
-const data=await res.json()
-
-if(data.ok && data.last){
-
-const alerta=data.last
-
-if(alerta.id>lastId){
-
-lastId=alerta.id
-
-ultimoAlerta=alerta
-
-piscarPainel()
-
-sireneBtn.classList.add("alerta")
-
-sireneAudio.play().catch(()=>{})
-
-setTimeout(()=>{
-
-sireneAudio.pause()
-
-sireneBtn.classList.remove("alerta")
-
-},10000)
-
-lastMeta.innerHTML=`🚨 ALERTA ${alerta.id}`
-
-let html=''
-
-html+=`👤 ${alerta.name}<br>`
-
-html+=`⚠️ ${alerta.situation}<br>`
-
-if(alerta.message){
-
-html+=`💬 ${alerta.message}<br>`
-
-}
-
-if(alerta.location){
-
-const lat=alerta.location.lat
-
-const lng=alerta.location.lng || alerta.location.lon
-
-html+=`📍 ${lat}, ${lng}`
-
-iniciarMapa(lat,lng)
-
-}
-
-details.innerHTML=html
-
-carregarHistorico()
-
-}
-
-}
-
-}catch(e){
-
-console.log(e)
-
-}
-
-}
-
-setInterval(()=>{
-
-buscarAlertas()
-
-carregarHistorico()
-
-},1000)
-
-buscarAlertas()
-
-</script>
-
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card" id="mainCard">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🔔</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Central de Alertas</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <span id="connectionStatus" class="pill">🟢 Online</span>
+                        <a href="/logout_trusted" class="pill">🚪 Sair</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">👤 {{ display_name }}</h1>
+                    <p class="center muted">Pessoa de Confiança</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="alertCount">0</div>
+                            <div class="stat-label">Alertas Totais</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="lastAlertTime">--:--</div>
+                            <div class="stat-label">Último Alerta</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="gpsAccuracy">--</div>
+                            <div class="stat-label">Precisão GPS</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sos-wrap">
+                        <button class="sos" id="sireneBtn" onclick="toggleSirene()">
+                            <div>
+                                <div class="sos-text">🔔</div>
+                                <div class="sos-sub">SIRENE: <span id="sireneStatus">DESLIGADA</span></div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="alert center" id="statusAlert">
+                        🟢 Monitorando alertas em tempo real...
+                    </div>
+                    
+                    <h2 class="h1" style="font-size: 18px; margin-top: 14px;">📋 Alertas em Tempo Real</h2>
+                    
+                    <div class="list" id="alertsList">
+                        <div class="alert center">⏳ Aguardando alertas...</div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            🔔 <strong>Sirene:</strong> Toca AUTOMATICAMENTE quando novo alerta chega<br>
+                            📍 <strong>GPS:</strong> Localização exata em cada alerta<br>
+                            🔄 <strong>Auto-refresh:</strong> Atualiza a cada 5 segundos
+                        </p>
+                    </div>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/trusted/change_password" class="link">🔐 Alterar senha</a>
+                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Áudio da Sirene -->
+    <audio id="sireneAudio" loop>
+        <source src="/static/audio/sirene.mp3" type="audio/mpeg">
+        <source src="/static/audio/sirene.wav" type="audio/wav">
+    </audio>
+    
+    <script>
+        let lastAlertId = null;
+        let sirenePlaying = false;
+        let audioContext = null;
+        let alertsData = [];
+
+        // Inicializa contexto de áudio para auto-play
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('✅ Audio context initialized');
+            } catch (e) {
+                console.log('⚠️ Audio context not supported');
+            }
+        }
+
+        // Toca sirene automaticamente
+        function playSirene() {
+            const audio = document.getElementById('sireneAudio');
+            
+            // Tenta múltiplos métodos para garantir auto-play
+            audio.play().then(() => {
+                sirenePlaying = true;
+                document.getElementById('sireneStatus').textContent = 'TOCANDO';
+                document.getElementById('sireneBtn').classList.add('siren-active');
+                document.getElementById('mainCard').classList.add('siren-active');
+                console.log('🔔 Sirene tocando automaticamente!');
+            }).catch(e => {
+                console.log('⚠️ Auto-play bloqueado, tentando interação:', e);
+                // Fallback: vibração
+                if (navigator.vibrate) {
+                    navigator.vibrate([1000, 500, 1000, 500, 1000]);
+                }
+            });
+
+            // Notificação visual forte
+            document.getElementById('statusAlert').className = 'alert alert-danger center';
+            document.getElementById('statusAlert').innerHTML = '🚨 NOVO ALERTA DE EMERGÊNCIA!';
+            
+            // Notificação do navegador
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🚨 ALERTA AURORA!', {
+                    body: 'Nova emergência detectada!',
+                    icon: '/static/img/icon-192.png',
+                    tag: 'aurora-alert',
+                    requireInteraction: true
+                });
+            }
+        }
+
+        // Para sirene
+        function stopSirene() {
+            const audio = document.getElementById('sireneAudio');
+            audio.pause();
+            audio.currentTime = 0;
+            sirenePlaying = false;
+            document.getElementById('sireneStatus').textContent = 'DESLIGADA';
+            document.getElementById('sireneBtn').classList.remove('siren-active');
+            document.getElementById('mainCard').classList.remove('siren-active');
+            document.getElementById('statusAlert').className = 'alert center';
+            document.getElementById('statusAlert').innerHTML = '🟢 Monitorando alertas...';
+        }
+
+        // Toggle manual da sirene
+        function toggleSirene() {
+            if (sirenePlaying) {
+                stopSirene();
+            } else {
+                playSirene();
+            }
+        }
+
+        // Vibração para alerta
+        function vibrateAlert() {
+            if (navigator.vibrate) {
+                navigator.vibrate([1000, 500, 1000, 500, 1000, 500, 1000]);
+            }
+        }
+
+        // Carrega alertas
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/alerts');
+                const alerts = await response.json();
+                
+                if (alerts && alerts.length > 0) {
+                    const lastAlert = alerts[alerts.length - 1];
+                    
+                    // Verifica se é NOVO alerta
+                    if (lastAlert.id !== lastAlertId) {
+                        console.log('🚨 NOVO ALERTA DETECTADO!', lastAlert);
+                        
+                        // ✅ TOCA SIRENE AUTOMATICAMENTE
+                        playSirene();
+                        vibrateAlert();
+                        
+                        lastAlertId = lastAlert.id;
+                        
+                        // Atualiza contadores
+                        document.getElementById('alertCount').textContent = alerts.length;
+                        
+                        const time = lastAlert.ts_br || lastAlert.ts || 'Agora';
+                        document.getElementById('lastAlertTime').textContent = time.split(' ')[1] || time;
+                        
+                        if (lastAlert.accuracy) {
+                            document.getElementById('gpsAccuracy').textContent = `±${lastAlert.accuracy}m`;
+                        }
+                        
+                        // Atualiza lista
+                        updateAlertsList(alerts);
+                        
+                        // Status
+                        document.getElementById('statusAlert').className = 'alert alert-danger center';
+                        document.getElementById('statusAlert').innerHTML = '🚨 NOVO ALERTA RECEBIDO!';
+                        
+                        setTimeout(() => {
+                            document.getElementById('statusAlert').className = 'alert center';
+                            document.getElementById('statusAlert').innerHTML = '🟢 Monitorando alertas...';
+                        }, 5000);
+                    }
+                }
+                
+                // Status conexão
+                document.getElementById('connectionStatus').textContent = '🟢 Online';
+                
+            } catch (error) {
+                console.error('Erro ao carregar alertas:', error);
+                document.getElementById('connectionStatus').textContent = '🔴 Offline';
+            }
+        }
+
+        // Atualiza lista de alertas
+        function updateAlertsList(alerts) {
+            const listEl = document.getElementById('alertsList');
+            listEl.innerHTML = '';
+            
+            alerts.slice(-10).reverse().forEach((alert, index) => {
+                const item = document.createElement('div');
+                item.className = 'item' + (index === 0 ? ' alert-live' : '');
+                
+                let gpsInfo = '';
+                if (alert.lat && alert.lng) {
+                    gpsInfo = `
+                        <div class="small" style="color: #4caf50; margin-top: 6px;">
+                            📍 ${alert.lat.toFixed(6)}, ${alert.lng.toFixed(6)}
+                            ${alert.accuracy ? `(±${alert.accuracy}m)` : ''}
+                        </div>
+                        <a href="https://www.google.com/maps?q=${alert.lat},${alert.lng}" 
+                           target="_blank" 
+                           class="link" 
+                           style="display: inline-block; margin-top: 4px; font-weight: 900;">
+                            🗺️ ABRIR NO GOOGLE MAPS
+                        </a>
+                    `;
+                }
+                
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: 900; color: var(--hot); font-size: 14px;">
+                            ⚠️ ${alert.situation || 'Emergência'}
+                        </div>
+                        <div class="small muted">
+                            ${alert.name || 'Usuária'} • ${alert.ts_br || alert.ts || 'Agora'}
+                        </div>
+                        ${alert.message ? `<div class="small" style="margin-top: 4px;">💬 "${alert.message}"</div>` : ''}
+                        ${gpsInfo}
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+            
+            alertsData = alerts;
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            initAudio();
+            loadAlerts();
+            
+            // Auto-refresh a cada 5 segundos (mais rápido para alertas)
+            setInterval(loadAlerts, 5000);
+            
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            
+            // Monitora conexão
+            window.addEventListener('online', () => {
+                document.getElementById('connectionStatus').textContent = '🟢 Online';
+                loadAlerts();
+            });
+            
+            window.addEventListener('offline', () => {
+                document.getElementById('connectionStatus').textContent = '🔴 Offline';
+            });
+            
+            // Interage com a página para permitir auto-play de áudio
+            document.addEventListener('click', function initAudioContext() {
+                initAudio();
+                document.removeEventListener('click', initAudioContext);
+            }, { once: true });
+        });
+    </script>
 </body>
 </html>

@@ -1,268 +1,120 @@
-<!doctype html>
-<html lang="pt-br">
-
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<meta name="theme-color" content="#ff4fc8">
-
-<title>Aurora Mulher Segura - Botão de Pânico</title>
-
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
-<link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.png') }}">
-<link rel="manifest" href="/static/manifest.json">
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Botão de Pânico SOS">
+    <title>Aurora - Botão de Pânico</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
 </head>
-
-<body class="aurora-bg">
-
-<div class="center-wrap">
-
-<div class="aurora-card">
-
-<!-- TOPO -->
-
-<div class="topbar">
-
-<div class="brand">
-
-<div class="brand-dot">♀</div>
-
-<div>
-<div class="brand-title">AURORA</div>
-<div class="brand-sub">MULHER SEGURA</div>
-</div>
-
-</div>
-
-</div>
-
-<div class="content">
-
-<div class="h1">⚠ SITUAÇÃO</div>
-
-<div class="chips">
-
-<div class="chip active" data-value="Assédio">🚫 Assédio</div>
-<div class="chip" data-value="Violência">👊 Violência</div>
-<div class="chip" data-value="Perseguição">👀 Perseguição</div>
-<div class="chip" data-value="Emergência médica">🏥 Emergência médica</div>
-
-</div>
-
-<label class="label">Seu nome</label>
-
-<input type="text" id="nomeInput" class="input" placeholder="Digite seu nome">
-
-<label class="label">Mensagem opcional</label>
-
-<textarea id="mensagemInput" class="textarea"></textarea>
-
-<div class="sos-wrap">
-
-<div class="sos" id="sosBtn">
-
-<div>
-<div class="sos-text">SOS</div>
-<div class="sos-sub">TOQUE E SEGURE</div>
-</div>
-
-</div>
-
-</div>
-
-<div class="alert" id="statusMsg">
-🌸 Sistema pronto
-</div>
-
-<div class="info-box">
-
-<div id="locTxt">Inicializando GPS...</div>
-
-<div class="small muted" id="locHint">
-Ative o GPS e permita acesso
-</div>
-
-</div>
-
-<button id="pdfBtn" class="btn btn-primary">
-📄 BAIXAR RELATÓRIO (PDF)
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<script>
-
-/* =========================
-LOCALIZAÇÃO
-========================= */
-
-let lastPos = null
-
-navigator.geolocation.watchPosition(function(pos) {
-    lastPos = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        acc: pos.coords.accuracy
-    }
-    document.getElementById("locTxt").innerHTML = 
-        "Latitude: " + lastPos.lat + "<br>Longitude: " + lastPos.lng
-}, function(err) {
-    console.log(err)
-    document.getElementById("locTxt").innerHTML = "❌ Erro no GPS. Verifique permissões."
-}, {enableHighAccuracy: true, maximumAge: 0, timeout: 5000})
-
-/* =========================
-SELEÇÃO SITUAÇÃO
-========================= */
-
-let situacaoSelecionada = "Assédio"
-
-document.querySelectorAll(".chip").forEach(btn => {
-    btn.addEventListener("click", function() {
-        document.querySelectorAll(".chip").forEach(b => b.classList.remove("active"))
-        this.classList.add("active")
-        situacaoSelecionada = this.dataset.value
-    })
-})
-
-/* =========================
-BOTÃO SOS
-========================= */
-
-const sosBtn = document.getElementById("sosBtn")
-let timerHold = null
-
-function iniciarHold() {
-    timerHold = setTimeout(() => {
-        enviarAlerta()
-        iniciarGravacao()
-    }, 1000)
-}
-
-function cancelarHold() {
-    clearTimeout(timerHold)
-}
-
-sosBtn.addEventListener("mousedown", iniciarHold)
-sosBtn.addEventListener("mouseup", cancelarHold)
-sosBtn.addEventListener("mouseleave", cancelarHold)
-sosBtn.addEventListener("touchstart", iniciarHold)
-sosBtn.addEventListener("touchend", cancelarHold)
-
-/* =========================
-ALERTA
-========================= */
-
-async function enviarAlerta() {
-    const nome = document.getElementById("nomeInput").value || "Usuária"
-    const msg = document.getElementById("mensagemInput").value || ""
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">⚠️</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Botão de Pânico</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/" class="pill">← Voltar</a>
+                        <a href="/ajuda" class="pill">Ajuda</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">⚠️ SITUAÇÃO DE RISCO</h1>
+                    <p class="center muted">Selecione o tipo de emergência</p>
+                    
+                    <div class="chips">
+                        <div class="chip active" data-value="Assédio">🚫 Assédio</div>
+                        <div class="chip" data-value="Violência">👊 Violência</div>
+                        <div class="chip" data-value="Perseguição">👀 Perseguição</div>
+                        <div class="chip" data-value="Emergência médica">🏥 Emergência médica</div>
+                        <div class="chip" data-value="Local suspeito">⚠️ Local suspeito</div>
+                        <div class="chip" data-value="Outro">❓ Outro</div>
+                    </div>
+                    
+                    <label class="label">Seu nome (opcional)</label>
+                    <input type="text" id="nomeInput" class="input" placeholder="Digite seu nome">
+                    
+                    <label class="label">Mensagem opcional</label>
+                    <textarea id="mensagemInput" class="textarea" placeholder="Descreva rapidamente o que está acontecendo..."></textarea>
+                    
+                    <div class="alert center" id="statusMsg">
+                        🌸 Sistema pronto
+                    </div>
+                    
+                    <div class="sos-wrap">
+                        <div class="sos" id="sosBtn" tabindex="0" role="button" aria-label="Botão de pânico - segure para enviar alerta">
+                            <div>
+                                <div class="sos-text">SOS</div>
+                                <div class="sos-sub">SEGURE POR 1 SEGUNDO</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            📍 <strong>GPS:</strong> <span id="gpsStatus">Inicializando GPS...</span>
+                        </p>
+                        <p class="small muted">
+                            ⚠️ Ative o GPS e permita acesso à localização
+                        </p>
+                    </div>
+                    
+                    <a href="/historico" class="btn btn-primary">📄 BAIXAR RELATÓRIO (PDF)</a>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
+                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    const payload = {
-        name: nome,
-        situation: situacaoSelecionada,
-        message: msg,
-        lat: lastPos ? lastPos.lat : null,
-        lng: lastPos ? lastPos.lng : null
-    }
-    
-    try {
-        const response = await fetch("/api/send_alert", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
-        })
-        
-        if (response.ok) {
-            document.getElementById("statusMsg").innerHTML = "✅ ALERTA ENVIADO COM SUCESSO"
-            document.getElementById("statusMsg").style.color = "#4caf50"
-        } else {
-            document.getElementById("statusMsg").innerHTML = "❌ ERRO AO ENVIAR ALERTA"
-            document.getElementById("statusMsg").style.color = "#f44336"
-        }
-    } catch(e) {
-        console.error(e)
-        document.getElementById("statusMsg").innerHTML = "❌ ERRO DE CONEXÃO"
-        document.getElementById("statusMsg").style.color = "#f44336"
-        
-        // Salvar alerta localmente para envio posterior
-        localStorage.setItem('alerta_pendente', JSON.stringify(payload))
-    }
-}
-
-/* =========================
-RASTREAMENTO EM TEMPO REAL E PARADA SUSPEITA
-========================= */
-
-let ultimoMovimento = Date.now()
-
-navigator.geolocation.watchPosition(function() {
-    ultimoMovimento = Date.now()
-}, function(err) {
-    console.log("erro gps", err)
-}, {enableHighAccuracy: true})
-
-setInterval(function() {
-    let parado = (Date.now() - ultimoMovimento) / 1000
-    if (parado > 120) {
-        console.log("⚠️ Parada suspeita detectada")
-        // Aqui você pode optar por enviar alerta automático
-    }
-}, 30000)
-
-/* =========================
-GRAVAÇÃO AUTOMÁTICA
-========================= */
-
-let recorder = null
-
-async function iniciarGravacao() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({audio: true})
-        recorder = new MediaRecorder(stream)
-        recorder.start()
-        console.log("🎙 Gravação iniciada")
-        
-        // Parar gravação após 30 segundos
-        setTimeout(() => {
-            if (recorder && recorder.state === "recording") {
-                recorder.stop()
-                stream.getTracks().forEach(track => track.stop())
-                console.log("🎙 Gravação finalizada")
+    <script src="/static/js/panic.js"></script>
+    <script>
+        // GPS Status Display
+        function updateGPSStatus(status, accuracy) {
+            const el = document.getElementById('gpsStatus');
+            if (el) {
+                if (status === 'success') {
+                    el.innerHTML = `🟢 Excelente (±${accuracy}m)`;
+                    el.style.color = '#4caf50';
+                } else if (status === 'warning') {
+                    el.innerHTML = `🟠 Médio (±${accuracy}m)`;
+                    el.style.color = '#ff9800';
+                } else {
+                    el.innerHTML = `🔴 Fraco (${accuracy}m ou mais)`;
+                    el.style.color = '#f44336';
+                }
             }
-        }, 30000)
-    } catch(e) {
-        console.log("erro gravação", e)
-    }
-}
-
-/* =========================
-PDF
-========================= */
-
-document.getElementById("pdfBtn").onclick = function() {
-    window.open("/relatorio/pdf", "_blank")
-}
-
-/* =========================
-VERIFICAR ALERTAS PENDENTES
-========================= */
-
-window.onload = function() {
-    const pendente = localStorage.getItem('alerta_pendente')
-    if (pendente) {
-        document.getElementById("statusMsg").innerHTML = "⏳ Alerta pendente aguardando conexão..."
-    }
-}
-
-</script>
-
+        }
+        
+        // Inicializa GPS
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                (pos) => {
+                    const acc = Math.round(pos.coords.accuracy);
+                    if (acc < 50) updateGPSStatus('success', acc);
+                    else if (acc < 100) updateGPSStatus('warning', acc);
+                    else updateGPSStatus('error', acc);
+                },
+                (err) => {
+                    document.getElementById('gpsStatus').innerHTML = '❌ GPS não disponível';
+                    document.getElementById('gpsStatus').style.color = '#f44336';
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+    </script>
 </body>
 </html>

@@ -1,345 +1,257 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recibo - Aurora Mulher Segura</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora - Recibo de Pagamento">
+    <title>Recibo · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+        .receipt-box {
+            background: rgba(10, 0, 20, 0.75);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 14px;
+            padding: 14px;
+            margin: 14px 0;
         }
-        
-        body {
-            background: #f0f0f0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .recibo {
-            max-width: 700px;
-            width: 100%;
-            background: white;
-            border-radius: 30px;
-            padding: 40px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
-            border: 2px solid #ff4fc8;
-        }
-        
-        .cabecalho {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px dashed #ff4fc8;
-            padding-bottom: 20px;
-        }
-        
-        .cabecalho h1 {
-            color: #ff4fc8;
-            font-size: 32px;
-            margin-bottom: 5px;
-        }
-        
-        .cabecalho h2 {
-            color: #333;
-            font-size: 20px;
-            font-weight: normal;
-        }
-        
-        .numero-recibo {
-            background: #ff4fc8;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: inline-block;
-            margin: 15px 0;
-            font-weight: bold;
-        }
-        
-        .dados {
-            margin: 30px 0;
-        }
-        
-        .linha {
-            display: flex;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .rotulo {
-            width: 150px;
-            font-weight: bold;
-            color: #666;
-        }
-        
-        .valor {
-            flex: 1;
-            color: #333;
-        }
-        
-        .pacote {
-            background: #f9f0ff;
-            border-left: 4px solid #ff4fc8;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 0 15px 15px 0;
-        }
-        
-        .itens {
-            margin: 20px 0;
-        }
-        
-        .item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .item input {
-            margin-right: 10px;
-            width: 18px;
-            height: 18px;
-        }
-        
-        .total {
-            background: #ff4fc8;
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            margin: 30px 0;
-        }
-        
-        .total .valor {
-            font-size: 36px;
-            font-weight: bold;
-            color: white;
-        }
-        
-        .assinaturas {
-            margin: 40px 0 20px;
-        }
-        
-        .assinatura-linha {
+        .receipt-row {
             display: flex;
             justify-content: space-between;
-            margin: 30px 0;
-        }
-        
-        .linha-assinatura {
-            width: 45%;
-        }
-        
-        .traco {
-            border-bottom: 2px solid #333;
-            margin-top: 5px;
-            margin-bottom: 5px;
-            height: 40px;
-        }
-        
-        .data {
-            text-align: right;
-            margin: 30px 0;
-            font-style: italic;
-        }
-        
-        .observacoes {
-            background: #fff9c4;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            margin-top: 20px;
-        }
-        
-        .rodape {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 98, 212, 0.1);
             font-size: 12px;
-            color: #999;
         }
-        
+        .receipt-row:last-child {
+            border-bottom: none;
+        }
+        .receipt-label {
+            color: var(--muted);
+        }
+        .receipt-value {
+            color: var(--text);
+            font-weight: 900;
+        }
+        .package-option {
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 14px;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(40, 0, 60, 0.2);
+        }
+        .package-option:hover {
+            background: rgba(60, 0, 80, 0.3);
+        }
+        .package-option.selected {
+            border-color: var(--hot);
+            background: rgba(255, 79, 200, 0.1);
+        }
+        .package-name {
+            font-weight: 900;
+            color: var(--hot);
+            font-size: 14px;
+        }
+        .package-price {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--text);
+        }
+        .package-features {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+        .editable {
+            background: rgba(10, 0, 20, 0.55);
+            border: 1px solid rgba(255, 98, 212, 0.30);
+            border-radius: 8px;
+            padding: 4px 8px;
+            color: var(--text);
+            font-size: 12px;
+            min-width: 150px;
+        }
         @media print {
-            body {
+            .aurora-bg {
                 background: white;
-                padding: 0;
             }
-            .recibo {
+            .aurora-card {
                 box-shadow: none;
-                border: 1px solid #ccc;
+                border: 1px solid #000;
+            }
+            .btn, .top-actions {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-    <div class="recibo" id="recibo">
-        <div class="cabecalho">
-            <h1>AURORA MULHER SEGURA</h1>
-            <h2>Tecnologia que salva vidas</h2>
-            <div class="numero-recibo" id="numeroRecibo">
-                RECIBO #AURORA-2026-0001
-            </div>
-        </div>
-        
-        <div class="dados">
-            <div class="linha">
-                <div class="rotulo">DATA:</div>
-                <div class="valor" id="dataAtual"></div>
-            </div>
-            <div class="linha">
-                <div class="rotulo">HORA:</div>
-                <div class="valor" id="horaAtual"></div>
-            </div>
-            <div class="linha">
-                <div class="rotulo">CLIENTE:</div>
-                <div class="valor">
-                    <input type="text" id="clienteNome" placeholder="Nome completo" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">📄</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Recibo</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/pagamentos" class="pill">💳 Pagamentos</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">📄 RECIBO DE PAGAMENTO</h1>
+                    <p class="center muted">AURORA MULHER SEGURA</p>
+                    
+                    <div class="receipt-box">
+                        <div class="receipt-row">
+                            <span class="receipt-label">📋 Número:</span>
+                            <span class="receipt-value" id="reciboNum">#AURORA-2026-0001</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">📅 Data:</span>
+                            <span class="receipt-value" id="reciboData">--/--/----</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">⏰ Hora:</span>
+                            <span class="receipt-value" id="reciboHora">--:--</span>
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">👤 Cliente:</span>
+                            <input type="text" class="editable" id="clienteNome" placeholder="Nome do cliente">
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">📝 CPF:</span>
+                            <input type="text" class="editable" id="clienteCpf" placeholder="000.000.000-00">
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">📱 Telefone:</span>
+                            <input type="tel" class="editable" id="clienteTel" placeholder="(XX) XXXXX-XXXX">
+                        </div>
+                        <div class="receipt-row">
+                            <span class="receipt-label">📧 E-mail:</span>
+                            <input type="email" class="editable" id="clienteEmail" placeholder="email@exemplo.com">
+                        </div>
+                    </div>
+                    
+                    <h2 class="h1" style="font-size: 16px;">📦 PACOTE ESCOLHIDO:</h2>
+                    
+                    <div class="package-option" onclick="selectPackage(this, 'basic', 497)">
+                        <div class="package-name">PACOTE BÁSICO</div>
+                        <div class="package-price">R$ 497,00</div>
+                        <div class="package-features">✓ Acesso ao sistema • ✓ Botão SOS com GPS • ✓ Relatório PDF • ✓ 30 dias de suporte</div>
+                    </div>
+                    
+                    <div class="package-option" onclick="selectPackage(this, 'family', 997)">
+                        <div class="package-name">PACOTE FAMÍLIA</div>
+                        <div class="package-price">R$ 997,00</div>
+                        <div class="package-features">✓ Tudo do básico • ✓ Até 3 pessoas de confiança • ✓ Painel para trusted • ✓ 90 dias de suporte</div>
+                    </div>
+                    
+                    <div class="package-option" onclick="selectPackage(this, 'lifetime', 1997)">
+                        <div class="package-name">PACOTE VITALÍCIO</div>
+                        <div class="package-price">R$ 1.997,00</div>
+                        <div class="package-features">✓ Tudo do família • ✓ Suporte vitalício • ✓ Atualizações gratuitas • ✓ 1 hora de treinamento</div>
+                    </div>
+                    
+                    <div class="receipt-box">
+                        <div class="receipt-row">
+                            <span class="receipt-label">💰 TOTAL A PAGAR:</span>
+                            <span class="receipt-value" id="totalPagar" style="color: var(--hot); font-size: 16px;">R$ 497,00</span>
+                        </div>
+                    </div>
+                    
+                    <h2 class="h1" style="font-size: 16px;">💳 FORMA DE PAGAMENTO:</h2>
+                    
+                    <div class="chips">
+                        <div class="chip" data-value="pix">📱 Pix</div>
+                        <div class="chip" data-value="cartao_credito">💳 Cartão de Crédito</div>
+                        <div class="chip" data-value="cartao_debito">💳 Cartão de Débito</div>
+                        <div class="chip" data-value="dinheiro">💵 Dinheiro</div>
+                        <div class="chip" data-value="boleto">📄 Boleto</div>
+                        <div class="chip" data-value="transferencia">🏦 Transferência</div>
+                    </div>
+                    
+                    <div class="item" style="margin-top: 14px;">
+                        <input type="checkbox" id="aceiteTermo" style="width: 20px; height: 20px;">
+                        <label for="aceiteTermo" style="margin-left: 10px; color: var(--text); font-size: 12px;">Declaro que li e aceito o Termo de Responsabilidade</label>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="printReceipt()">🖨️ IMPRIMIR RECIBO</button>
+                    
+                    <div class="info-box">
+                        <p class="small muted">
+                            📋 <strong>OBSERVAÇÕES:</strong><br>
+                            • O acesso ao sistema é pessoal e intransferível<br>
+                            • O termo de responsabilidade está disponível no sistema<br>
+                            • Suporte incluso conforme pacote escolhido<br>
+                            • Garantia de 7 dias para arrependimento
+                        </p>
+                    </div>
+                    
+                    <p class="center small muted" style="margin-top: 14px;">
+                        AURORA MULHER SEGURA - CNPJ: 00.000.000/0001-00<br>
+                        contato@aurorasegura.com.br | (XX) XXXXX-XXXX
+                    </p>
                 </div>
             </div>
-            <div class="linha">
-                <div class="rotulo">CPF:</div>
-                <div class="valor">
-                    <input type="text" id="clienteCPF" placeholder="000.000.000-00" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                </div>
-            </div>
-            <div class="linha">
-                <div class="rotulo">TELEFONE:</div>
-                <div class="valor">
-                    <input type="text" id="clienteTelefone" placeholder="(XX) XXXXX-XXXX" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                </div>
-            </div>
-            <div class="linha">
-                <div class="rotulo">E-MAIL:</div>
-                <div class="valor">
-                    <input type="email" id="clienteEmail" placeholder="email@provedor.com" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                </div>
-            </div>
-        </div>
-        
-        <h3 style="color: #ff4fc8; margin: 20px 0 10px;">📦 PACOTE ESCOLHIDO:</h3>
-        
-        <div class="pacote">
-            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <input type="radio" name="pacote" value="basico" checked> <strong>PACOTE BÁSICO - R$ 497,00</strong>
-            </label>
-            <div style="margin-left: 30px; color: #666; font-size: 14px;">
-                ✓ Acesso ao sistema<br>
-                ✓ Botão SOS com GPS<br>
-                ✓ Relatório PDF<br>
-                ✓ 30 dias de suporte
-            </div>
-        </div>
-        
-        <div class="pacote">
-            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <input type="radio" name="pacote" value="familia"> <strong>PACOTE FAMÍLIA - R$ 997,00</strong>
-            </label>
-            <div style="margin-left: 30px; color: #666; font-size: 14px;">
-                ✓ Tudo do básico<br>
-                ✓ Até 3 pessoas de confiança<br>
-                ✓ Painel para trusted<br>
-                ✓ 90 dias de suporte
-            </div>
-        </div>
-        
-        <div class="pacote">
-            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <input type="radio" name="pacote" value="vitalicio"> <strong>PACOTE VITALÍCIO - R$ 1.997,00</strong>
-            </label>
-            <div style="margin-left: 30px; color: #666; font-size: 14px;">
-                ✓ Tudo do família<br>
-                ✓ Suporte vitalício<br>
-                ✓ Atualizações gratuitas<br>
-                ✓ 1 hora de treinamento
-            </div>
-        </div>
-        
-        <div class="total">
-            <div style="font-size: 18px;">TOTAL A PAGAR</div>
-            <div class="valor" id="valorTotal">R$ 497,00</div>
-        </div>
-        
-        <h3 style="color: #ff4fc8; margin: 20px 0 10px;">💳 FORMA DE PAGAMENTO:</h3>
-        
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0;">
-            <label><input type="radio" name="pagamento" value="pix" checked> Pix</label>
-            <label><input type="radio" name="pagamento" value="credito"> Cartão de Crédito</label>
-            <label><input type="radio" name="pagamento" value="debito"> Cartão de Débito</label>
-            <label><input type="radio" name="pagamento" value="dinheiro"> Dinheiro</label>
-            <label><input type="radio" name="pagamento" value="boleto"> Boleto</label>
-            <label><input type="radio" name="pagamento" value="transferencia"> Transferência</label>
-        </div>
-        
-        <div style="margin: 20px 0;">
-            <label><input type="checkbox" id="termoAceito" checked> Declaro que li e aceito o Termo de Responsabilidade</label>
-        </div>
-        
-        <div class="assinaturas">
-            <div class="assinatura-linha">
-                <div class="linha-assinatura">
-                    <div class="traco"></div>
-                    <div style="text-align: center;">ASSINATURA DO CLIENTE</div>
-                </div>
-                <div class="linha-assinatura">
-                    <div class="traco"></div>
-                    <div style="text-align: center;">ASSINATURA DO VENDEDOR</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="data">
-            <p>____________________, ____ de ________________ de 2026</p>
-        </div>
-        
-        <div class="observacoes">
-            <p><strong>📋 OBSERVAÇÕES:</strong></p>
-            <p>• O acesso ao sistema é pessoal e intransferível</p>
-            <p>• O termo de responsabilidade está disponível no sistema</p>
-            <p>• Suporte incluso conforme pacote escolhido</p>
-            <p>• Garantia de 7 dias para arrependimento</p>
-        </div>
-        
-        <div class="rodape">
-            <p>AURORA MULHER SEGURA - CNPJ: 00.000.000/0001-00</p>
-            <p>contato@aurorasegura.com.br | (XX) XXXXX-XXXX</p>
         </div>
     </div>
     
     <script>
-        // Data e hora atual
-        const agora = new Date();
-        const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        // Gerar número do recibo
+        document.getElementById('reciboNum').textContent = '#AURORA-' + new Date().getFullYear() + '-' + 
+            String(Math.floor(Math.random() * 9000) + 1000);
         
-        document.getElementById('dataAtual').innerHTML = `${agora.getDate()} de ${meses[agora.getMonth()]} de ${agora.getFullYear()}`;
-        document.getElementById('horaAtual').innerHTML = `${agora.getHours().toString().padStart(2,'0')}:${agora.getMinutes().toString().padStart(2,'0')}`;
+        // Data e hora atuais
+        const now = new Date();
+        document.getElementById('reciboData').textContent = now.toLocaleDateString('pt-BR');
+        document.getElementById('reciboHora').textContent = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
         
-        // Número do recibo aleatório
-        const numRandom = Math.floor(Math.random() * 1000);
-        document.getElementById('numeroRecibo').innerHTML = `RECIBO #AURORA-2026-${numRandom.toString().padStart(4,'0')}`;
+        // Selecionar pacote
+        let selectedPackage = 'basic';
+        let selectedPrice = 497;
         
-        // Atualizar valor total conforme pacote
-        document.querySelectorAll('input[name="pacote"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                let valor = 'R$ 497,00';
-                if (this.value === 'familia') valor = 'R$ 997,00';
-                if (this.value === 'vitalicio') valor = 'R$ 1.997,00';
-                document.getElementById('valorTotal').innerHTML = valor;
+        function selectPackage(el, pkg, price) {
+            document.querySelectorAll('.package-option').forEach(p => p.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedPackage = pkg;
+            selectedPrice = price;
+            document.getElementById('totalPagar').textContent = 'R$ ' + price.toLocaleString('pt-BR', {minimumFractionDigits: 2}) + ',00';
+        }
+        
+        // Selecionar forma de pagamento
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
             });
         });
         
-        // Botão para imprimir
-        const imprimirBtn = document.createElement('button');
-        imprimirBtn.innerHTML = '🖨️ IMPRIMIR RECIBO';
-        imprimirBtn.style = 'position: fixed; bottom: 20px; right: 20px; background: #ff4fc8; color: white; border: none; border-radius: 30px; padding: 15px 30px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 20px rgba(255,79,200,0.5);';
-        imprimirBtn.onclick = () => window.print();
-        document.body.appendChild(imprimirBtn);
+        // Imprimir recibo
+        function printReceipt() {
+            const aceite = document.getElementById('aceiteTermo').checked;
+            if (!aceite) {
+                alert('❌ Você precisa aceitar o Termo de Responsabilidade!');
+                return;
+            }
+            
+            // Preencher dados antes de imprimir
+            const nome = document.getElementById('clienteNome').value || 'Não informado';
+            const cpf = document.getElementById('clienteCpf').value || 'Não informado';
+            
+            alert(`✅ Recibo gerado para: ${nome}\nCPF: ${cpf}\n\nClique em OK para imprimir.`);
+            window.print();
+        }
+        
+        // Selecionar primeiro pacote por padrão
+        document.querySelector('.package-option').classList.add('selected');
     </script>
 </body>
 </html>

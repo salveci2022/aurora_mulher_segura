@@ -1,48 +1,73 @@
-# Arquivos de cache e temporários
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Arquivo de ambiente
-.env
+*.py[cod]
+*$py.class
+*.so
+.Python
 env/
 venv/
 ENV/
-
-# Build e distribuição
-dist/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
 
-# Arquivos de log
-*.log
-*.log.*
+# Flask
+instance/
+.webassets-cache
 
-# Arquivos de configuração do IDE
+# Environment
+.env
+.venv
+.flaskenv
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Arquivos de teste
-tests/
-test_*.py
-*_test.py
+# Data files (keep structure, ignore content)
+data/*.json
+data/*.log
+data/*.txt
 
-# Arquivos de dados temporários
-data/
-alerts.log
-state.json
-users.json
+# Temporary files
+*.tmp
+*.temp
+*.cache
 
-# Arquivos de imagem temporários
-*.png
-*.jpg
-*.jpeg
-*.gif
+# OS files
+.DS_Store
+Thumbs.db
 
-# Arquivos de PDF temporários
+# Logs
+*.log
+logs/
+
+# PDFs (generated)
 *.pdf
 
-# Arquivos de cache do navegador
-webcache/
-.cache/
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Security
+*.key
+*.pem
+*.crt

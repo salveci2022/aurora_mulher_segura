@@ -2,12 +2,19 @@
   "name": "Aurora Mulher Segura",
   "short_name": "Aurora",
   "start_url": "/panic",
-  "scope": "/",
   "display": "standalone",
-  "background_color": "#0a0015",
-  "theme_color": "#7a00ff",
+  "background_color": "#1a0033",
+  "theme_color": "#ff4fc8",
   "icons": [
-    { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/static/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/static/img/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

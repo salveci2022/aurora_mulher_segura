@@ -1,2 +1,4 @@
 {"id": 88, "ts": "2026-03-04 00:30:01", "ts_br": "04/03/2026 00:30:01", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": {"lat": -16.02017453166035, "lng": -48.02072182591614, "accuracy": 100}}
 {"id": 89, "ts": "2026-03-05 09:52:38", "ts_br": "05/03/2026 09:52:38", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": null}
+{"id": 90, "ts": "2026-03-12 00:15:58", "ts_br": "12/03/2026 00:15:58", "name": "DIEUZA2026", "situation": "Violência", "message": "Preciso de ajuda urgente!", "location": null}
+{"id": 91, "ts": "2026-03-12 00:28:11", "ts_br": "12/03/2026 00:28:11", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": null}

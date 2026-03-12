@@ -2,297 +2,43 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#2d0a40">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Aurora Mulher Segura - Sistema de Emergência SOS">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aurora Mulher Segura</title>
-    <link rel="manifest" href="manifest.json">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #1a0520 0%, #2d0a40 50%, #1a0520 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(255,107,157,0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .logo {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1.2;
-        }
-        
-        .subtitle {
-            font-size: 1rem;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-        
-        .status {
-            background: rgba(0, 255, 0, 0.15);
-            border: 2px solid #00ff88;
-            border-radius: 25px;
-            padding: 12px 25px;
-            margin: 20px 0;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            box-shadow: 0 0 20px rgba(0,255,136,0.3);
-        }
-        
-        .status::before {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background: #00ff88;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin: 30px 0;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 18px 30px;
-            border-radius: 15px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
-        }
-        
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-        }
-        
-        .btn:active {
-            transform: translateY(-1px);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            font-size: 1.2rem;
-            padding: 22px 30px;
-            font-weight: 700;
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        .info {
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 25px;
-            font-size: 0.9rem;
-            line-height: 1.7;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .info strong {
-            color: #ff6b9d;
-            display: block;
-            margin-bottom: 8px;
-        }
-        
-        .info em {
-            color: #00ff88;
-            font-style: normal;
-        }
-        
-        footer {
-            margin-top: 30px;
-            font-size: 0.8rem;
-            opacity: 0.7;
-            line-height: 1.6;
-        }
-        
-        .version {
-            color: #ff6b9d;
-            font-weight: 600;
-        }
-        
-        @media (max-width: 480px) {
-            h1 { font-size: 1.8rem; }
-            .btn { padding: 16px 25px; font-size: 1rem; }
-            .btn-primary { padding: 20px 25px; }
-        }
-    </style>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#7a00ff">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-    <div class="container">
-        <div class="logo">🌸</div>
-        <h1>AURORA<br>Mulher Segura</h1>
-        <p class="subtitle">Sistema de Emergência SOS</p>
-        
-        <div class="status">
-            ✅ Sistema Online
+<body class="aurora-bg">
+    <div class="center-wrap">
+        <div class="aurora-card">
+            <div class="topbar">
+                <div class="brand">
+                    <div class="brand-dot">🌸</div>
+                    <div>
+                        <div class="brand-title">AURORA</div>
+                        <div class="brand-sub">Mulher Segura</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content" style="text-align:center;">
+                <h1 class="h1">Aurora Mulher Segura</h1>
+                <p class="center muted small">Sistema de Emergência SOS</p>
+
+                <div class="alert alert-ok center" style="margin:20px 0;">✅ Sistema rodando</div>
+
+                <div style="display:grid;gap:10px;margin:20px 0;">
+                    <a href="/panic" class="btn btn-primary">🚨 Botão de Pânico</a>
+                    <a href="/panel/login" class="btn btn-primary">⚙️ Login Admin</a>
+                    <a href="/trusted/login" class="btn btn-primary">👥 Login Confiança</a>
+                </div>
+
+                <div class="info-box" style="margin-top:20px;">
+                    <p class="small"><strong>Dica:</strong> no celular, use Adicionar à tela inicial para criar um atalho (PWA).</p>
+                    <p class="small"><strong>Importante:</strong> a sirene toca somente no painel da Pessoa de Confiança.</p>
+                </div>
+            </div>
         </div>
-        
-        <div class="menu">
-            <a href="panic_button.html" class="btn btn-primary">
-                <span>🚨</span>
-                <span>Botão de Pânico</span>
-            </a>
-            <a href="login_admin.html" class="btn">
-                <span>⚙️</span>
-                <span>Login Admin</span>
-            </a>
-            <a href="panel_trusted.html" class="btn btn-secondary">
-                <span>👥</span>
-                <span>Login Confiança</span>
-            </a>
-        </div>
-        
-        <div class="info">
-            <strong>💡 Dica PWA:</strong>
-            No celular, use <em>"Adicionar à tela inicial"</em> para criar um atalho e usar como aplicativo.
-            <br><br>
-            <strong>🔔 Importante:</strong>
-            A sirene toca somente no painel da Pessoa de Confiança quando um alerta é recebido.
-        </div>
-        
-        <footer>
-            <span class="version">🌸 Aurora Mulher Segura v2.0</span><br>
-            Sua segurança é nossa prioridade<br>
-            <small>© 2026 - Todos os direitos reservados</small>
-        </footer>
     </div>
-    
-    <script>
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('SW registered:', reg);
-                }).catch(err => {
-                    console.log('SW registration failed:', err);
-                });
-            });
-        }
-        
-        // Check system status
-        document.addEventListener('DOMContentLoaded', () => {
-            // Test localStorage
-            try {
-                localStorage.setItem('test', 'test');
-                localStorage.removeItem('test');
-                console.log('✅ localStorage OK');
-            } catch(e) {
-                console.error('❌ localStorage error:', e);
-            }
-            
-            // Check geolocation support
-            if ('geolocation' in navigator) {
-                console.log('✅ Geolocation available');
-            } else {
-                console.error('❌ Geolocation not available');
-            }
-            
-            // Check notification support
-            if ('Notification' in window) {
-                console.log('✅ Notifications available');
-            }
-        });
-        
-        // Prevent zoom on double tap for mobile
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', (e) => {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                e.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-    </script>
 </body>
 </html>

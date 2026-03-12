@@ -1,371 +1,535 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Confiança · Aurora</title>
+    <!-- Certifique-se de que o caminho do seu CSS está correto -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* MESMO ESTILO DO PAINEL DA MULHER */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<title>Aurora - Pessoa de Confiança</title>
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
 
-<meta name="theme-color" content="#2d0a40">
+        .painel-confianca {
+            max-width: 480px;
+            width: 100%;
+            background: linear-gradient(145deg, #2d005a, #1a0033);
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,79,200,0.3);
+        }
 
-<style>
+        .topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,79,200,0.3);
+        }
 
-/* aparência original preservada */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-body{
-font-family:'Segoe UI',system-ui;
-background:linear-gradient(135deg,#1a0520,#2d0a40,#1a0520);
-color:white;
-padding:15px;
-}
+        .brand-dot {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,121,218,0.9), rgba(164,92,255,0.75));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 0 25px rgba(255,79,200,0.5);
+        }
 
-.container{
-max-width:420px;
-margin:auto;
-}
+        .brand-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
 
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
+        .brand-sub {
+            font-size: 12px;
+            color: #cdb7e6;
+        }
 
-.logo{
-display:flex;
-align-items:center;
-gap:10px;
-}
+        .status-conexao {
+            font-size: 14px;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+        }
 
-.logo-icon{
-width:45px;
-height:45px;
-background:linear-gradient(135deg,#ff6b9d,#c44569);
-border-radius:12px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:1.5rem;
-}
+        /* BOTÃO REDONDO DA SIRENE (IGUAL AO SOS) */
+        .sirene-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
 
-.status-badge{
-display:flex;
-align-items:center;
-gap:8px;
-background:rgba(0,255,136,0.15);
-padding:8px 15px;
-border-radius:20px;
-}
+        .sirene-btn {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle at 50% 45%, rgba(255,121,218,0.95), rgba(138,36,139,0.65) 55%, rgba(40,0,60,0.75));
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 0 10px rgba(255,79,200,0.1), 0 0 0 25px rgba(164,92,255,0.07), 0 20px 50px rgba(0,0,0,0.55);
+            transition: all 0.3s;
+            border: 3px solid rgba(255,255,255,0.2);
+            user-select: none;
+            margin: 0 auto;
+        }
 
-.status-dot{
-width:8px;
-height:8px;
-background:#00ff88;
-border-radius:50%;
-animation:pulse 2s infinite;
-}
+        .sirene-btn span {
+            font-size: 50px;
+            font-weight: bold;
+            color: #180013;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+        }
 
-@keyframes pulse{
-0%,100%{opacity:1}
-50%{opacity:.4}
-}
+        .sirene-btn small {
+            font-size: 14px;
+            color: #220019;
+            font-weight: bold;
+            margin-top: 5px;
+        }
 
-.main-card{
-background:rgba(255,255,255,0.05);
-border-radius:20px;
-padding:25px;
-margin-bottom:20px;
-text-align:center;
-}
+        .sirene-btn.ativa {
+            background: radial-gradient(circle at 50% 45%, #ff9800, #f57c00);
+            box-shadow: 0 0 0 10px rgba(255,152,0,0.2), 0 0 0 25px rgba(255,152,0,0.1), 0 0 50px #ff9800;
+            animation: pulse 1s infinite;
+        }
 
-.siren-button{
+        .sirene-btn.ativa span {
+            color: white;
+            text-shadow: 0 2px 0 #b95f00;
+        }
 
-width:120px;
-height:120px;
-border-radius:50%;
-background:linear-gradient(135deg,#ffd700,#ffaa00);
-border:none;
-margin:auto;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:40px;
-cursor:pointer;
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255,152,0,0.3), 0 0 0 30px rgba(255,152,0,0.15), 0 0 70px #ff9800; }
+            100% { transform: scale(1); }
+        }
 
-}
+        /* BOTÃO DO MAPA */
+        .mapa-btn {
+            background: linear-gradient(135deg, #2196f3, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 15px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 15px 0;
+            display: none; /* inicialmente escondido */
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(33,150,243,0.3);
+        }
 
-.alert-card{
-background:rgba(255,0,0,0.2);
-border:2px solid red;
-border-radius:15px;
-padding:20px;
-display:none;
-margin-top:20px;
-}
+        .mapa-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33,150,243,0.5);
+        }
 
-.alert-card.active{
-display:block;
-}
+        .mapa-btn.visivel {
+            display: flex; /* mostra o botão quando necessário */
+        }
 
-.btn-map{
-width:100%;
-padding:15px;
-margin-top:15px;
-background:#00d2ff;
-border:none;
-border-radius:10px;
-font-weight:bold;
-cursor:pointer;
-}
+        .mapa-btn span {
+            font-size: 24px;
+        }
 
-.action-buttons{
-display:grid;
-grid-template-columns:1fr 1fr 1fr;
-gap:10px;
-margin-top:20px;
-}
+        /* ÁREA DO ALERTA */
+        #alertBox {
+            background: rgba(255,79,200,0.1);
+            border: 2px solid #ff4fc8;
+            border-radius: 25px;
+            padding: 20px;
+            margin: 20px 0;
+            transition: all 0.5s;
+        }
 
-.btn-action{
-padding:12px;
-border-radius:10px;
-border:none;
-cursor:pointer;
-}
+        #alertBox.novo {
+            background: rgba(255,152,0,0.2);
+            border-color: #ff9800;
+            box-shadow: 0 0 30px rgba(255,152,0,0.5);
+            animation: brilho 1s infinite;
+        }
 
-.btn-resend{background:orange}
-.btn-clear{background:#9333ea;color:white}
-.btn-exit{background:red;color:white}
+        @keyframes brilho {
+            0% { box-shadow: 0 0 10px #ff9800; }
+            50% { box-shadow: 0 0 30px #ff9800; }
+            100% { box-shadow: 0 0 10px #ff9800; }
+        }
 
-.waiting{
-text-align:center;
-margin:20px;
-opacity:.7;
-}
+        #lastMeta {
+            font-size: 18px;
+            color: #ff4fc8;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
 
-</style>
+        #details {
+            line-height: 1.8;
+            color: white;
+        }
 
+        /* BOTÕES DE AÇÃO (IGUAIS AO DA MULHER) */
+        .acoes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .acao-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,79,200,0.3);
+            padding: 15px 5px;
+            border-radius: 30px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .acao-btn span {
+            font-size: 24px;
+        }
+
+        .acao-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .acao-btn.reenviar { background: linear-gradient(135deg, #ff9800, #f57c00); }
+        .acao-btn.limpar { background: linear-gradient(135deg, #9c27b0, #7b1fa2); }
+        .acao-btn.sair { background: linear-gradient(135deg, #f44336, #c62828); }
+
+        /* STATUS BAR */
+        .status-bar {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,79,200,0.3);
+            border-radius: 30px;
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+            color: #cdb7e6;
+            margin-top: 15px;
+        }
+
+        /* LOCALIZAÇÃO INFO */
+        .loc-info {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #ff4fc8;
+        }
+
+        .coordenadas {
+            font-family: monospace;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+
+        .precisao-excelente { color: #4caf50; font-weight: bold; }
+        .precisao-boa { color: #4caf50; }
+        .precisao-media { color: #ff9800; }
+        .precisao-ruim { color: #f44336; }
+
+        /* RODAPÉ */
+        .rodape {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255,79,200,0.3);
+            color: #cdb7e6;
+            font-size: 12px;
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="container">
-
-<div class="header">
-
-<div class="logo">
-<div class="logo-icon">🌸</div>
-<div>
-<div>AURORA</div>
-<div style="font-size:12px">Pessoa de Confiança</div>
-</div>
-</div>
-
-<div class="status-badge">
-<div class="status-dot"></div>
-Online
-</div>
-
-</div>
-
-<div class="main-card">
-
-<h2>🚨 CENTRAL DE ALERTAS</h2>
-
-<button class="siren-button" id="sirenBtn" onclick="toggleSiren()">
-🔔
-</button>
-
-<button class="btn-map" onclick="openMap()">
-📍 ABRIR LOCALIZAÇÃO
-</button>
-
-</div>
-
-<div class="waiting" id="waiting">
-⏳ Aguardando alerta...
-</div>
-
-<div class="alert-card" id="alertCard">
-
-<h3>🚨 ALERTA</h3>
-
-<div>
-<b>Nome:</b> <span id="name"></span>
-</div>
-
-<div>
-<b>Situação:</b> <span id="situation"></span>
-</div>
-
-<div>
-<b>Mensagem:</b> <span id="message"></span>
-</div>
-
-<div>
-<b>Hora:</b> <span id="time"></span>
-</div>
-
-<div style="margin-top:10px">
-
-<b>Localização:</b>
-
-<div id="location"></div>
-
-</div>
-
-<div class="action-buttons">
-
-<button class="btn-action btn-resend" onclick="resendAlert()">
-🔁 Reenviar
-</button>
-
-<button class="btn-action btn-clear" onclick="clearAlert()">
-🧹 Limpar
-</button>
-
-<button class="btn-action btn-exit" onclick="exitPanel()">
-🚪 Sair
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<script>
-
-let currentAlert=null
-let siren=false
-let audio=null
-
-function toggleSiren(){
-
-siren=!siren
-
-if(siren){
-
-playSiren()
-
-navigator.vibrate?.([500,200,500])
-
-}else{
-
-stopSiren()
-
-}
-
-}
-
-function playSiren(){
-
-audio=new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg")
-
-audio.loop=true
-audio.play()
-
-}
-
-function stopSiren(){
-
-if(audio){
-audio.pause()
-}
-
-}
-
-async function checkAlert(){
-
-try{
-
-const res=await fetch("/api/last_alert")
-
-const data=await res.json()
-
-if(data.alert){
-
-showAlert(data.alert)
-
-}
-
-}catch(e){
-
-console.log("Erro alerta")
-
-}
-
-}
-
-function showAlert(alert){
-
-currentAlert=alert
-
-document.getElementById("waiting").style.display="none"
-
-document.getElementById("alertCard").classList.add("active")
-
-document.getElementById("name").textContent=alert.nome
-document.getElementById("situation").textContent=alert.situacao
-document.getElementById("message").textContent=alert.mensagem
-document.getElementById("time").textContent=alert.hora
-
-if(alert.localizacao){
-
-document.getElementById("location").innerHTML=
-"Lat: "+alert.localizacao.lat+
-"<br>Lng: "+alert.localizacao.lng
-
-}
-
-if(!siren){
-
-toggleSiren()
-
-}
-
-}
-
-function openMap(){
-
-if(!currentAlert)return
-
-const lat=currentAlert.localizacao.lat
-const lng=currentAlert.localizacao.lng
-
-window.open(
-"https://www.google.com/maps?q="+lat+","+lng
-)
-
-}
-
-function resendAlert(){
-
-alert("Alerta reenviado!")
-
-}
-
-function clearAlert(){
-
-currentAlert=null
-
-document.getElementById("alertCard").classList.remove("active")
-
-document.getElementById("waiting").style.display="block"
-
-stopSiren()
-
-}
-
-function exitPanel(){
-
-window.location.href="/"
-
-}
-
-setInterval(checkAlert,3000)
-
-</script>
-
+    <div class="painel-confianca">
+        <!-- TOPO -->
+        <div class="topo">
+            <div class="brand">
+                <div class="brand-dot">🌸</div>
+                <div>
+                    <div class="brand-title">AURORA</div>
+                    <div class="brand-sub">Pessoa de Confiança</div>
+                </div>
+            </div>
+            <div class="status-conexao" id="statusConexao">🟢 Online</div>
+        </div>
+
+        <!-- TÍTULO -->
+        <h1 class="h1" style="color:white; text-align:center; margin-bottom:5px;">CENTRAL DE ALERTAS</h1>
+        <p class="center muted small" style="margin-bottom:20px;">Olá, <strong style="color:#ff4fc8;">{{ display_name }}</strong></p>
+
+        <!-- BOTÃO REDONDO DA SIRENE (IGUAL AO SOS) -->
+        <div class="sirene-container">
+            <div class="sirene-btn" id="sireneBtn">
+                <span>🔔</span>
+                <small>SIRENE</small>
+            </div>
+        </div>
+
+        <!-- BOTÃO DO MAPA -->
+        <button class="mapa-btn" id="mapaBtn">
+            <span>📍</span>
+            ABRIR LOCALIZAÇÃO NO MAPA
+        </button>
+
+        <!-- ÁREA DO ALERTA -->
+        <div id="alertBox">
+            <div id="lastMeta">⏳ Aguardando alertas...</div>
+            <div id="details"></div>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO (REENVIAR, LIMPAR, SAIR) -->
+        <div class="acoes-grid">
+            <button class="acao-btn reenviar" id="reenviarBtn">
+                <span>🔄</span>
+                Reenviar
+            </button>
+            <button class="acao-btn limpar" id="limparBtn">
+                <span>🗑️</span>
+                Limpar
+            </button>
+            <button class="acao-btn sair" id="sairBtn">
+                <span>🚪</span>
+                Sair
+            </button>
+        </div>
+
+        <!-- STATUS BAR -->
+        <div class="status-bar" id="statusBar">
+            Sistema monitorando alertas em tempo real
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="rodape">
+            <span id="dataHora"></span> • 🌸 AURORA V2.0
+        </div>
+    </div>
+
+    <script>
+        // Elementos DOM
+        const lastMeta = document.getElementById('lastMeta');
+        const details = document.getElementById('details');
+        const alertBox = document.getElementById('alertBox');
+        const sireneBtn = document.getElementById('sireneBtn');
+        const mapaBtn = document.getElementById('mapaBtn');
+        const statusBar = document.getElementById('statusBar');
+
+        let lastId = 0;
+        let sireneAtiva = true;
+        let ultimoAlerta = null;
+
+        // ===== DATA E HORA =====
+        function atualizarDataHora() {
+            const agora = new Date();
+            const horas = agora.getHours().toString().padStart(2, '0');
+            const minutos = agora.getMinutes().toString().padStart(2, '0');
+            const dia = agora.getDate().toString().padStart(2, '0');
+            const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
+            const ano = agora.getFullYear();
+            document.getElementById('dataHora').textContent = `${horas}:${minutos} ${dia}/${mes}/${ano}`;
+        }
+        setInterval(atualizarDataHora, 1000);
+        atualizarDataHora();
+
+        // ===== SIRENE =====
+        const sireneAudio = new Audio('/static/audio/sirene.mp3'); // Verifique o caminho
+        sireneAudio.loop = true;
+
+        // Toggle sirene
+        document.getElementById('sireneBtn').addEventListener('click', () => {
+            sireneAtiva = !sireneAtiva;
+            document.getElementById('sireneBtn').classList.toggle('ativa', sireneAtiva);
+            if (!sireneAtiva) {
+                sireneAudio.pause();
+                sireneAudio.currentTime = 0;
+            }
+        });
+
+        // Tocar sirene ao clicar na página (apenas uma vez)
+        document.addEventListener('click', () => {
+            if (sireneAtiva && alertBox.classList.contains('novo')) {
+                sireneAudio.play().catch(e => console.log('Erro ao tocar:', e));
+            }
+        }, { once: false }); // Removi o once para permitir múltiplos cliques
+
+        // ===== MAPA =====
+        document.getElementById('mapaBtn').addEventListener('click', () => {
+            if (ultimoAlerta && ultimoAlerta.location) {
+                const lat = ultimoAlerta.location.lat;
+                const lng = ultimoAlerta.location.lng;
+                window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+            }
+        });
+
+        // ===== BOTÕES =====
+        document.getElementById('reenviarBtn').onclick = () => alert('Função em desenvolvimento');
+
+        document.getElementById('limparBtn').onclick = () => {
+            lastMeta.innerHTML = '⏳ Alertas limpos';
+            details.innerHTML = '';
+            alertBox.classList.remove('novo');
+            mapaBtn.classList.remove('visivel');
+            sireneAudio.pause();
+            sireneAudio.currentTime = 0;
+            statusBar.innerHTML = '🧹 Alerta limpo manualmente';
+        };
+
+        document.getElementById('sairBtn').onclick = () => {
+            if (confirm('Deseja realmente sair?')) {
+                window.location.href = '/logout_trusted';
+            }
+        };
+
+        // ===== BUSCAR ALERTAS =====
+        async function buscarAlertas() {
+            try {
+                const res = await fetch('/api/last_alert?ts=' + Date.now());
+                const data = await res.json();
+
+                if (data.ok && data.last) {
+                    const alerta = data.last;
+
+                    // NOVO ALERTA
+                    if (alerta.id > lastId) {
+                        lastId = alerta.id;
+                        ultimoAlerta = alerta;
+
+                        alertBox.classList.add('novo');
+
+                        if (sireneAtiva) {
+                            sireneAudio.play().catch(e => console.log('Erro ao tocar:', e));
+                        }
+
+                        // Parar sirene após 10 segundos
+                        setTimeout(() => {
+                            if (sireneAtiva) {
+                                sireneAudio.pause();
+                                sireneAudio.currentTime = 0;
+                            }
+                        }, 10000);
+
+                        // Remover destaque depois de 5 segundos
+                        setTimeout(() => {
+                            alertBox.classList.remove('novo');
+                        }, 5000);
+
+                        statusBar.innerHTML = `🚨 NOVO ALERTA #${alerta.id} recebido!`;
+
+                        // Atualizar detalhes do alerta
+                        lastMeta.innerHTML = `<strong>🚨 ALERTA #${alerta.id}</strong> - ${alerta.ts_br || alerta.ts}`;
+
+                        let html = '';
+                        html += `👤 <strong>Nome:</strong> ${alerta.name || 'Não informado'}<br>`;
+                        html += `⚠️ <strong>Situação:</strong> ${alerta.situation}<br>`;
+
+                        if (alerta.message) {
+                            html += `💬 <strong>Mensagem:</strong> ${alerta.message}<br>`;
+                        }
+
+                        // Localização
+                        if (alerta.location) {
+                            const { lat, lng, accuracy } = alerta.location;
+                            let precisaoClass = '';
+                            let precisaoText = '';
+
+                            if (accuracy <= 5) {
+                                precisaoClass = 'precisao-excelente';
+                                precisaoText = 'EXATÍSSIMA';
+                            } else if (accuracy <= 10) {
+                                precisaoClass = 'precisao-excelente';
+                                precisaoText = 'EXCELENTE';
+                            } else if (accuracy <= 30) {
+                                precisaoClass = 'precisao-boa';
+                                precisaoText = 'BOA';
+                            } else if (accuracy <= 50) {
+                                precisaoClass = 'precisao-media';
+                                precisaoText = 'MÉDIA';
+                            } else {
+                                precisaoClass = 'precisao-ruim';
+                                precisaoText = 'RUIM';
+                            }
+
+                            html += `<div class="loc-info">`;
+                            html += `📍 <strong>LOCALIZAÇÃO EXATA:</strong><br>`;
+                            html += `<div class="coordenadas">`;
+                            html += `   Latitude: ${lat.toFixed(6)}<br>`;
+                            html += `   Longitude: ${lng.toFixed(6)}<br>`;
+                            html += `</div>`;
+                            if (accuracy) {
+                                html += `   <span class="${precisaoClass}">🎯 Precisão: ±${accuracy.toFixed(0)}m (${precisaoText})</span><br>`;
+                            }
+                            html += `   <small style="color:#cdb7e6;">Clique no botão azul acima para abrir o mapa</small>`;
+                            html += `</div>`;
+                            mapaBtn.classList.add('visivel');
+                        } else {
+                            html += `📍 <strong>Localização não compartilhada</strong>`;
+                            mapaBtn.classList.remove('visivel');
+                        }
+
+                        details.innerHTML = html;
+                    }
+                }
+            } catch (e) {
+                console.error('Erro:', e);
+            }
+        }
+
+        // Executa a busca a cada 2 segundos
+        setInterval(buscarAlertas, 2000);
+        buscarAlertas();
+
+        // Status de conexão
+        setInterval(() => {
+            document.getElementById('statusConexao').innerHTML =
+                navigator.onLine ? '🟢 Online' : '🔴 Offline';
+        }, 5000);
+    </script>
 </body>
 </html>

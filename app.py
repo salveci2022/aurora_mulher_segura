@@ -196,10 +196,27 @@ def admin_panel():
     users = load_users()
 
     trusted = {k: v for k, v in users.items() if v.get("role") == "trusted"}
+    
+    # ==================================================
+    # CORREÇÃO: ADICIONADO stats
+    # ==================================================
+    hoje = datetime.now(BR_TZ).strftime("%d/%m/%Y")
+    
+    alerts_hoje = 0
+    for alert in alerts:
+        if alert.get("ts_br", "").startswith(hoje):
+            alerts_hoje += 1
+    
+    stats = {
+        "total": len(alerts),
+        "hoje": alerts_hoje,
+        "trusted": len(trusted)
+    }
 
     return render_template("panel_admin.html",
                            alerts=alerts,
-                           trusted=trusted)
+                           trusted=trusted,
+                           stats=stats)  # ← VARIÁVEL ADICIONADA
 
 
 @app.route("/logout_admin")

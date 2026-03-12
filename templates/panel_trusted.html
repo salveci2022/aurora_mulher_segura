@@ -2,25 +2,21 @@
 <html lang="pt-BR">
 <head>
 
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
 <title>Confiança · Aurora</title>
 
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 
 <style>
 
-/* TODO O SEU CSS PERMANECE EXATAMENTE IGUAL */
+/* TODO O SEU CSS ORIGINAL FOI MANTIDO */
 
-* {
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
 
 body{
 background:linear-gradient(135deg,#1a0033,#2d005a);
@@ -42,7 +38,22 @@ box-shadow:0 30px 60px rgba(0,0,0,0.7);
 border:1px solid rgba(255,79,200,0.3);
 }
 
-/* TODO: resto do seu CSS continua igual */
+/* BOTÃO ALERTA */
+
+.sirene-btn.alerta{
+background: radial-gradient(circle at 50% 45%, #ff3b3b, #b30000);
+box-shadow:
+0 0 0 10px rgba(255,0,0,0.25),
+0 0 0 25px rgba(255,0,0,0.15),
+0 0 50px rgba(255,0,0,0.9);
+animation: alertaPulse 1s infinite;
+}
+
+@keyframes alertaPulse{
+0%{transform:scale(1);}
+50%{transform:scale(1.08);}
+100%{transform:scale(1);}
+}
 
 </style>
 
@@ -156,7 +167,140 @@ Sistema monitorando alertas em tempo real
 
 <script>
 
-/* TODO: todo seu javascript continua igual */
+const lastMeta=document.getElementById('lastMeta')
+const details=document.getElementById('details')
+const alertBox=document.getElementById('alertBox')
+const sireneBtn=document.getElementById('sireneBtn')
+const mapaBtn=document.getElementById('mapaBtn')
+const statusBar=document.getElementById('statusBar')
+
+let lastId=0
+let sireneAtiva=true
+let ultimoAlerta=null
+
+const sireneAudio=new Audio('/static/audio/sirene.mp3')
+sireneAudio.loop=true
+
+sireneBtn.addEventListener('click',()=>{
+sireneAtiva=!sireneAtiva
+sireneBtn.classList.toggle('ativa',sireneAtiva)
+if(!sireneAtiva){
+sireneAudio.pause()
+sireneAudio.currentTime=0
+}
+})
+
+document.getElementById('limparBtn').onclick=()=>{
+
+lastMeta.innerHTML='⏳ Alertas limpos'
+details.innerHTML=''
+
+alertBox.classList.remove('novo')
+
+mapaBtn.classList.remove('visivel')
+
+sireneBtn.classList.remove('alerta')
+
+sireneAudio.pause()
+sireneAudio.currentTime=0
+
+statusBar.innerHTML='🧹 Alerta limpo manualmente'
+
+}
+
+document.getElementById('sairBtn').onclick=()=>{
+if(confirm('Deseja realmente sair?')){
+window.location.href='/logout_trusted'
+}
+}
+
+async function buscarAlertas(){
+
+try{
+
+const res=await fetch('/api/last_alert?ts='+Date.now())
+
+const data=await res.json()
+
+if(data.ok && data.last){
+
+const alerta=data.last
+
+if(alerta.id>lastId){
+
+lastId=alerta.id
+ultimoAlerta=alerta
+
+/* MUDA COR DO BOTÃO */
+
+sireneBtn.classList.add("alerta")
+
+alertBox.classList.add('novo')
+
+if(sireneAtiva){
+
+sireneAudio.play().catch(()=>{})
+
+setTimeout(()=>{
+sireneAudio.pause()
+sireneAudio.currentTime=0
+},10000)
+
+}
+
+statusBar.innerHTML=`🚨 NOVO ALERTA #${alerta.id}`
+
+lastMeta.innerHTML=`<strong>🚨 ALERTA #${alerta.id}</strong>`
+
+let html=''
+
+html+=`👤 <strong>Nome:</strong> ${alerta.name || 'Não informado'}<br>`
+
+html+=`⚠️ <strong>Situação:</strong> ${alerta.situation}<br>`
+
+if(alerta.message){
+
+html+=`💬 <strong>Mensagem:</strong> ${alerta.message}<br>`
+
+}
+
+if(alerta.location){
+
+const{lat,lng}=alerta.location
+
+html+=`📍 <strong>Localização:</strong> ${lat}, ${lng}`
+
+mapaBtn.classList.add('visivel')
+
+}else{
+
+mapaBtn.classList.remove('visivel')
+
+}
+
+details.innerHTML=html
+
+setTimeout(()=>{
+
+alertBox.classList.remove('novo')
+
+},5000)
+
+}
+
+}
+
+}catch(e){
+
+console.log(e)
+
+}
+
+}
+
+setInterval(buscarAlertas,2000)
+
+buscarAlertas()
 
 </script>
 

@@ -14,7 +14,6 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = "aurora_v20_ultra_estavel_secure_2026"
 CORS(app)
 
-# ✅ FUSO HORÁRIO CORRETO
 BR_TZ = pytz.timezone('America/Sao_Paulo')
 BASE_DIR = Path(__file__).resolve().parent
 USERS_FILE = BASE_DIR / "users.json"
@@ -67,15 +66,6 @@ def verificar_senha(senha_digitada, hash_armazenado):
     except Exception as e:
         print(f"Erro ao verificar senha: {e}")
         return False
-
-def atualizar_last_login(usuario):
-    try:
-        users = load_users()
-        if usuario in users:
-            users[usuario]['last_login'] = datetime.now(BR_TZ).isoformat()
-            save_users(users)
-    except Exception as e:
-        print(f"Erro ao atualizar last_login: {e}")
 
 def criar_hash_senha(senha):
     return bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -132,10 +122,6 @@ def panic():
     trusted = [v.get("name") for k, v in users.items() if v.get("role") == "trusted"]
     return render_template("panic_button.html", trusted_names=trusted)
 
-@app.route("/painel-da-mulher")
-def painel_mulher():
-    return redirect("/panic")
-
 @app.route("/ajuda")
 def ajuda():
     return render_template("ajuda.html")
@@ -152,7 +138,6 @@ def saida():
 def central():
     return render_template("central_aurora.html")
 
-# ✅ API SEND_ALERT - LOCALIZAÇÃO EXATA
 @app.route("/api/send_alert", methods=["POST"])
 def send_alert():
     data = request.get_json() or {}
@@ -166,7 +151,6 @@ def send_alert():
         "name": data.get("name", "Usuária"),
         "situation": data.get("situation", "Emergência"),
         "message": data.get("message", ""),
-        # ✅ LOCALIZAÇÃO EXATA - SEM ESPAÇOS
         "lat": float(data.get("lat", 0)) if data.get("lat") else None,
         "lng": float(data.get("lng", 0)) if data.get("lng") else None,
         "accuracy": float(data.get("accuracy", 0)) if data.get("accuracy") else None,
@@ -198,7 +182,6 @@ def admin_login():
         if info and info.get("role") == "admin" and verificar_senha(p, info.get("password", "")):
             session["role"] = "admin"
             session["user"] = u
-            atualizar_last_login(u)
             return redirect("/panel")
 
         error = True
@@ -220,7 +203,9 @@ def admin_panel():
     stats = {
         "total": len(alerts),
         "today": alerts_hoje,
-        "trusted": len(trusted)
+        "trusted": len(trusted),
+        "with_location": sum(1 for a in alerts if a.get("lat")),
+        "without_location": sum(1 for a in alerts if not a.get("lat"))
     }
 
     return render_template("panel_admin.html", alerts=alerts, trusted=trusted, stats=stats)
@@ -252,20 +237,6 @@ def add_trusted():
     save_users(users)
     return redirect("/panel?msg=Pessoa+de+confiança+cadastrada")
 
-@app.route("/panel/delete_trusted", methods=["POST"])
-def delete_trusted():
-    if session.get("role") != "admin":
-        return redirect("/panel/login")
-    
-    username = request.form.get("username")
-    users = load_users()
-
-    if username in users and users[username].get("role") == "trusted":
-        del users[username]
-        save_users(users)
-
-    return redirect("/panel")
-
 @app.route("/logout_admin")
 def logout_admin():
     session.clear()
@@ -284,7 +255,6 @@ def trusted_login():
         if info and info.get("role") == "trusted" and verificar_senha(p, info.get("password", "")):
             session["role"] = "trusted"
             session["trusted"] = u
-            atualizar_last_login(u)
             return redirect("/trusted/panel")
 
         error = True
@@ -409,5 +379,7 @@ if __name__ == "__main__":
     print("🚀 Sistema iniciado")
     print("📍 Fuso: America/Sao_Paulo")
     print("🔐 Admin: admin / admin123")
+    print("🗺️ Mapa: Automático")
+    print("🔔 Sirene: Automática")
     print("=" * 60)
     app.run(host="0.0.0.0", port=port, debug=True)

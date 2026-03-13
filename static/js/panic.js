@@ -30,7 +30,6 @@
         let gpsAccuracy = 999;
         let gpsReadings = 0;
 
-        // GPS DE ALTA PRECISÃO
         function initHighAccuracyGPS() {
             if (!navigator.geolocation) {
                 updateGPSStatus('error', 'GPS não suportado');
@@ -142,7 +141,6 @@
                     timestamp: new Date().toISOString()
                 };
 
-                // Aguarda GPS mais preciso
                 if (gpsAccuracy > 50 && gpsReadings < 3) {
                     showStatus("📍 Aguardando GPS mais preciso...", "info");
                     await new Promise(resolve => setTimeout(resolve, 3000));

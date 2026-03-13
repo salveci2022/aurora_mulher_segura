@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confiança · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         .alert-live {
             animation: pulse-alert 1s infinite;
@@ -15,22 +16,16 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
             50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
         }
-        .map-container {
+        #map {
             width: 100%;
-            height: 300px;
+            height: 350px;
             border-radius: 12px;
-            margin: 10px 0;
-            overflow: hidden;
+            margin: 14px 0;
             border: 2px solid rgba(255, 98, 212, 0.3);
             display: none;
         }
-        .map-container.active {
+        #map.active {
             display: block;
-        }
-        .map-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
         }
         .location-info {
             background: rgba(76, 175, 80, 0.15);
@@ -100,6 +95,18 @@
             background: rgba(244, 67, 54, 0.2);
             border-color: rgba(244, 67, 54, 0.4);
         }
+        .gps-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 900;
+            margin: 4px 0;
+        }
+        .gps-excellent { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .gps-good { background: rgba(139, 195, 74, 0.2); color: #8bc34a; }
+        .gps-warning { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+        .gps-error { background: rgba(244, 67, 54, 0.2); color: #f44336; }
     </style>
 </head>
 <body>
@@ -154,25 +161,24 @@
                                 <div class="small" id="alertMessage" style="margin-top: 4px;">
                                     --
                                 </div>
+                                <div id="gpsBadge"></div>
                             </div>
                         </div>
                     </div>
                     
                     <div id="locationInfo" class="location-info">
                         <div style="font-weight: 900; margin-bottom: 8px; color: #4caf50;">
-                            📍 LOCALIZAÇÃO EXATA
+                            📍 LOCALIZAÇÃO EXATA (GPS HÍBRIDO)
                         </div>
                         <div style="font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all;" id="locationCoords">
                             Aguardando...
                         </div>
                         <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">
-                            Precisão: <span id="gpsAccuracy">--</span>
+                            Precisão: <span id="gpsAccuracy">--</span> | Leituras: <span id="gpsReadings">--</span>
                         </div>
                     </div>
                     
-                    <div id="mapContainer" class="map-container">
-                        <!-- Mapa será inserido aqui -->
-                    </div>
+                    <div id="map"></div>
                     
                     <a id="mapsLink" href="#" target="_blank" class="btn btn-primary" style="display: none;">
                         🗺️ ABRIR NO GOOGLE MAPS
@@ -180,9 +186,10 @@
                     
                     <div class="info-box">
                         <p class="small muted">
-                            🔔 <strong>Sirene:</strong> Toque para ativar/desativar<br>
-                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3s<br>
-                            📍 <strong>GPS:</strong> Localização em tempo real
+                            🔔 <strong>Sirene:</strong> Toca automaticamente ao receber alerta<br>
+                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3 segundos<br>
+                            📍 <strong>GPS:</strong> Localização em tempo real<br>
+                            🗺️ <strong>Mapa:</strong> Leaflet automático
                         </p>
                     </div>
                 </div>
@@ -194,9 +201,38 @@
         <source src="/static/audio/sirene.mp3" type="audio/mpeg">
     </audio>
     
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let lastAlertId = null;
         let sirenPlaying = false;
+        let map = null;
+        let marker = null;
+
+        // Inicializa mapa Leaflet
+        function initMap() {
+            if (!map) {
+                map = L.map('map').setView([-23.5505, -46.6333], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+            }
+        }
+
+        // Atualiza marcador no mapa
+        function updateMarker(lat, lng, accuracy) {
+            initMap();
+            document.getElementById('map').classList.add('active');
+            
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            marker = L.marker([lat, lng]).addTo(map)
+                .bindPopup(`🚨 Alerta Aurora<br>📍 Precisão: ±${Math.round(accuracy)}m<br>⏰ ${new Date().toLocaleTimeString('pt-BR')}`)
+                .openPopup();
+            
+            map.setView([lat, lng], 16);
+        }
 
         function playSiren() {
             const audio = document.getElementById('sirenAudio');
@@ -226,37 +262,38 @@
             document.getElementById('alertContainer').style.display = 'none';
             document.getElementById('noAlerts').style.display = 'block';
             document.getElementById('locationInfo').classList.remove('active');
-            document.getElementById('mapContainer').classList.remove('active');
+            document.getElementById('map').classList.remove('active');
             document.getElementById('mapsLink').style.display = 'none';
             stopSiren();
             lastAlertId = null;
         }
 
-        function updateMap(lat, lng, accuracy) {
-            const mapContainer = document.getElementById('mapContainer');
+        function getGPSBadge(accuracy) {
+            if (accuracy <= 10) return '<span class="gps-badge gps-excellent">🟢 EXCELENTE (±' + Math.round(accuracy) + 'm)</span>';
+            if (accuracy <= 25) return '<span class="gps-badge gps-good">🟡 BOM (±' + Math.round(accuracy) + 'm)</span>';
+            if (accuracy <= 50) return '<span class="gps-badge gps-warning">🟠 MÉDIO (±' + Math.round(accuracy) + 'm)</span>';
+            return '<span class="gps-badge gps-error">🔴 RUIM (±' + Math.round(accuracy) + 'm)</span>';
+        }
+
+        function updateLocation(lat, lng, accuracy, readings) {
             const locationInfo = document.getElementById('locationInfo');
             const coordsDiv = document.getElementById('locationCoords');
             const accuracyDiv = document.getElementById('gpsAccuracy');
+            const readingsDiv = document.getElementById('gpsReadings');
             const mapsLink = document.getElementById('mapsLink');
+            const gpsBadge = document.getElementById('gpsBadge');
             
             coordsDiv.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
             accuracyDiv.textContent = `±${Math.round(accuracy)} metros`;
-            
-            // Google Maps Embed
-            mapContainer.innerHTML = `
-                <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.1975778892866!2d${lng}!3d${lat}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zwrAsIMKs!5e0!3m2!1spt-BR!2sbr!4v1234567890"
-                    allowfullscreen="" 
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
-            `;
+            readingsDiv.textContent = readings || 1;
+            gpsBadge.innerHTML = getGPSBadge(accuracy);
             
             mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
             
             locationInfo.classList.add('active');
-            mapContainer.classList.add('active');
             mapsLink.style.display = 'block';
+            
+            updateMarker(lat, lng, accuracy);
         }
 
         async function loadAlerts() {
@@ -277,13 +314,16 @@
                         document.getElementById('alertTime').textContent = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts_br || lastAlert.ts || 'Agora'}`;
                         document.getElementById('alertMessage').textContent = lastAlert.message || '';
                         
+                        // ✅ SIRENE AUTOMÁTICA
                         playSiren();
                         
-                        if (lastAlert.lat && lastAlert.lng) {
-                            updateMap(
+                        // ✅ MAPA AUTOMÁTICO
+                        if (lastAlert.lat && lastAlert.lng && lastAlert.lat != 0) {
+                            updateLocation(
                                 parseFloat(lastAlert.lat),
                                 parseFloat(lastAlert.lng),
-                                parseFloat(lastAlert.accuracy || 10)
+                                parseFloat(lastAlert.accuracy || 10),
+                                lastAlert.gps_readings || 1
                             );
                         }
                     }
@@ -295,6 +335,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadAlerts();
+            // ✅ AUTO-REFRESH A CADA 3 SEGUNDOS
             setInterval(loadAlerts, 3000);
         });
     </script>

@@ -20,10 +20,6 @@
             margin: 10px 0;
             overflow: hidden;
             border: 2px solid rgba(255, 98, 212, 0.3);
-            display: none;
-        }
-        .map-mini.active {
-            display: block;
         }
         .map-mini iframe {
             width: 100%;
@@ -38,11 +34,8 @@
             font-weight: 900;
             margin-top: 6px;
         }
-        .location-ok {
-            background: rgba(76, 175, 80, 0.2);
-            color: #4caf50;
-            border: 1px solid rgba(76, 175, 80, 0.4);
-        }
+        .location-ok { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .location-error { background: rgba(244, 67, 54, 0.2); color: #f44336; }
     </style>
 </head>
 <body>
@@ -87,7 +80,7 @@
                                 ✅ GPS: ±{{ (alerta.accuracy or 10)|round|int }}m
                             </div>
                             
-                            <div class="map-mini" id="map-{{ alerta.id }}">
+                            <div class="map-mini">
                                 <iframe 
                                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.1975778892866!2d{{ alerta.lng }}!3d{{ alerta.lat }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zwrAsIMKs!5e0!3m2!1spt-BR!2sbr!4v1234567890"
                                     allowfullscreen="" 
@@ -106,7 +99,7 @@
                                 🗺️ ABRIR NO GOOGLE MAPS
                             </a>
                             {% else %}
-                            <div class="location-badge" style="background: rgba(244, 67, 54, 0.2); color: #f44336;">
+                            <div class="location-badge location-error">
                                 ❌ GPS não disponível
                             </div>
                             {% endif %}

@@ -1,11 +1,7 @@
-{"id": 88, "ts": "2026-03-04 00:30:01", "ts_br": "04/03/2026 00:30:01", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": {"lat": -16.02017453166035, "lng": -48.02072182591614, "accuracy": 100}}
-{"id": 89, "ts": "2026-03-05 09:52:38", "ts_br": "05/03/2026 09:52:38", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": null}
-{"id": 90, "ts": "2026-03-12 00:15:58", "ts_br": "12/03/2026 00:15:58", "name": "DIEUZA2026", "situation": "Violência", "message": "Preciso de ajuda urgente!", "location": null}
-{"id": 91, "ts": "2026-03-12 00:28:11", "ts_br": "12/03/2026 00:28:11", "name": "SALVECI DOS SANTOS", "situation": "Assédio", "message": "Preciso de ajuda urgente!", "location": null}
-{"id": 92, "ts": "2026-03-12 07:38:29", "ts_br": "12/03/2026 07:38:29", "name": "Usuária", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso enviado", "location": null}
-{"id": 93, "ts": "2026-03-12 07:38:59", "ts_br": "12/03/2026 07:38:59", "name": "Usuária", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso enviado", "location": null}
-{"id": 94, "ts": "2026-03-12 07:39:29", "ts_br": "12/03/2026 07:39:29", "name": "Usuária", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso enviado", "location": null}
-{"id": 95, "ts": "2026-03-12 07:45:39", "ts_br": "12/03/2026 07:45:39", "name": "", "situation": "ALERTA SILENCIOSO", "message": "Alerta silencioso", "location": null}
-{"id": 96, "ts": "2026-03-12 08:11:42", "ts_br": "12/03/2026 08:11:42", "name": "Usuária", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}
-{"id": 97, "ts": "2026-03-12 08:47:04", "ts_br": "12/03/2026 08:47:04", "name": "CLAUDETE ", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}
-{"id": 98, "ts": "2026-03-12 08:48:58", "ts_br": "12/03/2026 08:48:58", "name": "CLAUDETE ", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 1, "ts": "2026-03-12 22:11:01", "ts_br": "12/03/2026 22:11:01", "name": "MARIA", "situation": "Violência", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 2, "ts": "2026-03-12 22:11:04", "ts_br": "12/03/2026 22:11:04", "name": "MARIA", "situation": "Violência", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 3, "ts": "2026-03-12 22:17:11", "ts_br": "12/03/2026 22:17:11", "name": "MARIA", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 4, "ts": "2026-03-12 22:17:15", "ts_br": "12/03/2026 22:17:15", "name": "MARIA", "situation": "Assédio", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 5, "ts": "2026-03-12 22:17:36", "ts_br": "12/03/2026 22:17:36", "name": "MARISA", "situation": "Local suspeito", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 6, "ts": "2026-03-12 22:21:19", "ts_br": "12/03/2026 22:21:19", "name": "MARISA", "situation": "Local suspeito", "message": "", "lat": null, "lng": null, "accuracy": null}
+{"id": 7, "ts": "2026-03-12 22:21:23", "ts_br": "12/03/2026 22:21:23", "name": "MARISA", "situation": "Local suspeito", "message": "", "lat": null, "lng": null, "accuracy": null}

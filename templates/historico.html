@@ -43,11 +43,6 @@
             color: #4caf50;
             border: 1px solid rgba(76, 175, 80, 0.4);
         }
-        .location-error {
-            background: rgba(244, 67, 54, 0.2);
-            color: #f44336;
-            border: 1px solid rgba(244, 67, 54, 0.4);
-        }
     </style>
 </head>
 <body>
@@ -70,95 +65,61 @@
                 
                 <div class="content">
                     <h1 class="h1">📋 HISTÓRICO DE ALERTAS</h1>
-                    <p class="center muted">Todos os alertas registrados</p>
                     
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-value" id="totalCount">0</div>
-                            <div class="stat-label">Total</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="gpsCount">0</div>
-                            <div class="stat-label">Com GPS</div>
-                        </div>
-                    </div>
-                    
-                    <div id="alertsContainer">
-                        {% if alerts %}
-                            {% for alerta in alerts|reverse %}
-                            <div class="alert-item">
-                                <div style="font-weight: 900; color: var(--hot); margin-bottom: 4px;">
-                                    ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts }}
-                                </div>
-                                <div class="small muted" style="margin-bottom: 8px;">
-                                    {{ alerta.name }} • ⚠️ {{ alerta.situation }}
-                                </div>
-                                
-                                {% if alerta.message %}
-                                <div class="small" style="margin-bottom: 8px; font-style: italic;">
-                                    💬 "{{ alerta.message }}"
-                                </div>
-                                {% endif %}
-                                
-                                {% if alerta.lat and alerta.lng %}
-                                <div class="location-badge location-ok">
-                                    ✅ GPS: ±{{ alerta.accuracy|round|int if alerta.accuracy else 10 }}m
-                                </div>
-                                
-                                <div class="map-mini" id="map-{{ alerta.id }}">
-                                    <iframe 
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.1975778892866!2d{{ alerta.lng }}!3d{{ alerta.lat }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zwrAsIMKs!5e0!3m2!1spt-BR!2sbr!4v1234567890"
-                                        allowfullscreen="" 
-                                        loading="lazy">
-                                    </iframe>
-                                </div>
-                                
-                                <div class="small" style="font-family: monospace; color: #4caf50; margin: 8px 0;">
-                                    📍 {{ alerta.lat }}, {{ alerta.lng }}
-                                </div>
-                                
-                                <a href="https://www.google.com/maps?q={{ alerta.lat }},{{ alerta.lng }}" 
-                                   target="_blank" 
-                                   class="btn btn-primary" 
-                                   style="margin-top: 8px;">
-                                    🗺️ ABRIR NO GOOGLE MAPS
-                                </a>
-                                {% else %}
-                                <div class="location-badge location-error">
-                                    ❌ GPS não disponível
-                                </div>
-                                {% endif %}
+                    {% if alerts %}
+                        {% for alerta in alerts|reverse %}
+                        <div class="alert-item">
+                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 4px;">
+                                ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts }}
                             </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="alert center">
-                                ⏳ Nenhum alerta registrado ainda
+                            <div class="small muted" style="margin-bottom: 8px;">
+                                {{ alerta.name }} • ⚠️ {{ alerta.situation }}
                             </div>
-                        {% endif %}
-                    </div>
+                            
+                            {% if alerta.message %}
+                            <div class="small" style="margin-bottom: 8px; font-style: italic;">
+                                💬 "{{ alerta.message }}"
+                            </div>
+                            {% endif %}
+                            
+                            {% if alerta.lat and alerta.lng %}
+                            <div class="location-badge location-ok">
+                                ✅ GPS: ±{{ (alerta.accuracy or 10)|round|int }}m
+                            </div>
+                            
+                            <div class="map-mini" id="map-{{ alerta.id }}">
+                                <iframe 
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.1975778892866!2d{{ alerta.lng }}!3d{{ alerta.lat }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zwrAsIMKs!5e0!3m2!1spt-BR!2sbr!4v1234567890"
+                                    allowfullscreen="" 
+                                    loading="lazy">
+                                </iframe>
+                            </div>
+                            
+                            <div class="small" style="font-family: monospace; color: #4caf50; margin: 8px 0;">
+                                📍 {{ alerta.lat }}, {{ alerta.lng }}
+                            </div>
+                            
+                            <a href="https://www.google.com/maps?q={{ alerta.lat }},{{ alerta.lng }}" 
+                               target="_blank" 
+                               class="btn btn-primary" 
+                               style="margin-top: 8px;">
+                                🗺️ ABRIR NO GOOGLE MAPS
+                            </a>
+                            {% else %}
+                            <div class="location-badge" style="background: rgba(244, 67, 54, 0.2); color: #f44336;">
+                                ❌ GPS não disponível
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert center">⏳ Nenhum alerta</div>
+                    {% endif %}
                     
-                    <a href="/relatorio/pdf" class="btn btn-primary">📄 BAIXAR RELATÓRIO COMPLETO (PDF)</a>
-                    
-                    <div class="info-box">
-                        <p class="small muted">
-                            📊 <strong>Estatísticas:</strong> Total e alertas com GPS<br>
-                            🗺️ <strong>Mapas:</strong> Clique em "Abrir no Google Maps"<br>
-                            📄 <strong>PDF:</strong> Relatório completo para download
-                        </p>
-                    </div>
+                    <a href="/relatorio/pdf" class="btn btn-primary">📄 BAIXAR PDF</a>
                 </div>
             </div>
         </div>
     </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const alertItems = document.querySelectorAll('.alert-item');
-            const gpsItems = document.querySelectorAll('.location-ok');
-            
-            document.getElementById('totalCount').textContent = alertItems.length;
-            document.getElementById('gpsCount').textContent = gpsItems.length;
-        });
-    </script>
 </body>
 </html>

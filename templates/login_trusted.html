@@ -2,12 +2,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0014">
-    <meta name="description" content="Aurora - Login Pessoa de Confiança">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confiança · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="manifest" href="/static/manifest.json">
 </head>
 <body>
     <div class="aurora-bg">
@@ -15,7 +12,7 @@
             <div class="aurora-card">
                 <div class="topbar">
                     <div class="brand">
-                        <div class="brand-dot">🌸</div>
+                        <div class="brand-dot">👤</div>
                         <div>
                             <div class="brand-title">AURORA</div>
                             <div class="brand-sub">Pessoa de Confiança</div>
@@ -32,38 +29,23 @@
                     
                     {% if error %}
                     <div class="alert alert-danger center">
-                        ❌ Usuário ou senha inválidos. Tente novamente.
-                    </div>
-                    {% endif %}
-                    
-                    {% if request.args.get('msg') %}
-                    <div class="alert alert-ok center">
-                        ✅ {{ request.args.get('msg').replace('+', ' ') }}
+                        ❌ Usuário ou senha inválidos
                     </div>
                     {% endif %}
                     
                     <form method="POST" action="/trusted/login">
                         <label class="label">Usuário</label>
-                        <input type="text" name="user" class="input" placeholder="Digite seu usuário" required autocomplete="username">
+                        <input type="text" name="user" class="input" placeholder="Digite seu usuário" required>
                         
                         <label class="label">Senha</label>
-                        <input type="password" name="password" class="input" placeholder="Digite sua senha" required autocomplete="current-password">
+                        <input type="password" name="password" class="input" placeholder="Digite sua senha" required>
                         
                         <button type="submit" class="btn btn-primary">ENTRAR</button>
                     </form>
                     
                     <div class="list" style="margin-top: 14px;">
                         <a href="/trusted/recover" class="link">🔐 Esqueci minha senha</a>
-                        <a href="/panic" class="link">← Voltar ao botão SOS</a>
-                    </div>
-                    
-                    <div class="info-box">
-                        <p class="small muted">
-                            ℹ️ <strong>Informações:</strong><br>
-                            • Você receberá alertas em tempo real<br>
-                            • Poderá ver a localização da usuária<br>
-                            • A sirene toca quando há novo alerta
-                        </p>
+                        <a href="/panic" class="link">← Voltar ao SOS</a>
                     </div>
                 </div>
             </div>

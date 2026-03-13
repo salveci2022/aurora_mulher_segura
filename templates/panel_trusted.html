@@ -2,11 +2,19 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0014">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confiança · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
+        .alert-live {
+            animation: pulse-alert 1s infinite;
+            border-color: #f44336 !important;
+            background: rgba(244, 67, 54, 0.3) !important;
+        }
+        @keyframes pulse-alert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
+        }
         .map-container {
             width: 100%;
             height: 300px;
@@ -24,14 +32,16 @@
             height: 100%;
             border: none;
         }
-        .alert-live {
-            animation: pulse-alert 1s infinite;
-            border-color: #f44336 !important;
-            background: rgba(244, 67, 54, 0.3) !important;
+        .location-info {
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid #4caf50;
+            border-radius: 14px;
+            padding: 14px;
+            margin: 14px 0;
+            display: none;
         }
-        @keyframes pulse-alert {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-            50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
+        .location-info.active {
+            display: block;
         }
         .siren-btn {
             width: 150px;
@@ -39,7 +49,6 @@
             border-radius: 999px;
             border: 2px solid rgba(255, 208, 240, 0.55);
             background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
-            box-shadow: 0 0 0 14px rgba(255, 79, 200, 0.10), 0 20px 70px rgba(0, 0, 0, 0.55);
             display: grid;
             place-items: center;
             text-align: center;
@@ -86,35 +95,10 @@
             font-weight: 900;
             font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            text-align: center;
-            display: inline-block;
-        }
-        .action-btn:hover {
-            filter: brightness(1.06);
-            transform: translateY(-2px);
         }
         .action-btn.danger {
             background: rgba(244, 67, 54, 0.2);
             border-color: rgba(244, 67, 54, 0.4);
-        }
-        .location-info {
-            background: rgba(76, 175, 80, 0.15);
-            border: 2px solid #4caf50;
-            border-radius: 14px;
-            padding: 14px;
-            margin: 14px 0;
-            display: none;
-        }
-        .location-info.active {
-            display: block;
-        }
-        .location-coords {
-            font-family: monospace;
-            font-size: 13px;
-            color: var(--text);
-            word-break: break-all;
         }
     </style>
 </head>
@@ -131,7 +115,6 @@
                         </div>
                     </div>
                     <div class="top-actions">
-                        <!-- BOTÃO SAIR - Volta para o login trusted -->
                         <a href="/logout_trusted" class="pill">🚪 Sair</a>
                     </div>
                 </div>
@@ -179,7 +162,7 @@
                         <div style="font-weight: 900; margin-bottom: 8px; color: #4caf50;">
                             📍 LOCALIZAÇÃO EXATA
                         </div>
-                        <div class="location-coords" id="locationCoords">
+                        <div style="font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all;" id="locationCoords">
                             Aguardando...
                         </div>
                         <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">
@@ -198,9 +181,8 @@
                     <div class="info-box">
                         <p class="small muted">
                             🔔 <strong>Sirene:</strong> Toque para ativar/desativar<br>
-                            🚨 <strong>Auto-alerta:</strong> Atualiza automaticamente<br>
-                            📍 <strong>GPS:</strong> Localização em tempo real<br>
-                            🔄 <strong>Atualização:</strong> A cada 3 segundos
+                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3s<br>
+                            📍 <strong>GPS:</strong> Localização em tempo real
                         </p>
                     </div>
                 </div>
@@ -216,7 +198,6 @@
         let lastAlertId = null;
         let sirenPlaying = false;
 
-        // Toca sirene
         function playSiren() {
             const audio = document.getElementById('sirenAudio');
             audio.play().then(() => {
@@ -225,7 +206,6 @@
             }).catch(e => console.log('Audio error:', e));
         }
 
-        // Para sirene
         function stopSiren() {
             const audio = document.getElementById('sirenAudio');
             audio.pause();
@@ -234,7 +214,6 @@
             document.getElementById('sirenBtn').classList.remove('active');
         }
 
-        // Toggle sirene
         function toggleSiren() {
             if (sirenPlaying) {
                 stopSiren();
@@ -243,11 +222,9 @@
             }
         }
 
-        // Limpar alertas
         function clearAlerts() {
             document.getElementById('alertContainer').style.display = 'none';
             document.getElementById('noAlerts').style.display = 'block';
-            document.getElementById('noAlerts').textContent = '⏳ Aguardando alertas...';
             document.getElementById('locationInfo').classList.remove('active');
             document.getElementById('mapContainer').classList.remove('active');
             document.getElementById('mapsLink').style.display = 'none';
@@ -255,7 +232,6 @@
             lastAlertId = null;
         }
 
-        // Atualiza mapa
         function updateMap(lat, lng, accuracy) {
             const mapContainer = document.getElementById('mapContainer');
             const locationInfo = document.getElementById('locationInfo');
@@ -283,7 +259,6 @@
             mapsLink.style.display = 'block';
         }
 
-        // Carrega alertas
         async function loadAlerts() {
             try {
                 const response = await fetch('/api/alerts');
@@ -296,17 +271,14 @@
                         console.log('🚨 NOVO ALERTA!', lastAlert);
                         lastAlertId = lastAlert.id;
                         
-                        // Mostra alerta
                         document.getElementById('noAlerts').style.display = 'none';
                         document.getElementById('alertContainer').style.display = 'block';
                         document.getElementById('alertSituation').textContent = `⚠️ ${lastAlert.situation || 'Emergência'}`;
                         document.getElementById('alertTime').textContent = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts_br || lastAlert.ts || 'Agora'}`;
                         document.getElementById('alertMessage').textContent = lastAlert.message || '';
                         
-                        // Toca sirene automaticamente
                         playSiren();
                         
-                        // Atualiza mapa se tiver localização
                         if (lastAlert.lat && lastAlert.lng) {
                             updateMap(
                                 parseFloat(lastAlert.lat),
@@ -321,10 +293,8 @@
             }
         }
 
-        // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             loadAlerts();
-            // Auto-refresh a cada 3 segundos
             setInterval(loadAlerts, 3000);
         });
     </script>

@@ -14,12 +14,15 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = "aurora_v20_ultra_estavel_secure_2026"
 CORS(app)
 
+# ✅ FUSO HORÁRIO CORRETO
 BR_TZ = pytz.timezone('America/Sao_Paulo')
 BASE_DIR = Path(__file__).resolve().parent
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
-STATE_FILE = BASE_DIR / "state.json"
-TERMOS_FILE = BASE_DIR / "termos_aceitos.log"
+STATE_FILE = BASE_DIR / "data" / "state.json"
+TERMOS_FILE = BASE_DIR / "data" / "termos_aceitos.log"
+
+os.makedirs('data', exist_ok=True)
 
 def ensure_files():
     if not USERS_FILE.exists():
@@ -65,6 +68,15 @@ def verificar_senha(senha_digitada, hash_armazenado):
         print(f"Erro ao verificar senha: {e}")
         return False
 
+def atualizar_last_login(usuario):
+    try:
+        users = load_users()
+        if usuario in users:
+            users[usuario]['last_login'] = datetime.now(BR_TZ).isoformat()
+            save_users(users)
+    except Exception as e:
+        print(f"Erro ao atualizar last_login: {e}")
+
 def criar_hash_senha(senha):
     return bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
@@ -74,7 +86,6 @@ def next_alert_id():
         state = json.loads(STATE_FILE.read_text())
     except:
         state = {"last_id": 0}
-
     state["last_id"] += 1
     STATE_FILE.write_text(json.dumps(state), encoding="utf-8")
     return state["last_id"]
@@ -96,6 +107,12 @@ def get_all_alerts():
                         pass
     return alerts
 
+def get_last_alert():
+    alerts = get_all_alerts()
+    if alerts:
+        return alerts[-1]
+    return None
+
 @app.route("/")
 def index():
     return render_template("termo_responsabilidade.html")
@@ -115,6 +132,10 @@ def panic():
     trusted = [v.get("name") for k, v in users.items() if v.get("role") == "trusted"]
     return render_template("panic_button.html", trusted_names=trusted)
 
+@app.route("/painel-da-mulher")
+def painel_mulher():
+    return redirect("/panic")
+
 @app.route("/ajuda")
 def ajuda():
     return render_template("ajuda.html")
@@ -131,6 +152,7 @@ def saida():
 def central():
     return render_template("central_aurora.html")
 
+# ✅ API SEND_ALERT - LOCALIZAÇÃO EXATA
 @app.route("/api/send_alert", methods=["POST"])
 def send_alert():
     data = request.get_json() or {}
@@ -140,12 +162,15 @@ def send_alert():
         "id": next_alert_id(),
         "ts": now.strftime("%Y-%m-%d %H:%M:%S"),
         "ts_br": now.strftime("%d/%m/%Y %H:%M:%S"),
+        "timestamp": now.isoformat(),
         "name": data.get("name", "Usuária"),
         "situation": data.get("situation", "Emergência"),
         "message": data.get("message", ""),
-        "lat": data.get("lat"),
-        "lng": data.get("lng"),
-        "accuracy": data.get("accuracy")
+        # ✅ LOCALIZAÇÃO EXATA - SEM ESPAÇOS
+        "lat": float(data.get("lat", 0)) if data.get("lat") else None,
+        "lng": float(data.get("lng", 0)) if data.get("lng") else None,
+        "accuracy": float(data.get("accuracy", 0)) if data.get("accuracy") else None,
+        "gps_readings": int(data.get("gps_readings", 1))
     }
 
     save_alert(alert)
@@ -153,11 +178,12 @@ def send_alert():
 
 @app.route("/api/last_alert")
 def api_last_alert():
-    return jsonify({"ok": True, "last": get_all_alerts()[-1] if get_all_alerts() else None})
+    return jsonify({"ok": True, "last": get_last_alert()})
 
 @app.route("/api/alerts")
 def get_alerts():
-    return jsonify(get_all_alerts())
+    alerts = get_all_alerts()
+    return jsonify(alerts)
 
 @app.route("/panel/login", methods=["GET", "POST"])
 def admin_login():
@@ -172,6 +198,7 @@ def admin_login():
         if info and info.get("role") == "admin" and verificar_senha(p, info.get("password", "")):
             session["role"] = "admin"
             session["user"] = u
+            atualizar_last_login(u)
             return redirect("/panel")
 
         error = True
@@ -188,7 +215,7 @@ def admin_panel():
     trusted = {k: v for k, v in users.items() if v.get("role") == "trusted"}
 
     hoje = datetime.now(BR_TZ).strftime("%d/%m/%Y")
-    alerts_hoje = sum(1 for alert in alerts if alert.get("ts_br", "").startswith(hoje))
+    alerts_hoje = sum(1 for a in alerts if a.get("ts_br", "").startswith(hoje))
 
     stats = {
         "total": len(alerts),
@@ -225,6 +252,20 @@ def add_trusted():
     save_users(users)
     return redirect("/panel?msg=Pessoa+de+confiança+cadastrada")
 
+@app.route("/panel/delete_trusted", methods=["POST"])
+def delete_trusted():
+    if session.get("role") != "admin":
+        return redirect("/panel/login")
+    
+    username = request.form.get("username")
+    users = load_users()
+
+    if username in users and users[username].get("role") == "trusted":
+        del users[username]
+        save_users(users)
+
+    return redirect("/panel")
+
 @app.route("/logout_admin")
 def logout_admin():
     session.clear()
@@ -243,6 +284,7 @@ def trusted_login():
         if info and info.get("role") == "trusted" and verificar_senha(p, info.get("password", "")):
             session["role"] = "trusted"
             session["trusted"] = u
+            atualizar_last_login(u)
             return redirect("/trusted/panel")
 
         error = True
@@ -261,13 +303,59 @@ def trusted_panel():
 
     return render_template("panel_trusted.html", display_name=name, alerts=alerts)
 
+@app.route("/trusted/change_password", methods=["GET", "POST"])
+def trusted_change_password():
+    if session.get("role") != "trusted":
+        return redirect("/trusted/login")
+    
+    if request.method == "POST":
+        old = request.form.get("old_password")
+        new = request.form.get("new_password")
+        users = load_users()
+        username = session.get("trusted")
+
+        if username in users:
+            if verificar_senha(old, users[username]["password"]):
+                if len(new) >= 4:
+                    users[username]["password"] = criar_hash_senha(new)
+                    save_users(users)
+                    return redirect("/trusted/panel?msg=Senha+alterada")
+
+        return redirect("/trusted/panel?err=Senha+incorreta")
+
+    return render_template("trusted_change_password.html")
+
+@app.route("/trusted/recover", methods=["GET", "POST"])
+def trusted_recover():
+    if request.method == "POST":
+        usuario = request.form.get("usuario")
+        nova_senha = request.form.get("nova_senha")
+        users = load_users()
+
+        if usuario in users and len(nova_senha) >= 4:
+            users[usuario]["password"] = criar_hash_senha(nova_senha)
+            save_users(users)
+            return render_template("trusted_recover.html", msg="Senha+redefinida")
+        
+        return render_template("trusted_recover.html", err="Usuário+não+encontrado")
+
+    return render_template("trusted_recover.html")
+
 @app.route("/logout_trusted")
 def logout_trusted():
     session.clear()
-    return redirect("/panic")
+    return redirect("/trusted/login")
+
+@app.route("/historico")
+def historico():
+    alerts = get_all_alerts()
+    return render_template("historico.html", alerts=alerts)
 
 @app.route("/relatorio/pdf")
 def relatorio_pdf():
+    if session.get("role") != "admin":
+        return redirect("/panel/login")
+    
     alerts = get_all_alerts()
     pdf = FPDF()
     pdf.add_page()
@@ -275,10 +363,33 @@ def relatorio_pdf():
     pdf.cell(0, 10, "RELATORIO DE ALERTAS - AURORA", ln=1)
     pdf.set_font("Arial", "", 12)
     for a in alerts:
-        pdf.cell(0, 8, f"ID {a['id']} - {a['ts_br']} - {a['name']} - {a['situation']}", ln=1)
+        linha = f"ID {a['id']} - {a['ts_br']} - {a['name']} - {a['situation']}"
+        if a.get('lat') and a.get('lng'):
+            linha += f" - GPS: {a['lat']}, {a['lng']}"
+        pdf.cell(0, 8, linha, ln=1)
     temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(temp.name)
     return send_file(temp.name, as_attachment=True)
+
+@app.route("/legal")
+def legal():
+    return render_template("legal.html")
+
+@app.route("/offline")
+def offline():
+    return render_template("offline.html")
+
+@app.route("/recibo")
+def recibo():
+    return render_template("recibo_entrega.html")
+
+@app.route("/pagamentos")
+def pagamentos():
+    return render_template("pagamentos.html")
+
+@app.route("/anual")
+def anual():
+    return render_template("anual_aurora.html")
 
 @app.route("/health")
 def health():
@@ -292,7 +403,11 @@ def health():
 if __name__ == "__main__":
     ensure_files()
     port = int(os.environ.get("PORT", 5000))
-    print("🚀 AURORA SISTEMA INICIADO")
-    print("http://localhost:5000")
-    print("✅ Admin: admin / admin123")
+    print("=" * 60)
+    print("🌸 AURORA MULHER SEGURA v3.0")
+    print("=" * 60)
+    print("🚀 Sistema iniciado")
+    print("📍 Fuso: America/Sao_Paulo")
+    print("🔐 Admin: admin / admin123")
+    print("=" * 60)
     app.run(host="0.0.0.0", port=port, debug=True)

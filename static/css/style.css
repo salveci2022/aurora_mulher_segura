@@ -6,9 +6,6 @@
     --hot: #ff4fc8;
     --hot2: #a45cff;
     --shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
-    --success: #4caf50;
-    --warning: #ff9800;
-    --danger: #f44336;
 }
 
 * {
@@ -26,7 +23,6 @@ body {
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     color: var(--text);
     -webkit-tap-highlight-color: transparent;
-    background: var(--bg1);
 }
 
 .aurora-bg {
@@ -81,7 +77,6 @@ body {
     background: radial-gradient(circle at 30% 30%, rgba(255, 121, 218, 0.9), rgba(164, 92, 255, 0.75));
     box-shadow: 0 0 18px rgba(255, 79, 200, 0.35);
     font-weight: 900;
-    font-size: 18px;
 }
 
 .brand-title {
@@ -285,13 +280,11 @@ body {
 .alert-ok {
     border-color: rgba(120, 255, 205, 0.35);
     background: rgba(76, 175, 80, 0.1);
-    color: #4caf50;
 }
 
 .alert-danger {
     border-color: rgba(255, 80, 130, 0.45);
     background: rgba(244, 67, 54, 0.1);
-    color: #f44336;
 }
 
 .list {
@@ -335,63 +328,16 @@ body {
     border: 1px solid rgba(255, 98, 212, 0.28);
 }
 
-/* Stats grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin: 14px 0;
-}
-
-.stat-card {
-    background: rgba(40, 0, 60, 0.35);
-    padding: 12px;
-    border-radius: 14px;
-    text-align: center;
-    border: 1px solid rgba(255, 98, 212, 0.28);
-}
-
-.stat-value {
-    font-size: 24px;
-    font-weight: 900;
-    color: var(--hot);
-}
-
-.stat-label {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-}
-
-/* Mobile improvements */
 @media (max-width: 480px) {
     .sos {
         width: 200px;
         height: 200px;
     }
-    
     .sos .sos-text {
         font-size: 38px;
     }
-    
     .chip {
         padding: 8px 10px;
         font-size: 11px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Print styles */
-@media print {
-    .aurora-bg {
-        background: white;
-    }
-    
-    .aurora-card {
-        box-shadow: none;
-        border: 1px solid #000;
     }
 }

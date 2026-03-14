@@ -2,23 +2,89 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0014">
-    <meta name="description" content="Aurora - Painel Administrativo">
-    <title>Admin · Aurora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="manifest" href="/static/manifest.json">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin: 14px 0;
+        }
+        .stat-card {
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--hot);
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .card {
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 14px;
+            padding: 14px;
+            margin: 14px 0;
+        }
+        .card h3 {
+            margin: 0 0 14px 0;
+            color: var(--hot);
+            font-size: 16px;
+        }
+        .alert-item {
+            background: rgba(10, 0, 20, 0.45);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 12px;
+            padding: 10px;
+            margin: 8px 0;
+        }
+        .trusted-list {
+            margin: 14px 0;
+        }
+        .trusted-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(10, 0, 20, 0.45);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 12px;
+            margin: 6px 0;
+        }
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            color: #f44336;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .btn-danger:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+    </style>
 </head>
 <body>
     <div class="aurora-bg">
-        <div class="center-wrap">
+        <div class="center-wrap" style="max-width: 900px;">
             <div class="aurora-card">
                 <div class="topbar">
                     <div class="brand">
                         <div class="brand-dot">⚙️</div>
                         <div>
                             <div class="brand-title">AURORA</div>
-                            <div class="brand-sub">Admin</div>
+                            <div class="brand-sub">Painel Admin</div>
                         </div>
                     </div>
                     <div class="top-actions">
@@ -28,24 +94,14 @@
                 </div>
                 
                 <div class="content">
-                    <h1 class="h1">⚙️ PAINEL ADMIN</h1>
+                    <h1 class="h1">⚙️ PAINEL ADMINISTRATIVO</h1>
+                    <p class="center muted">Gerenciamento do sistema</p>
                     
-                    {% if request.args.get('msg') %}
-                    <div class="alert alert-ok center">
-                        ✅ {{ request.args.get('msg').replace('+', ' ') }}
-                    </div>
-                    {% endif %}
-                    
-                    {% if request.args.get('err') %}
-                    <div class="alert alert-danger center">
-                        ❌ {{ request.args.get('err').replace('+', ' ') }}
-                    </div>
-                    {% endif %}
-                    
+                    <!-- ESTATÍSTICAS -->
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-value">{{ stats.total }}</div>
-                            <div class="stat-label">Total Alertas</div>
+                            <div class="stat-label">Total de Alertas</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-value">{{ stats.today }}</div>
@@ -53,104 +109,87 @@
                         </div>
                         <div class="stat-card">
                             <div class="stat-value">{{ stats.with_location }}</div>
-                            <div class="stat-label">Com GPS</div>
+                            <div class="stat-label">Com Localização</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-value">{{ stats.without_location }}</div>
-                            <div class="stat-label">Sem GPS</div>
+                            <div class="stat-value">{{ stats.trusted }}</div>
+                            <div class="stat-label">Pessoas de Confiança</div>
                         </div>
                     </div>
                     
-                    <a href="/relatorio/pdf" class="btn btn-primary">📄 RELATÓRIO COMPLETO (PDF)</a>
+                    <!-- CADASTRAR PESSOA DE CONFIANÇA -->
+                    <div class="card">
+                        <h3>➕ Cadastrar Pessoa de Confiança</h3>
+                        <form method="POST" action="/panel/add_trusted">
+                            <label class="label">Nome</label>
+                            <input type="text" name="trusted_name" class="input" placeholder="Nome da pessoa de confiança" required>
+                            
+                            <label class="label">Usuário</label>
+                            <input type="text" name="trusted_user" class="input" placeholder="Usuário para login" required>
+                            
+                            <label class="label">Senha</label>
+                            <input type="password" name="trusted_password" class="input" placeholder="Mínimo 4 caracteres" required>
+                            
+                            <button type="submit" class="btn btn-primary" style="margin-top: 14px;">
+                                💾 CADASTRAR
+                            </button>
+                        </form>
+                    </div>
                     
-                    <h2 class="h1" style="font-size: 18px; margin-top: 14px;">📋 Últimos Alertas</h2>
+                    <!-- LISTA DE PESSOAS DE CONFIANÇA -->
+                    <div class="card">
+                        <h3>👥 Pessoas de Confiança Cadastradas</h3>
+                        <div class="trusted-list">
+                            {% if trusted %}
+                                {% for username, data in trusted.items() %}
+                                <div class="trusted-item">
+                                    <div>
+                                        <div style="font-weight: 900; color: var(--text);">{{ data.name }}</div>
+                                        <div class="small muted">@{{ username }}</div>
+                                    </div>
+                                    <form method="POST" action="/panel/delete_trusted" style="display: inline;">
+                                        <input type="hidden" name="username" value="{{ username }}">
+                                        <button type="submit" class="btn-danger" onclick="return confirm('Deseja remover {{ data.name }}?')">
+                                            🗑️ Remover
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="center muted">Nenhuma pessoa de confiança cadastrada</p>
+                            {% endif %}
+                        </div>
+                    </div>
                     
-                    <div class="list">
+                    <!-- ÚLTIMOS ALERTAS -->
+                    <div class="card">
+                        <h3>🚨 Últimos Alertas</h3>
                         {% if alerts %}
-                            {% for alerta in alerts[-10:]|reverse %}
-                            <div class="item">
-                                <div>
-                                    <div style="font-weight: 900; color: var(--hot);">
-                                        ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts }}
-                                    </div>
-                                    <div class="small muted">
-                                        {{ alerta.name }} • ⚠️ {{ alerta.situation }}
-                                    </div>
-                                    {% if alerta.message %}
-                                    <div class="small" style="margin-top: 4px;">
-                                        💬 {{ alerta.message }}
-                                    </div>
-                                    {% endif %}
-                                    {% if alerta.lat and alerta.lng %}
-                                    <div class="small" style="margin-top: 4px; color: #4caf50;">
-                                        📍 {{ alerta.lat }}, {{ alerta.lng }}
-                                    </div>
-                                    {% endif %}
+                            {% for alerta in alerts[-5:]|reverse %}
+                            <div class="alert-item">
+                                <div style="font-weight: 900; color: var(--hot);">
+                                    ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts }}
                                 </div>
+                                <div class="small muted">
+                                    {{ alerta.name }} • ⚠️ {{ alerta.situation }}
+                                </div>
+                                {% if alerta.lat and alerta.lng %}
+                                <div class="small" style="color: #4caf50; margin-top: 4px;">
+                                    📍 {{ alerta.lat }}, {{ alerta.lng }}
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         {% else %}
-                            <div class="alert center">
-                                Nenhum alerta registrado
-                            </div>
+                            <p class="center muted">Nenhum alerta registrado</p>
                         {% endif %}
-                    </div>
-                    
-                    <h2 class="h1" style="font-size: 18px; margin-top: 14px;">👥 Pessoas de Confiança</h2>
-                    
-                    <div class="list">
-                        {% if trusted %}
-                            {% for username, info in trusted.items() %}
-                            <div class="item">
-                                <div>
-                                    <div style="font-weight: 900;">{{ info.name }}</div>
-                                    <div class="small muted">@{{ username }}</div>
-                                </div>
-                                <form method="POST" action="/panel/delete_trusted" style="display: inline;">
-                                    <input type="hidden" name="username" value="{{ username }}">
-                                    <button type="submit" class="pill" style="background: rgba(244, 67, 54, 0.2); border-color: rgba(244, 67, 54, 0.4);">✕</button>
-                                </form>
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="alert center">
-                                Nenhuma pessoa cadastrada
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <h2 class="h1" style="font-size: 18px; margin-top: 14px;">➕ Cadastrar Pessoa</h2>
-                    
-                    <form method="POST" action="/panel/add_trusted">
-                        <label class="label">Nome</label>
-                        <input type="text" name="trusted_name" class="input" placeholder="Nome da pessoa de confiança" required>
-                        
-                        <label class="label">Usuário</label>
-                        <input type="text" name="trusted_user" class="input" placeholder="Usuário para login" required>
-                        
-                        <label class="label">Senha</label>
-                        <input type="password" name="trusted_password" class="input" placeholder="Mínimo 4 caracteres" required minlength="4">
-                        
-                        <button type="submit" class="btn btn-primary">CADASTRAR</button>
-                    </form>
-                    
-                    <div class="info-box">
-                        <p class="small muted">
-                            ℹ️ <strong>Informações:</strong><br>
-                            • Máximo de 3 pessoas de confiança<br>
-                            • Senha com mínimo 4 caracteres<br>
-                            • Usuário único no sistema
-                        </p>
                     </div>
                     
                     <div class="list" style="margin-top: 14px;">
-                        <a href="/health" class="link">🔍 Health Check do Sistema</a>
-                        <a href="/ajuda" class="link">📞 Central de Ajuda</a>
+                        <a href="/historico" class="link">📄 Ver Histórico Completo</a>
+                        <a href="/relatorio/pdf" class="link">📊 Baixar Relatório PDF</a>
+                        <a href="/" class="link">← Voltar ao início</a>
                     </div>
-                    
-                    <p class="center small muted" style="margin-top: 14px;">
-                        🌸 AURORA V2.0
-                    </p>
                 </div>
             </div>
         </div>

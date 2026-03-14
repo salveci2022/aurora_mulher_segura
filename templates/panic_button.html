@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0014">
-    <meta name="description" content="Aurora - Botão de Pânico SOS">
     <title>Aurora - Botão de Pânico</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="manifest" href="/static/manifest.json">
 </head>
 <body>
     <div class="aurora-bg">
@@ -51,7 +49,7 @@
                     </div>
                     
                     <div class="sos-wrap">
-                        <div class="sos" id="sosBtn" tabindex="0" role="button" aria-label="Botão de pânico - segure para enviar alerta">
+                        <div class="sos" id="sosBtn">
                             <div>
                                 <div class="sos-text">SOS</div>
                                 <div class="sos-sub">SEGURE POR 1 SEGUNDO</div>
@@ -59,18 +57,12 @@
                         </div>
                     </div>
                     
-                    <div class="info-box">
-                        <p class="small muted">
-                            📍 <strong>GPS:</strong> <span id="gpsStatus">Inicializando GPS...</span>
-                        </p>
-                        <p class="small muted">
-                            ⚠️ Ative o GPS e permita acesso à localização
-                        </p>
+                    <div class="alert" id="gpsStatus">
+                        📍 GPS: Inicializando GPS...
                     </div>
                     
-                    <a href="/historico" class="btn btn-primary">📄 BAIXAR RELATÓRIO (PDF)</a>
-                    
                     <div class="list" style="margin-top: 14px;">
+                        <a href="/historico" class="link">📄 Baixar Relatório (PDF)</a>
                         <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
                         <a href="/ajuda" class="link">📞 Números de Emergência</a>
                         <a href="/" class="link">← Voltar ao início</a>
@@ -81,40 +73,5 @@
     </div>
     
     <script src="/static/js/panic.js"></script>
-    <script>
-        // GPS Status Display
-        function updateGPSStatus(status, accuracy) {
-            const el = document.getElementById('gpsStatus');
-            if (el) {
-                if (status === 'success') {
-                    el.innerHTML = `🟢 Excelente (±${accuracy}m)`;
-                    el.style.color = '#4caf50';
-                } else if (status === 'warning') {
-                    el.innerHTML = `🟠 Médio (±${accuracy}m)`;
-                    el.style.color = '#ff9800';
-                } else {
-                    el.innerHTML = `🔴 Fraco (${accuracy}m ou mais)`;
-                    el.style.color = '#f44336';
-                }
-            }
-        }
-        
-        // Inicializa GPS
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(
-                (pos) => {
-                    const acc = Math.round(pos.coords.accuracy);
-                    if (acc < 50) updateGPSStatus('success', acc);
-                    else if (acc < 100) updateGPSStatus('warning', acc);
-                    else updateGPSStatus('error', acc);
-                },
-                (err) => {
-                    document.getElementById('gpsStatus').innerHTML = '❌ GPS não disponível';
-                    document.getElementById('gpsStatus').style.color = '#f44336';
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
-    </script>
 </body>
 </html>

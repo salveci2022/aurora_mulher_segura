@@ -9,6 +9,7 @@ from fpdf import FPDF
 import tempfile
 import pytz
 import bcrypt
+import requests
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = "aurora_v20_ultra_estavel_secure_2026"
@@ -168,6 +169,42 @@ def api_last_alert():
 def get_alerts():
     alerts = get_all_alerts()
     return jsonify(alerts)
+
+# ✅ NOVA ROTA: Google Geolocation API para melhorar precisão
+@app.route("/api/improve_location", methods=["POST"])
+def improve_location():
+    """Usa Google Geolocation API para melhorar precisão"""
+    data = request.get_json() or {}
+    
+    # Google Geolocation API
+    google_api_key = os.environ.get("GOOGLE_API_KEY", "")
+    
+    if google_api_key:
+        try:
+            response = requests.post(
+                f"https://www.googleapis.com/geolocation/v1/geolocate?key={google_api_key}",
+                json={
+                    "considerIp": True,
+                    "wifiAccessPoints": data.get("wifi", []),
+                    "cellTowers": data.get("cells", [])
+                },
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return jsonify({
+                    "ok": True,
+                    "lat": result["location"]["lat"],
+                    "lng": result["location"]["lng"],
+                    "accuracy": result["accuracy"],
+                    "method": "Google API"
+                })
+        except Exception as e:
+            print(f"Erro na Google API: {e}")
+            pass
+    
+    return jsonify({"ok": False})
 
 @app.route("/panel/login", methods=["GET", "POST"])
 def admin_login():
@@ -394,5 +431,6 @@ if __name__ == "__main__":
     print("🔐 Admin: admin / admin123")
     print("🗺️ Mapa: Automático")
     print("🔔 Sirene: Automática")
+    print("🌐 Google API: Disponível")
     print("=" * 60)
     app.run(host="0.0.0.0", port=port, debug=True)

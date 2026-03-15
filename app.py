@@ -154,7 +154,8 @@ def send_alert():
         "lat": float(data.get("lat", 0)) if data.get("lat") else None,
         "lng": float(data.get("lng", 0)) if data.get("lng") else None,
         "accuracy": float(data.get("accuracy", 0)) if data.get("accuracy") else None,
-        "gps_readings": int(data.get("gps_readings", 1))
+        "gps_readings": int(data.get("gps_readings", 1)),
+        "gps_method": data.get("gps_method", "GPS")
     }
 
     save_alert(alert)
@@ -335,7 +336,7 @@ def relatorio_pdf():
     for a in alerts:
         linha = f"ID {a['id']} - {a['ts_br']} - {a['name']} - {a['situation']}"
         if a.get('lat') and a.get('lng'):
-            linha += f" - GPS: {a['lat']}, {a['lng']}"
+            linha += f" - GPS: {a['lat']}, {a['lng']} (±{a.get('accuracy', 0):.0f}m)"
         pdf.cell(0, 8, linha, ln=1)
     temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(temp.name)

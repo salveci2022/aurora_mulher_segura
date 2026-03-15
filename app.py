@@ -154,8 +154,7 @@ def send_alert():
         "lat": float(data.get("lat", 0)) if data.get("lat") else None,
         "lng": float(data.get("lng", 0)) if data.get("lng") else None,
         "accuracy": float(data.get("accuracy", 0)) if data.get("accuracy") else None,
-        "gps_readings": int(data.get("gps_readings", 1)),
-        "gps_method": data.get("gps_method", "GPS")
+        "gps_readings": int(data.get("gps_readings", 1))
     }
 
     save_alert(alert)
@@ -237,6 +236,19 @@ def add_trusted():
 
     save_users(users)
     return redirect("/panel?msg=Pessoa+de+confiança+cadastrada")
+
+@app.route("/panel/clear_alerts", methods=["POST"])
+def clear_alerts_endpoint():
+    if session.get("role") != "admin":
+        return redirect("/panel/login")
+    
+    if ALERTS_FILE.exists():
+        ALERTS_FILE.write_text("", encoding="utf-8")
+    
+    if STATE_FILE.exists():
+        STATE_FILE.write_text(json.dumps({"last_id": 0}), encoding="utf-8")
+    
+    return redirect("/panel?msg=Alertas+limpos")
 
 @app.route("/logout_admin")
 def logout_admin():
@@ -336,7 +348,7 @@ def relatorio_pdf():
     for a in alerts:
         linha = f"ID {a['id']} - {a['ts_br']} - {a['name']} - {a['situation']}"
         if a.get('lat') and a.get('lng'):
-            linha += f" - GPS: {a['lat']}, {a['lng']} (±{a.get('accuracy', 0):.0f}m)"
+            linha += f" - GPS: {a['lat']}, {a['lng']}"
         pdf.cell(0, 8, linha, ln=1)
     temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(temp.name)

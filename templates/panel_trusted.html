@@ -155,13 +155,13 @@
                     
                     <div id="locationInfo" class="location-info">
                         <div style="font-weight: 900; margin-bottom: 8px; color: #4caf50;">
-                            📍 LOCALIZAÇÃO EXATA
+                            📍 LOCALIZAÇÃO EXATA (GPS HÍBRIDO)
                         </div>
                         <div style="font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all;" id="locationCoords">
                             Aguardando...
                         </div>
                         <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">
-                            Precisão: <span id="gpsAccuracy">--</span>
+                            Precisão: <span id="gpsAccuracy">--</span> | Leituras: <span id="gpsReadings">--</span>
                         </div>
                     </div>
                     
@@ -173,8 +173,8 @@
                     
                     <div class="info-box">
                         <p class="small muted">
-                            🔔 <strong>Sirene:</strong> Toca automaticamente<br>
-                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3s<br>
+                            🔔 <strong>Sirene:</strong> Toca automaticamente ao receber alerta<br>
+                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3 segundos<br>
                             📍 <strong>GPS:</strong> Localização em tempo real<br>
                             🗺️ <strong>Mapa:</strong> Leaflet automático
                         </p>
@@ -213,7 +213,7 @@
             }
             
             marker = L.marker([lat, lng]).addTo(map)
-                .bindPopup(`🚨 Alerta Aurora<br>📍 Precisão: ±${Math.round(accuracy)}m`)
+                .bindPopup(`🚨 Alerta Aurora<br>📍 Precisão: ±${Math.round(accuracy)}m<br>⏰ ${new Date().toLocaleTimeString('pt-BR')}`)
                 .openPopup();
             
             map.setView([lat, lng], 16);
@@ -253,14 +253,16 @@
             lastAlertId = null;
         }
 
-        function updateLocation(lat, lng, accuracy) {
+        function updateLocation(lat, lng, accuracy, readings) {
             const locationInfo = document.getElementById('locationInfo');
             const coordsDiv = document.getElementById('locationCoords');
             const accuracyDiv = document.getElementById('gpsAccuracy');
+            const readingsDiv = document.getElementById('gpsReadings');
             const mapsLink = document.getElementById('mapsLink');
             
             coordsDiv.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
             accuracyDiv.textContent = `±${Math.round(accuracy)} metros`;
+            readingsDiv.textContent = readings || 1;
             
             mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
             
@@ -294,7 +296,8 @@
                             updateLocation(
                                 parseFloat(lastAlert.lat),
                                 parseFloat(lastAlert.lng),
-                                parseFloat(lastAlert.accuracy || 10)
+                                parseFloat(lastAlert.accuracy || 10),
+                                lastAlert.gps_readings || 1
                             );
                         }
                     }

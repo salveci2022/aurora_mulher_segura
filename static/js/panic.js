@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
         else if (type === "error") elements.status.classList.add("alert-danger");
     }
 
-    // Sistema de chips
+    // Chips
     elements.chips.forEach(chip => {
         chip.addEventListener("click", function(e) {
             e.preventDefault();
@@ -44,12 +44,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // GPS
     async function getCurrentLocation() {
         if (!elements.shareLocation || !elements.shareLocation.checked) {
-            console.log("⚠️ Localização não autorizada");
             return null;
         }
 
         if (!navigator.geolocation) {
-            console.error("❌ GPS não suportado");
             if (elements.gpsStatus) {
                 elements.gpsStatus.textContent = "❌ GPS não suportado";
                 elements.gpsStatus.className = "alert alert-danger";
@@ -58,7 +56,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         try {
-            console.log("📍 Solicitando localização...");
             if (elements.gpsStatus) {
                 elements.gpsStatus.textContent = "📍 Obtendo localização...";
                 elements.gpsStatus.className = "alert";
@@ -82,8 +79,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 accuracy: Math.round(position.coords.accuracy)
             };
 
-            console.log("✅ Localização obtida:", currentLocation);
-            
             if (elements.gpsStatus) {
                 elements.gpsStatus.textContent = `✅ GPS: ±${currentLocation.accuracy}m`;
                 elements.gpsStatus.className = "alert alert-ok";
@@ -110,7 +105,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             showStatus("⏳ Preparando alerta...", "info");
 
-            // Obter localização
             const location = await getCurrentLocation();
 
             const payload = {
@@ -121,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 timestamp: new Date().toISOString()
             };
 
-            console.log("📤 Enviando alerta:", payload);
+            console.log("📤 Enviando:", payload);
             showStatus("📤 Enviando...", "info");
 
             const response = await fetch("/api/send_alert", {
@@ -133,15 +127,14 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                throw new Error(`HTTP ${response.status}`);
             }
 
             const result = await response.json();
-            console.log("✅ Alerta enviado:", result);
+            console.log("✅ Enviado:", result);
 
             showStatus("✅ ALERTA ENVIADO!", "success");
             
-            // Feedback visual
             if (elements.sos) {
                 elements.sos.style.background = "linear-gradient(145deg, #4caf50, #388e3c)";
                 setTimeout(() => {
@@ -157,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Sistema de hold (segurar botão)
+    // Hold
     function startHold(e) {
         e.preventDefault();
         if (isHolding) return;
@@ -196,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Event listeners do SOS
+    // Events
     if (elements.sos) {
         elements.sos.addEventListener("mousedown", startHold);
         elements.sos.addEventListener("mouseup", cancelHold);
@@ -205,5 +198,5 @@ document.addEventListener("DOMContentLoaded", function() {
         elements.sos.addEventListener("touchend", cancelHold);
     }
 
-    console.log("✅ Sistema Aurora inicializado!");
+    console.log("✅ Sistema pronto!");
 });

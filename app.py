@@ -7,10 +7,9 @@ import secrets
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-# Configurações
 try:
     TZ = ZoneInfo("America/Sao_Paulo")
-except Exception:
+except:
     TZ = None
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -29,7 +28,7 @@ def now_br_str():
 def ensure_files():
     if not USERS_FILE.exists():
         USERS_FILE.write_text(json.dumps({
-            "admin": {"password": "admin123", "role": "admin", "name": "Admin Aurora"}
+            "admin": {"password": "admin123", "role": "admin", "name": "Admin"}
         }, indent=2, ensure_ascii=False), encoding="utf-8")
     if not ALERTS_FILE.exists():
         ALERTS_FILE.write_text("", encoding="utf-8")
@@ -41,7 +40,7 @@ def load_users():
     try:
         return json.loads(USERS_FILE.read_text(encoding="utf-8"))
     except:
-        return {"admin": {"password": "admin123", "role": "admin", "name": "Admin Aurora"}}
+        return {"admin": {"password": "admin123", "role": "admin", "name": "Admin"}}
 
 def save_users(data):
     USERS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -78,10 +77,9 @@ def get_all_alerts():
     except:
         return []
 
-# Rotas
 @app.get("/health")
 def health():
-    return jsonify({"ok": True, "server_time_br": now_br_str()})
+    return jsonify({"ok": True})
 
 @app.get("/")
 def index():
@@ -104,27 +102,10 @@ def ajuda():
 def saida_rapida():
     return render_template("saida_rapida.html")
 
-@app.get("/legal")
-def legal():
-    return render_template("legal.html")
-
-@app.get("/offline")
-def offline():
-    return render_template("offline.html")
-
-@app.get("/anual")
-def anual():
-    return render_template("anual_aurora.html")
-
-@app.get("/central")
-def central():
-    return render_template("central_aurora.html")
-
 @app.post("/api/send_alert")
 def send_alert():
     data = request.get_json(silent=True) or {}
     
-    # Extrair localização
     location = data.get("location")
     
     payload = {
@@ -141,9 +122,9 @@ def send_alert():
     }
     
     log_alert(payload)
-    print(f"✅ Alerta #{payload['id']} recebido: {payload['situation']}")
+    print(f"✅ Alerta #{payload['id']} - {payload['situation']}")
     if location:
-        print(f"📍 Localização: {location.get('lat')}, {location.get('lng')} (±{location.get('accuracy')}m)")
+        print(f"📍 {location.get('lat')}, {location.get('lng')}")
     
     return jsonify({"ok": True, "id": payload["id"]})
 
@@ -231,8 +212,6 @@ def logout_trusted():
 if __name__ == "__main__":
     ensure_files()
     print("=" * 60)
-    print("🌸 AURORA MULHER SEGURA v3.0")
-    print("=" * 60)
-    print("🚀 http://localhost:5000")
+    print("🌸 AURORA v3.0")
     print("=" * 60)
     app.run(host="0.0.0.0", port=5000, debug=True)

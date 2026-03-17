@@ -1,220 +1,176 @@
 // Sistema SOS Aurora Mulher Segura
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("🌸 Aurora Mulher Segura - Sistema SOS iniciando...");
+    console.log("🌸 Aurora - Sistema SOS iniciando...");
     
     const elements = {
         chips: document.querySelectorAll(".chip"),
         sos: document.getElementById("sosBtn"),
         status: document.getElementById("status"),
         name: document.getElementById("name"),
-        message: document.getElementById("message")
+        message: document.getElementById("message"),
+        shareLocation: document.getElementById("shareLocation"),
+        gpsStatus: document.getElementById("gpsStatus")
     };
 
     if (!elements.sos || !elements.status) {
-        console.error("❌ Erro crítico: Elementos necessários não encontrados!");
-        showStatus("❌ Erro no sistema", "error");
+        console.error("❌ Elementos não encontrados!");
         return;
     }
 
     let selectedSituation = "";
     let holdTimer = null;
     let isHolding = false;
-    let ultimoAlerta = null;
+    let currentLocation = null;
 
     function showStatus(message, type = "info") {
         if (!elements.status) return;
-        
         elements.status.textContent = message;
         elements.status.className = "alert center";
-        elements.status.classList.add(type === "success" ? "alert-ok" : type === "error" ? "alert-danger" : "alert-ok");
+        if (type === "success") elements.status.classList.add("alert-ok");
+        else if (type === "error") elements.status.classList.add("alert-danger");
     }
 
-    function clearStatus() {
-        if (elements.status) {
-            elements.status.textContent = "";
+    // Sistema de chips
+    elements.chips.forEach(chip => {
+        chip.addEventListener("click", function(e) {
+            e.preventDefault();
+            elements.chips.forEach(c => c.classList.remove("active"));
+            this.classList.add("active");
+            selectedSituation = this.dataset.value || this.textContent.trim();
+            showStatus(`✓ Situação: ${selectedSituation}`, "success");
+        });
+    });
+
+    // GPS
+    async function getCurrentLocation() {
+        if (!elements.shareLocation || !elements.shareLocation.checked) {
+            console.log("⚠️ Localização não autorizada");
+            return null;
+        }
+
+        if (!navigator.geolocation) {
+            console.error("❌ GPS não suportado");
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = "❌ GPS não suportado";
+                elements.gpsStatus.className = "alert alert-danger";
+            }
+            return null;
+        }
+
+        try {
+            console.log("📍 Solicitando localização...");
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = "📍 Obtendo localização...";
+                elements.gpsStatus.className = "alert";
+            }
+
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(
+                    resolve,
+                    reject,
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
+
+            currentLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: Math.round(position.coords.accuracy)
+            };
+
+            console.log("✅ Localização obtida:", currentLocation);
+            
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = `✅ GPS: ±${currentLocation.accuracy}m`;
+                elements.gpsStatus.className = "alert alert-ok";
+            }
+
+            return currentLocation;
+        } catch (error) {
+            console.error("❌ Erro GPS:", error);
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = "❌ Erro ao capturar GPS";
+                elements.gpsStatus.className = "alert alert-danger";
+            }
+            return null;
         }
     }
 
-    if (elements.chips.length > 0) {
-        elements.chips.forEach(chip => {
-            chip.addEventListener("click", function(e) {
-                e.preventDefault();
-                elements.chips.forEach(c => c.classList.remove("active"));
-                this.classList.add("active");
-                selectedSituation = this.dataset.value;
-                console.log("✅ Situação selecionada:", selectedSituation);
-                showStatus(`✓ Situação: ${selectedSituation}`, "success");
-                if (navigator.vibrate) navigator.vibrate(50);
-            });
-        });
-    }
-
-    async function getCurrentLocation() {
-        return new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                reject("GPS não suportado neste navegador");
-                return;
-            }
-
-            console.log("📍 Solicitando permissão de localização...");
-            showStatus("📍 Solicitando localização...", "info");
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    console.log("✅ Localização obtida:", position.coords);
-                    
-                    const location = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        accuracy: Math.round(position.coords.accuracy),
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    if (location.accuracy < 50) {
-                        showStatus(`📍 Localização precisa (${location.accuracy}m)`, "success");
-                    } else {
-                        showStatus(`📍 Localização aproximada (${location.accuracy}m)`, "info");
-                    }
-                    
-                    resolve(location);
-                },
-                (error) => {
-                    console.error("❌ Erro de GPS:", error);
-                    
-                    let errorMessage = "Erro ao obter localização";
-                    switch(error.code) {
-                        case 1:
-                            errorMessage = "Permissão de GPS negada";
-                            break;
-                        case 2:
-                            errorMessage = "Localização indisponível";
-                            break;
-                        case 3:
-                            errorMessage = "Tempo de GPS esgotado";
-                            break;
-                    }
-                    
-                    showStatus(`⚠️ ${errorMessage}`, "info");
-                    reject(errorMessage);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0
-                }
-            );
-        });
-    }
-
+    // Enviar alerta
     async function sendSOSAlert() {
         try {
-            console.log("🚨 INICIANDO ENVIO DE ALERTA SOS");
-            
             if (!selectedSituation) {
-                showStatus("⚠️ Selecione o tipo de situação", "error");
-                if (navigator.vibrate) navigator.vibrate([100, 100, 100]);
+                showStatus("⚠️ Selecione a situação", "error");
                 return false;
             }
 
-            showStatus("⏳ Preparando alerta de emergência...", "info");
-            if (elements.sos) {
-                elements.sos.style.transform = "scale(0.95)";
-            }
+            showStatus("⏳ Preparando alerta...", "info");
+
+            // Obter localização
+            const location = await getCurrentLocation();
 
             const payload = {
                 name: elements.name ? elements.name.value.trim() : "Usuária",
                 situation: selectedSituation,
                 message: elements.message ? elements.message.value.trim() : "",
+                location: location,
                 timestamp: new Date().toISOString()
             };
 
-            console.log("📦 Payload base:", payload);
+            console.log("📤 Enviando alerta:", payload);
+            showStatus("📤 Enviando...", "info");
 
-            try {
-                showStatus("📍 Obtendo localização...", "info");
-                const location = await getCurrentLocation();
-                payload.lat = location.lat;
-                payload.lng = location.lng;
-                console.log("📍 Localização adicionada:", location);
-            } catch (locationError) {
-                console.warn("⚠️ Falha no GPS:", locationError);
-                showStatus("⚠️ Enviando alerta sem localização", "info");
-            }
-
-            showStatus("📤 Enviando alerta para contatos de confiança...", "info");
-            if (navigator.vibrate) navigator.vibrate(200);
-
-            console.log("🌐 Enviando requisição para /api/send_alert");
-            
             const response = await fetch("/api/send_alert", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(payload)
             });
 
-            console.log("📥 Resposta recebida:", response.status);
-
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
-            console.log("📄 Resposta JSON:", result);
+            console.log("✅ Alerta enviado:", result);
 
-            if (result.ok) {
-                showStatus("✅ ALERTA ENVIADO! Contatos notificados.", "success");
-                ultimoAlerta = payload;
-                
-                if (elements.sos) {
-                    elements.sos.style.background = "linear-gradient(145deg, #4caf50, #388e3c)";
-                    setTimeout(() => {
-                        elements.sos.style.background = "";
-                        elements.sos.style.transform = "";
-                    }, 1500);
-                }
-                
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                return true;
-            } else {
-                throw new Error(result.message || "Erro desconhecido no servidor");
-            }
-
-        } catch (error) {
-            console.error("❌ Erro crítico no envio:", error);
-            showStatus(`❌ Erro: ${error.message || "Falha na comunicação"}`, "error");
+            showStatus("✅ ALERTA ENVIADO!", "success");
             
+            // Feedback visual
             if (elements.sos) {
-                elements.sos.style.background = "linear-gradient(145deg, #9c27b0, #7b1fa2)";
+                elements.sos.style.background = "linear-gradient(145deg, #4caf50, #388e3c)";
                 setTimeout(() => {
                     elements.sos.style.background = "";
-                }, 1000);
+                }, 2000);
             }
-            
-            if (navigator.vibrate) navigator.vibrate(500);
+
+            return true;
+        } catch (error) {
+            console.error("❌ Erro:", error);
+            showStatus(`❌ Erro: ${error.message}`, "error");
             return false;
         }
     }
 
+    // Sistema de hold (segurar botão)
     function startHold(e) {
         e.preventDefault();
         if (isHolding) return;
-        isHolding = true;
-        console.log("👉 Hold iniciado");
         
+        isHolding = true;
         if (elements.sos) {
             elements.sos.classList.add("holding");
         }
         
-        showStatus("⚠️ Segure por 1 segundo para enviar SOS", "info");
-        if (navigator.vibrate) navigator.vibrate(50);
-
+        showStatus("⚠️ Segure por 1 segundo...", "info");
+        
         holdTimer = setTimeout(() => {
             if (isHolding) {
-                console.log("⏰ Hold completado - enviando alerta");
                 sendSOSAlert();
             }
         }, 1000);
@@ -223,7 +179,6 @@ document.addEventListener("DOMContentLoaded", function() {
     function cancelHold(e) {
         e.preventDefault();
         if (!isHolding) return;
-        console.log("✋ Hold cancelado");
         
         if (holdTimer) {
             clearTimeout(holdTimer);
@@ -234,51 +189,21 @@ document.addEventListener("DOMContentLoaded", function() {
             elements.sos.classList.remove("holding");
         }
         
-        if (elements.status && !elements.status.textContent.includes("✅")) {
-            clearStatus();
-        }
-        
         isHolding = false;
+        
+        if (!elements.status.textContent.includes("✅")) {
+            showStatus("", "info");
+        }
     }
 
+    // Event listeners do SOS
     if (elements.sos) {
         elements.sos.addEventListener("mousedown", startHold);
         elements.sos.addEventListener("mouseup", cancelHold);
         elements.sos.addEventListener("mouseleave", cancelHold);
         elements.sos.addEventListener("touchstart", startHold, { passive: false });
         elements.sos.addEventListener("touchend", cancelHold);
-        elements.sos.addEventListener("touchcancel", cancelHold);
-        elements.sos.addEventListener("contextmenu", (e) => e.preventDefault());
-        
-        elements.sos.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                startHold(e);
-            }
-        });
-        
-        elements.sos.addEventListener("keyup", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                cancelHold(e);
-            }
-        });
-        
-        console.log("✅ Eventos do botão SOS configurados");
     }
 
-    console.log("✅ Sistema Aurora inicializado com sucesso!");
-    console.log("📊 Diagnóstico:", {
-        chips: elements.chips.length,
-        gps: !!navigator.geolocation,
-        vibrate: !!navigator.vibrate,
-        online: navigator.onLine,
-        userAgent: navigator.userAgent
-    });
-
-    if (!navigator.onLine) {
-        showStatus("⚠️ Modo offline - verifique sua internet", "info");
-    } else {
-        showStatus("✅ Sistema pronto - selecione uma situação", "success");
-    }
+    console.log("✅ Sistema Aurora inicializado!");
 });

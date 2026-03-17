@@ -1,162 +1,253 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
-<meta charset="UTF-8">
-<title>Aurora - Pessoa de Confiança</title>
-
-<link rel="stylesheet" href="/static/css/style.css">
-
-<style>
-
-body{
-background:#1b0030;
-font-family:Arial;
-color:white;
-text-align:center;
-}
-
-.sirene{
-
-width:120px;
-height:120px;
-border-radius:60px;
-background:#444;
-margin:auto;
-margin-top:40px;
-transition:0.3s;
-
-}
-
-.sirene.alerta{
-
-background:red;
-box-shadow:0 0 30px red;
-
-}
-
-#map{
-
-width:90%;
-height:400px;
-margin:auto;
-margin-top:20px;
-border-radius:10px;
-
-}
-
-button{
-
-margin:10px;
-padding:10px 20px;
-font-size:16px;
-border:none;
-border-radius:5px;
-
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confiança · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .alert-live {
+            animation: pulse-alert 1s infinite;
+            border-color: #f44336 !important;
+            background: rgba(244, 67, 54, 0.3) !important;
+        }
+        @keyframes pulse-alert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
+        }
+        .location-box {
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        .location-box.no-gps {
+            background: rgba(255, 152, 0, 0.15);
+            border-color: #ff9800;
+        }
+        .siren-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 208, 240, 0.55);
+            background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
+            display: grid;
+            place-items: center;
+            text-align: center;
+            cursor: pointer;
+            margin: 20px auto;
+        }
+        .siren-btn.active {
+            animation: pulse 1s infinite;
+            background: linear-gradient(135deg, #f44336 0%, #ff4fc8 100%) !important;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 98, 212, 0.28);
+            background: rgba(40, 0, 60, 0.35);
+            color: var(--text);
+            font-weight: 900;
+            font-size: 12px;
+            cursor: pointer;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🔔</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Central de Alertas</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/logout_trusted" class="pill">🚪 Sair</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">👤 {{ display_name }}</h1>
+                    <p class="center muted">Pessoa de Confiança</p>
+                    
+                    <div class="siren-btn" id="sirenBtn" onclick="toggleSiren()">
+                        <div>
+                            <div style="font-size: 32px;">🔔</div>
+                            <div style="font-size: 11px; font-weight: 900; margin-top: 8px;">SIRENE</div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="clearAlerts()">🗑️ Limpar</button>
+                        <button class="action-btn" onclick="location.reload()">🔄 Reiniciar</button>
+                        <button class="action-btn" onclick="stopSiren()">⏹️ Parar</button>
+                    </div>
+                    
+                    <div id="noAlerts" class="alert center" style="margin-top: 14px;">
+                        ⏳ Aguardando alertas...
+                    </div>
+                    
+                    <div id="alertContainer" style="display: none; margin-top: 14px;">
+                        <div class="item alert-live">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 900; color: var(--hot); font-size: 14px;" id="alertSituation">
+                                    --
+                                </div>
+                                <div class="small muted" id="alertTime">
+                                    --
+                                </div>
+                                <div class="small" id="alertMessage" style="margin-top: 4px;">
+                                    --
+                                </div>
+                                
+                                <!-- LOCALIZAÇÃO -->
+                                <div id="locationBox" class="location-box no-gps" style="display: none; margin-top: 10px;">
+                                    <div style="font-weight: 900; margin-bottom: 6px;">📍 LOCALIZAÇÃO GPS</div>
+                                    <div id="locationCoords" style="font-family: monospace; word-break: break-all;">
+                                        --
+                                    </div>
+                                    <div id="locationAccuracy" style="margin-top: 4px; color: var(--muted);">
+                                        --
+                                    </div>
+                                    <a id="mapsLink" href="#" target="_blank" style="display: inline-block; margin-top: 8px; padding: 6px 10px; background: rgba(76, 175, 80, 0.3); border-radius: 6px; text-decoration: none; color: #4caf50; font-weight: 900; font-size: 11px;">
+                                        🗺️ ABRIR NO GOOGLE MAPS
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box" style="margin-top: 14px;">
+                        <p class="small muted">
+                            🔔 <strong>Sirene:</strong> Toca automaticamente<br>
+                            🚨 <strong>Auto-atualização:</strong> A cada 3 segundos<br>
+                            📍 <strong>GPS:</strong> Localização em tempo real
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <audio id="sirenAudio" loop>
+        <source src="/static/audio/sirene.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        let lastAlertId = null;
+        let sirenPlaying = false;
 
-<h2>Painel de Confiança</h2>
+        function playSiren() {
+            const audio = document.getElementById('sirenAudio');
+            audio.play().then(() => {
+                sirenPlaying = true;
+                document.getElementById('sirenBtn').classList.add('active');
+            }).catch(e => console.log('Erro sirene:', e));
+        }
 
-<div id="sirene" class="sirene"></div>
+        function stopSiren() {
+            const audio = document.getElementById('sirenAudio');
+            audio.pause();
+            audio.currentTime = 0;
+            sirenPlaying = false;
+            document.getElementById('sirenBtn').classList.remove('active');
+        }
 
-<div id="map"></div>
+        function toggleSiren() {
+            if (sirenPlaying) {
+                stopSiren();
+            } else {
+                playSiren();
+            }
+        }
 
-<br>
+        function clearAlerts() {
+            document.getElementById('alertContainer').style.display = 'none';
+            document.getElementById('noAlerts').style.display = 'block';
+            stopSiren();
+            lastAlertId = null;
+        }
 
-<button onclick="reenviar()">Reenviar</button>
-<button onclick="limpar()">Limpar</button>
-<button onclick="logout()">Sair</button>
+        function updateLocation(lat, lng, accuracy) {
+            const locationBox = document.getElementById('locationBox');
+            const coordsDiv = document.getElementById('locationCoords');
+            const accuracyDiv = document.getElementById('locationAccuracy');
+            const mapsLink = document.getElementById('mapsLink');
+            
+            locationBox.style.display = 'block';
+            locationBox.classList.remove('no-gps');
+            
+            coordsDiv.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            accuracyDiv.textContent = `Precisão: ±${Math.round(accuracy)} metros`;
+            mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
+        }
 
-<script src="https://maps.googleapis.com/maps/api/js"></script>
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/alerts');
+                const alerts = await response.json();
+                
+                if (alerts && alerts.length > 0) {
+                    const lastAlert = alerts[alerts.length - 1];
+                    
+                    if (lastAlert.id !== lastAlertId) {
+                        console.log('🚨 NOVO ALERTA!', lastAlert);
+                        lastAlertId = lastAlert.id;
+                        
+                        document.getElementById('noAlerts').style.display = 'none';
+                        document.getElementById('alertContainer').style.display = 'block';
+                        
+                        document.getElementById('alertSituation').textContent = `⚠️ ${lastAlert.situation || 'Emergência'}`;
+                        document.getElementById('alertTime').textContent = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts || 'Agora'}`;
+                        document.getElementById('alertMessage').textContent = lastAlert.message || '';
+                        
+                        // Verificar localização
+                        const lat = lastAlert.lat || (lastAlert.location && lastAlert.location.lat);
+                        const lng = lastAlert.lng || (lastAlert.location && lastAlert.location.lng);
+                        const accuracy = lastAlert.accuracy || (lastAlert.location && lastAlert.location.accuracy) || 0;
+                        
+                        if (lat && lng) {
+                            console.log('📍 Localização recebida:', lat, lng, accuracy);
+                            updateLocation(parseFloat(lat), parseFloat(lng), parseFloat(accuracy));
+                        } else {
+                            console.log('❌ Sem localização no alerta');
+                            const locationBox = document.getElementById('locationBox');
+                            locationBox.style.display = 'block';
+                            locationBox.classList.add('no-gps');
+                            document.getElementById('locationCoords').textContent = '📍 GPS não disponível';
+                            document.getElementById('locationAccuracy').textContent = 'A usuária não compartilhou a localização';
+                        }
+                        
+                        playSiren();
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar alertas:', error);
+            }
+        }
 
-<script>
-
-let mapa
-let marcador
-
-function iniciarMapa(){
-
-mapa = new google.maps.Map(document.getElementById("map"),{
-zoom:16,
-center:{lat:-15.793889,lng:-47.882778}
-})
-
-}
-
-iniciarMapa()
-
-function atualizarMapa(lat,lng){
-
-const pos={lat:lat,lng:lng}
-
-mapa.setCenter(pos)
-
-if(marcador){
-marcador.setMap(null)
-}
-
-marcador=new google.maps.Marker({
-position:pos,
-map:mapa
-})
-
-}
-
-// =======================
-// VERIFICAR ALERTAS
-// =======================
-
-function verificarAlertas(){
-
-fetch("/api/alerts")
-
-.then(res=>res.json())
-
-.then(data=>{
-
-if(data.length===0) return
-
-const ultimo=data[data.length-1]
-
-document.getElementById("sirene").classList.add("alerta")
-
-if(ultimo.localizacao){
-
-atualizarMapa(
-ultimo.localizacao.lat,
-ultimo.localizacao.lng
-)
-
-}
-
-})
-
-}
-
-setInterval(verificarAlertas,3000)
-
-function reenviar(){
-location.reload()
-}
-
-function limpar(){
-
-document.getElementById("sirene").classList.remove("alerta")
-
-}
-
-function logout(){
-window.location="/"
-}
-
-</script>
-
+        // Carregar alertas a cada 3 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAlerts();
+            setInterval(loadAlerts, 3000);
+        });
+    </script>
 </body>
 </html>

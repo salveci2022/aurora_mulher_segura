@@ -1,13 +1,11 @@
 from __future__ import annotations
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for, send_file
+from flask import Flask, render_template, request, jsonify, redirect, session
 from pathlib import Path
 import json
 import os
 import secrets
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from fpdf import FPDF
-import tempfile
 
 # Configurações
 try:
@@ -80,10 +78,7 @@ def get_all_alerts():
     except:
         return []
 
-# ==========================================
-# ROTAS
-# ==========================================
-
+# Rotas
 @app.get("/health")
 def health():
     return jsonify({"ok": True, "server_time_br": now_br_str()})
@@ -91,16 +86,6 @@ def health():
 @app.get("/")
 def index():
     return render_template("index.html")
-
-@app.get("/termo")
-@app.get("/termo_responsabilidade")
-def termo():
-    return render_template("termo_responsabilidade.html")
-
-@app.route("/aceitar-termo", methods=["POST"])
-def aceitar_termo():
-    session["termo_aceito"] = True
-    return redirect("/panic")
 
 @app.get("/panic")
 def panic():
@@ -110,10 +95,6 @@ def panic():
 def historico():
     alerts = get_all_alerts()
     return render_template("historico.html", alerts=alerts)
-
-@app.get("/plano-seguranca")
-def plano_seguranca():
-    return render_template("plano_seguranca.html")
 
 @app.get("/ajuda")
 def ajuda():
@@ -139,51 +120,36 @@ def anual():
 def central():
     return render_template("central_aurora.html")
 
-@app.get("/pagamentos")
-def pagamentos():
-    return render_template("pagamentos.html")
-
-@app.get("/recibo")
-def recibo():
-    return render_template("recibo_entrega.html")
-
 @app.post("/api/send_alert")
 def send_alert():
     data = request.get_json(silent=True) or {}
+    
+    # Extrair localização
+    location = data.get("location")
+    
     payload = {
         "id": next_alert_id(),
         "ts": now_br_str(),
         "name": data.get("name", "Não informado"),
         "situation": data.get("situation", "Emergência"),
         "message": data.get("message", ""),
-        "location": data.get("location"),
+        "location": location,
+        "lat": location.get("lat") if location and isinstance(location, dict) else None,
+        "lng": location.get("lng") if location and isinstance(location, dict) else None,
+        "accuracy": location.get("accuracy") if location and isinstance(location, dict) else None,
         "ip": request.remote_addr
     }
+    
     log_alert(payload)
+    print(f"✅ Alerta #{payload['id']} recebido: {payload['situation']}")
+    if location:
+        print(f"📍 Localização: {location.get('lat')}, {location.get('lng')} (±{location.get('accuracy')}m)")
+    
     return jsonify({"ok": True, "id": payload["id"]})
 
 @app.get("/api/alerts")
 def api_alerts():
     return jsonify(get_all_alerts())
-
-@app.get("/relatorio/pdf")
-def relatorio_pdf():
-    alerts = get_all_alerts()
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 18)
-    pdf.cell(0, 10, "RELATORIO DE ALERTAS - AURORA", ln=1)
-    pdf.set_font("Arial", "", 12)
-    for a in alerts:
-        linha = f"ID {a['id']} - {a.get('ts', 'N/A')} - {a.get('name', 'N/A')} - {a.get('situation', 'N/A')}"
-        pdf.cell(0, 8, linha, ln=1)
-    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-    pdf.output(temp.name)
-    return send_file(temp.name, as_attachment=True, download_name="relatorio_aurora.pdf")
-
-# ==========================================
-# ADMIN
-# ==========================================
 
 @app.route("/panel/login", methods=["GET", "POST"])
 def admin_login():
@@ -222,57 +188,10 @@ def admin_panel():
     
     return render_template("panel_admin.html", trusted=trusted, alerts=alerts, stats=stats)
 
-@app.post("/panel/add_trusted")
-def admin_add_trusted():
-    if session.get("role") != "admin":
-        return redirect("/panel/login")
-    
-    name = request.form.get("trusted_name", "").strip()
-    username = request.form.get("trusted_user", "").strip().lower()
-    password = request.form.get("trusted_password", "")
-
-    if not name or not username or not password:
-        return redirect("/panel?err=Preencha todos os campos")
-
-    if len(password) < 4:
-        return redirect("/panel?err=Senha muito curta")
-
-    users = load_users()
-
-    if username in users:
-        return redirect("/panel?err=Usuario ja existe")
-
-    users[username] = {
-        "password": password,
-        "role": "trusted",
-        "name": name
-    }
-    save_users(users)
-    return redirect(f"/panel?msg=Pessoa cadastrada: {name}")
-
-@app.post("/panel/delete_trusted")
-def admin_delete_trusted():
-    if session.get("role") != "admin":
-        return redirect("/panel/login")
-    
-    username = request.form.get("username", "").strip()
-    users = load_users()
-
-    if username in users and users[username].get("role") == "trusted":
-        users.pop(username)
-        save_users(users)
-        return redirect("/panel?msg=Pessoa removida")
-
-    return redirect("/panel?err=Erro ao remover")
-
 @app.get("/logout_admin")
 def logout_admin():
     session.clear()
     return redirect("/panel/login")
-
-# ==========================================
-# TRUSTED (PESSOA DE CONFIANÇA)
-# ==========================================
 
 @app.route("/trusted/login", methods=["GET", "POST"])
 def trusted_login():
@@ -301,6 +220,7 @@ def trusted_panel():
     u = session.get("trusted")
     display_name = users.get(u, {}).get("name") or u
     alerts = get_all_alerts()[-10:]
+    
     return render_template("panel_trusted.html", display_name=display_name, alerts=alerts)
 
 @app.get("/logout_trusted")
@@ -308,16 +228,11 @@ def logout_trusted():
     session.clear()
     return redirect("/trusted/login")
 
-# ==========================================
-# START
-# ==========================================
-
 if __name__ == "__main__":
     ensure_files()
     print("=" * 60)
     print("🌸 AURORA MULHER SEGURA v3.0")
     print("=" * 60)
     print("🚀 http://localhost:5000")
-    print("🔐 Admin: admin / admin123")
     print("=" * 60)
     app.run(host="0.0.0.0", port=5000, debug=True)

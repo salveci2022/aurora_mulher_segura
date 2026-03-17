@@ -1,80 +1,109 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0014">
-    <meta name="description" content="Aurora - Termo de Responsabilidade">
-    <title>Termo · Aurora</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="manifest" href="/static/manifest.json">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Termo de Responsabilidade</title>
+
+<link rel="stylesheet" href="/static/css/style.css">
+
 </head>
+
 <body>
-    <div class="aurora-bg">
-        <div class="center-wrap">
-            <div class="aurora-card">
-                <div class="topbar">
-                    <div class="brand">
-                        <div class="brand-dot">📜</div>
-                        <div>
-                            <div class="brand-title">AURORA</div>
-                            <div class="brand-sub">Termo</div>
-                        </div>
-                    </div>
-                    <div class="top-actions">
-                        <a href="/" class="pill">← Voltar</a>
-                    </div>
-                </div>
-                
-                <div class="content">
-                    <h1 class="h1">📜 TERMO DE RESPONSABILIDADE</h1>
-                    <p class="center muted">AURORA MULHER SEGURA</p>
-                    
-                    <div class="info-box" style="margin-bottom: 14px;">
-                        <p class="small">
-                            <strong>1.</strong> O sistema Aurora é ferramenta de apoio e não substitui autoridades.<br><br>
-                            <strong>2.</strong> Em emergências utilize também 190, 192 ou 193.<br><br>
-                            <strong>3.</strong> O funcionamento depende de GPS, internet e bateria.<br><br>
-                            <strong>4.</strong> A localização só é enviada com sua autorização explícita.<br><br>
-                            <strong>5.</strong> Seus dados são protegidos e não compartilhados com terceiros.
-                        </p>
-                    </div>
-                    
-                    <form method="POST" action="/aceitar-termo">
-                        <div class="item" style="margin-bottom: 14px;">
-                            <input type="checkbox" id="aceitoTermo" name="aceito" required style="width: 20px; height: 20px;">
-                            <label for="aceitoTermo" style="margin-left: 10px; color: var(--text);">Li e ACEITO os termos</label>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">✅ ACEITO E CONTINUAR</button>
-                    </form>
-                    
-                    <a href="/" class="btn" style="margin-top: 10px; padding: 12px 14px; border-radius: 16px; border: 1px solid rgba(244, 67, 54, 0.4); background: rgba(244, 67, 54, 0.1); color: #f44336;">❌ NÃO ACEITO</a>
-                    
-                    <div class="list" style="margin-top: 14px;">
-                        <a href="/legal" class="link">📄 Termos Completos e Privacidade</a>
-                        <a href="/ajuda" class="link">📞 Central de Ajuda</a>
-                    </div>
-                    
-                    <p class="center small muted" style="margin-top: 14px;">
-                        🌸 AURORA MULHER SEGURA - Protegendo vidas
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Verifica se já aceitou o termo
-        if (localStorage.getItem('termo_aceito') === 'true') {
-            // Opcional: redirecionar automaticamente
-            // window.location.href = '/panic';
-        }
-        
-        // Marcar como aceito no localStorage quando enviar o form
-        document.querySelector('form').addEventListener('submit', function() {
-            localStorage.setItem('termo_aceito', 'true');
-        });
-    </script>
+
+<div class="container">
+
+<h2>Termo de Responsabilidade</h2>
+
+<p>
+
+O sistema Aurora Mulher Segura é uma ferramenta tecnológica de apoio
+à segurança pessoal.
+
+Ele permite enviar alertas com localização e informações
+para pessoas de confiança previamente cadastradas.
+
+</p>
+
+<p>
+
+O funcionamento do sistema depende de fatores externos como:
+
+</p>
+
+<ul>
+
+<li>Conexão com internet</li>
+<li>GPS ativado no dispositivo</li>
+<li>Permissões concedidas pelo navegador</li>
+
+</ul>
+
+<p>
+
+Este sistema não substitui serviços oficiais de emergência.
+
+Em situações de perigo imediato procure também:
+
+</p>
+
+<ul>
+
+<li>Polícia Militar – 190</li>
+<li>Central de Atendimento à Mulher – 180</li>
+<li>SAMU – 192</li>
+<li>Bombeiros – 193</li>
+
+</ul>
+
+<p>
+
+Ao utilizar o Aurora você declara que compreende as limitações
+tecnológicas e concorda com os termos de uso do sistema.
+
+</p>
+
+<button onclick="aceitarTermo()">ACEITO</button>
+
+</div>
+
+<script>
+
+function aceitarTermo(){
+
+localStorage.setItem("aurora_termo","aceito")
+
+window.location="/panic"
+
+}
+
+</script>
+<button onclick="saidaRapida()" style="
+position:fixed;
+top:10px;
+right:10px;
+background:red;
+color:white;
+padding:10px;
+border:none;
+border-radius:8px;
+font-weight:bold;
+z-index:9999;
+">
+SAIR RÁPIDO
+</button>
+
+<script>
+
+function saidaRapida(){
+
+window.location = "https://www.google.com"
+
+}
+
+</script>
 </body>
 </html>

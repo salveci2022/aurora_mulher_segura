@@ -1,321 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 <script>
-    (function() {
-        "use strict";
-        console.log("🌸 Aurora - GPS Alta Precisão iniciando...");
 
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", init);
-        } else {
-            init();
-        }
+// VERIFICAR SE ACEITOU O TERMO
+document.addEventListener("DOMContentLoaded", function(){
 
-        function init() {
-            const elements = {
-                chips: document.querySelectorAll(".chip"),
-                sos: document.getElementById("sosBtn"),
-                status: document.getElementById("statusMsg"),
-                name: document.getElementById("nomeInput"),
-                message: document.getElementById("mensagemInput"),
-                gpsStatus: document.getElementById("gpsStatus")
-            };
+    const termo = localStorage.getItem("aurora_termo")
 
-            if (!elements.sos) {
-                console.error("❌ Botão SOS não encontrado!");
-                return;
-            }
+    if(!termo){
+        window.location = "/termo_responsabilidade"
+    }
 
-            let selectedSituation = "Assédio";
-            let holdTimer = null;
-            let isHolding = false;
-            let lastLocation = null;
-            let gpsAccuracy = 999;
-            let gpsReadings = 0;
-            let bestLocation = null;
-            let locationReadings = [];
-            let gpsWatchId = null;
+})
 
-            // ✅ GPS DE ALTA PRECISÃO - CONFIGURAÇÃO MÁXIMA
-            function initHighAccuracyGPS() {
-                if (!navigator.geolocation) {
-                    updateGPSStatus('error', 'GPS não suportado');
-                    return;
-                }
-
-                updateGPSStatus('warning', 'Aguarde... Captando satélites GPS');
-
-                // Configurações de MÁXIMA precisão
-                const highAccuracyOptions = {
-                    enableHighAccuracy: true,  // ✅ Força GPS de alta precisão
-                    timeout: 60000,             // ✅ 60 segundos timeout (mais tempo)
-                    maximumAge: 0               // ✅ NÃO usa cache
-                };
-
-                // Primeira leitura
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        processPosition(position);
-                        
-                        // Inicia monitoramento contínuo
-                        gpsWatchId = navigator.geolocation.watchPosition(
-                            processPosition,
-                            (error) => {
-                                console.log('❌ Watch error:', error);
-                                updateGPSStatus('error', 'Erro no GPS');
-                            },
-                            highAccuracyOptions
-                        );
-
-                        // Força melhorias a cada 2 segundos por 30 segundos
-                        let improvementInterval = setInterval(() => {
-                            if (gpsReadings < 15 && gpsAccuracy > 10) {
-                                navigator.geolocation.getCurrentPosition(
-                                    processPosition,
-                                    null,
-                                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                                );
-                            } else {
-                                clearInterval(improvementInterval);
-                            }
-                        }, 2000);
-
-                        // Para após 30 segundos
-                        setTimeout(() => {
-                            clearInterval(improvementInterval);
-                            if (gpsWatchId) {
-                                navigator.geolocation.clearWatch(gpsWatchId);
-                            }
-                        }, 30000);
-                    },
-                    (error) => {
-                        let msg = 'Erro GPS';
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED: 
-                                msg = '❌ Permissão negada - Ative o GPS'; 
-                                break;
-                            case error.POSITION_UNAVAILABLE: 
-                                msg = '❌ Sinal indisponível'; 
-                                break;
-                            case error.TIMEOUT: 
-                                msg = '⏱️ Timeout - Tentando novamente'; 
-                                break;
-                        }
-                        updateGPSStatus('error', msg);
-                    },
-                    highAccuracyOptions
-                );
-            }
-
-            function processPosition(position) {
-                gpsReadings++;
-                const acc = Math.round(position.coords.accuracy);
-                
-                const reading = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    accuracy: acc,
-                    speed: position.coords.speed,
-                    heading: position.coords.heading,
-                    timestamp: new Date().toISOString()
-                };
-
-                locationReadings.push(reading);
-
-                // Guarda a MELHOR localização (menor accuracy)
-                if (acc < gpsAccuracy || !bestLocation) {
-                    bestLocation = reading;
-                    gpsAccuracy = acc;
-                }
-
-                // Calcula média das últimas 5 leituras se accuracy < 50m
-                if (acc <= 50 && locationReadings.length >= 3) {
-                    const recentReadings = locationReadings.slice(-5);
-                    const avgLat = recentReadings.reduce((sum, r) => sum + r.lat, 0) / recentReadings.length;
-                    const avgLng = recentReadings.reduce((sum, r) => sum + r.lng, 0) / recentReadings.length;
-                    const avgAcc = Math.round(recentReadings.reduce((sum, r) => sum + r.accuracy, 0) / recentReadings.length);
-                    
-                    bestLocation = {
-                        lat: avgLat,
-                        lng: avgLng,
-                        accuracy: avgAcc,
-                        speed: reading.speed,
-                        heading: reading.heading,
-                        timestamp: new Date().toISOString(),
-                        averaged: true
-                    };
-                    gpsAccuracy = avgAcc;
-                }
-
-                updateGPSStatus(gpsAccuracy, gpsReadings);
-                console.log(`✅ GPS ${gpsReadings}ª leitura: ±${acc}m`, reading);
-                console.log('🎯 Melhor localização:', bestLocation);
-            }
-
-            function updateGPSStatus(accuracy, readings, customMsg) {
-                if (!elements.gpsStatus) return;
-                
-                if (customMsg) {
-                    elements.gpsStatus.innerHTML = `<span style="color: #ff9800">⚠️ ${customMsg}</span>`;
-                    return;
-                }
-
-                let color, icon, text, quality;
-                
-                if (accuracy <= 10) {
-                    color = '#4caf50';
-                    icon = '🟢';
-                    text = 'EXCELENTE';
-                    quality = 'Alta precisão';
-                } else if (accuracy <= 25) {
-                    color = '#8bc34a';
-                    icon = '🟡';
-                    text = 'BOM';
-                    quality = 'Boa precisão';
-                } else if (accuracy <= 50) {
-                    color = '#ff9800';
-                    icon = '🟠';
-                    text = 'MÉDIO';
-                    quality = 'Precisão média';
-                } else if (accuracy <= 100) {
-                    color = '#ff5722';
-                    icon = '🔴';
-                    text = 'RUIM';
-                    quality = 'Baixa precisão';
-                } else {
-                    color = '#f44336';
-                    icon = '❌';
-                    text = 'MUITO RUIM';
-                    quality = 'Precisão muito baixa';
-                }
-
-                elements.gpsStatus.innerHTML = `
-                    <div style="margin-bottom: 8px;">
-                        <span style="color: ${color}; font-weight: bold;">
-                            ${icon} GPS: ±${accuracy}m (${text})
-                        </span>
-                    </div>
-                    <div style="font-size: 11px; color: var(--muted);">
-                        📡 ${readings} leituras | ${quality}<br>
-                        ${bestLocation ? `📍 ${bestLocation.lat.toFixed(6)}, ${bestLocation.lng.toFixed(6)}` : ''}
-                    </div>
-                    ${accuracy > 50 ? '<div style="margin-top: 6px; font-size: 11px; color: #ff9800;">💡 Dica: Vá para área aberta e aguarde</div>' : ''}
-                `;
-                elements.gpsStatus.style.color = color;
-            }
-
-            initHighAccuracyGPS();
-
-            if (elements.chips.length > 0) {
-                elements.chips.forEach(chip => {
-                    chip.addEventListener("click", function(e) {
-                        e.preventDefault();
-                        elements.chips.forEach(c => c.classList.remove("active"));
-                        this.classList.add("active");
-                        selectedSituation = this.dataset.value || this.textContent.trim();
-                        showStatus(`✓ Situação: ${selectedSituation}`, "success");
-                        if (navigator.vibrate) navigator.vibrate(50);
-                    });
-                });
-            }
-
-            function showStatus(message, type = "info") {
-                if (!elements.status) return;
-                elements.status.textContent = message;
-                elements.status.className = "alert center";
-                if (type === "success") elements.status.classList.add("alert-ok");
-                else if (type === "error") elements.status.classList.add("alert-danger");
-            }
-
-            async function sendSOSAlert() {
-                try {
-                    if (!selectedSituation) {
-                        showStatus("⚠️ Selecione o tipo de situação", "error");
-                        return false;
-                    }
-
-                    // Verifica se GPS está razoavelmente preciso
-                    if (gpsAccuracy > 100) {
-                        if (!confirm('⚠️ GPS com baixa precisão (±' + gpsAccuracy + 'm).\n\nDeseja enviar mesmo assim?\n\n💡 Dica: Aguarde mais alguns segundos em área aberta para melhor precisão.')) {
-                            showStatus("⏳ Aguardando GPS mais preciso...", "info");
-                            return false;
-                        }
-                    }
-
-                    showStatus("⏳ Preparando alerta...", "info");
-
-                    const payload = {
-                        name: elements.name ? elements.name.value.trim() : "Usuária",
-                        situation: selectedSituation,
-                        message: elements.message ? elements.message.value.trim() : "",
-                        timestamp: new Date().toISOString()
-                    };
-
-                    // Envia MELHOR localização obtida
-                    if (bestLocation) {
-                        payload.lat = bestLocation.lat;
-                        payload.lng = bestLocation.lng;
-                        payload.accuracy = bestLocation.accuracy;
-                        payload.gps_readings = gpsReadings;
-                        payload.gps_method = bestLocation.averaged ? "GPS Média (5 leituras)" :
-                                            gpsAccuracy <= 10 ? "GPS Satélite (Alta)" : 
-                                            gpsAccuracy <= 25 ? "GPS + Wi-Fi" : 
-                                            gpsAccuracy <= 50 ? "Wi-Fi + Torres" : "Torres Celular";
-                        
-                        console.log('📍 Localização EXATA enviada:', bestLocation);
-                    }
-
-                    showStatus("📤 Enviando alerta...", "info");
-
-                    const response = await fetch("/api/send_alert", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const result = await response.json();
-
-                    if (result && result.ok) {
-                        showStatus("✅ ALERTA ENVIADO!", "success");
-                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                        return true;
-                    } else {
-                        throw new Error("Erro no servidor");
-                    }
-
-                } catch (error) {
-                    showStatus(`❌ Erro: ${error.message}`, "error");
-                    return false;
-                }
-            }
-
-            function startHold(e) {
-                e.preventDefault();
-                if (isHolding) return;
-                isHolding = true;
-                if (elements.sos) elements.sos.classList.add("holding");
-                showStatus("⚠️ Segure por 1 segundo...", "info");
-                if (navigator.vibrate) navigator.vibrate(50);
-                holdTimer = setTimeout(() => {
-                    if (isHolding) sendSOSAlert();
-                }, 1000);
-            }
-
-            function cancelHold(e) {
-                e.preventDefault();
-                if (!isHolding) return;
-                if (holdTimer) clearTimeout(holdTimer);
-                if (elements.sos) elements.sos.classList.remove("holding");
-                isHolding = false;
-            }
-
-            if (elements.sos) {
-                elements.sos.addEventListener("mousedown", startHold);
-                elements.sos.addEventListener("mouseup", cancelHold);
-                elements.sos.addEventListener("mouseleave", cancelHold);
-                elements.sos.addEventListener("touchstart", startHold, { passive: false });
-                elements.sos.addEventListener("touchend", cancelHold);
-            }
-
-            console.log("✅ Sistema Aurora GPS Alta Precisão inicializado!");
-        }
-    })();
 </script>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Aurora Mulher Segura</title>
+
+<link rel="stylesheet" href="/static/css/style.css">
+<link rel="manifest" href="/manifest.json">
+
+<meta name="theme-color" content="#0a0014">
+
+</head>
+
+<body>
+
+<div class="aurora-bg">
+<div class="center-wrap">
+<div class="aurora-card">
+
+<div class="topbar">
+
+<div class="brand">
+
+<div class="brand-dot">🌸</div>
+
+<div>
+<div class="brand-title">AURORA</div>
+<div class="brand-sub">Mulher Segura</div>
+</div>
+
+</div>
+</div>
+
+<div class="content">
+
+<h1 class="h1">PROTEÇÃO IMEDIATA</h1>
+
+<p class="center muted">
+Toque e segure o botão SOS
+</p>
+
+<!-- SITUAÇÕES -->
+
+<div class="chips">
+
+<div class="chip active" data-value="Assédio">Assédio</div>
+<div class="chip" data-value="Violência">Violência</div>
+<div class="chip" data-value="Perseguição">Perseguição</div>
+<div class="chip" data-value="Emergência médica">Emergência médica</div>
+<div class="chip" data-value="Local suspeito">Local suspeito</div>
+<div class="chip" data-value="Outro">Outro</div>
+
+</div>
+
+<!-- NOME -->
+
+<label class="label">Nome</label>
+
+<input id="nomeInput" class="input" placeholder="Seu nome">
+
+<!-- MENSAGEM -->
+
+<label class="label">Mensagem opcional</label>
+
+<textarea id="mensagemInput" class="textarea"
+placeholder="Descreva rapidamente a situação"></textarea>
+
+<!-- BOTÃO SOS -->
+
+<div class="sos-wrap">
+
+<div id="sosBtn" class="sos">
+
+<div>
+<div class="sos-text">SOS</div>
+<div class="sos-sub">TOQUE E SEGURE</div>
+</div>
+
+</div>
+
+</div>
+
+<!-- STATUS -->
+
+<div id="statusMsg" class="alert center">
+Sistema pronto
+</div>
+
+<!-- GPS -->
+
+<div id="gpsStatus" class="alert center">
+Capturando localização GPS...
+</div>
+
+<!-- BOTÕES -->
+
+<div style="display:flex;gap:10px;justify-content:center;margin-top:15px;flex-wrap:wrap;">
+
+<button onclick="reenviar()" class="btn btn-primary">
+📤 Reenviar
+</button>
+
+<button onclick="limpar()" class="btn btn-danger">
+🧹 Limpar
+</button>
+
+<button onclick="sair()" class="btn">
+↻ Sair
+</button>
+
+</div>
+
+<!-- RELATÓRIO -->
+
+<a href="/historico" class="btn btn-primary">
+📄 Ver histórico de alertas
+</a>
+
+</div>
+</div>
+</div>
+</div>
+
+<script src="/static/js/panic.js"></script>
+
+<script>
+
+let ultimaLocalizacao = null
+
+/* ===============================
+CAPTURAR LOCALIZAÇÃO
+=============================== */
+
+function capturarLocalizacao(){
+
+if(!navigator.geolocation){
+
+document.getElementById("gpsStatus").innerText="GPS não suportado"
+
+return
+
+}
+
+navigator.geolocation.getCurrentPosition(function(pos){
+
+let lat = pos.coords.latitude
+let lng = pos.coords.longitude
+
+ultimaLocalizacao = {lat:lat,lng:lng}
+
+document.getElementById("gpsStatus").innerText="📍 Localização capturada"
+
+})
+
+}
+
+/* ===============================
+REENVIAR ALERTA
+=============================== */
+
+function reenviar(){
+
+if(!ultimaLocalizacao) return
+
+fetch("/api/alert",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+nome:document.getElementById("nomeInput").value || "Usuária",
+mensagem:document.getElementById("mensagemInput").value || "",
+situacao:document.querySelector(".chip.active").dataset.value,
+localizacao:ultimaLocalizacao
+
+})
+
+})
+
+}
+
+/* ===============================
+LIMPAR
+=============================== */
+
+function limpar(){
+
+document.getElementById("mensagemInput").value=""
+
+document.getElementById("statusMsg").innerText="Sistema pronto"
+
+}
+
+/* ===============================
+SAIR
+=============================== */
+
+function sair(){
+
+location.reload()
+
+}
+
+/* ===============================
+SELEÇÃO SITUAÇÃO
+=============================== */
+
+document.querySelectorAll(".chip").forEach(btn=>{
+
+btn.addEventListener("click",()=>{
+
+document.querySelectorAll(".chip")
+.forEach(b=>b.classList.remove("active"))
+
+btn.classList.add("active")
+
+})
+
+})
+
+/* ===============================
+INICIAR GPS
+=============================== */
+
+capturarLocalizacao()
+
+/* ===============================
+SERVICE WORKER
+=============================== */
+
+if ("serviceWorker" in navigator) {
+
+navigator.serviceWorker
+.register("/static/js/service-worker.js")
+.then(() => console.log("Service Worker registrado"))
+.catch(err => console.log("Erro SW:", err))
+
+}
+
+</script>
+
+</body>
+</html>

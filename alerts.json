@@ -1,0 +1,29 @@
+[
+    {
+        "nome": "Usu\u00e1ria",
+        "situacao": "Emerg\u00eancia",
+        "mensagem": "",
+        "localizacao": null,
+        "hora": "16/03/2026 23:30:40"
+    },
+    {
+        "nome": "SALVECI",
+        "situacao": "Persegui\u00e7\u00e3o",
+        "mensagem": "",
+        "localizacao": {
+            "lat": -16.020127542309577,
+            "lng": -48.020606749194144
+        },
+        "hora": "17/03/2026 00:10:44"
+    },
+    {
+        "nome": "SAMARA ",
+        "situacao": "Viol\u00eancia",
+        "mensagem": "",
+        "hora": "17/03/2026 00:14:40",
+        "localizacao": {
+            "lat": -16.020286444183647,
+            "lng": -48.02071391582454
+        }
+    }
+]

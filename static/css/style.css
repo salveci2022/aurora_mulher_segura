@@ -340,4 +340,41 @@ body {
         padding: 8px 10px;
         font-size: 11px;
     }
+}.sirene-btn{
+
+width:120px;
+height:120px;
+
+border-radius:50%;
+
+border:none;
+
+font-size:40px;
+
+background:#555;
+
+color:white;
+
+transition:0.3s;
+
+}
+
+.sirene-ativa{
+
+background:red;
+
+box-shadow:0 0 30px red;
+
+animation:piscar 1s infinite;
+
+}
+
+@keyframes piscar{
+
+0%{opacity:1}
+
+50%{opacity:0.3}
+
+100%{opacity:1}
+
 }

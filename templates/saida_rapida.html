@@ -1,183 +1,81 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0014">
-    <meta name="description" content="Aurora - Calculadora (Saída Rápida)">
-    <title>Calculadora · Aurora</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="manifest" href="/static/manifest.json">
-    <style>
-        .calc-display {
-            width: 100%;
-            padding: 16px;
-            font-size: 28px;
-            text-align: right;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 98, 212, 0.30);
-            background: rgba(10, 0, 20, 0.75);
-            color: var(--text);
-            margin-bottom: 14px;
-            font-family: monospace;
-        }
-        .calc-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-        .calc-btn {
-            padding: 16px;
-            font-size: 18px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 98, 212, 0.22);
-            background: rgba(40, 0, 60, 0.35);
-            color: var(--text);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .calc-btn:hover {
-            background: rgba(60, 0, 80, 0.45);
-        }
-        .calc-btn.operator {
-            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.35), rgba(164, 92, 255, 0.18));
-            border-color: rgba(255, 121, 218, 0.55);
-        }
-        .calc-btn.equals {
-            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.95), rgba(164, 92, 255, 0.75));
-            color: #180013;
-            font-weight: 900;
-        }
-        .calc-btn.clear {
-            background: rgba(244, 67, 54, 0.2);
-            border-color: rgba(244, 67, 54, 0.4);
-        }
-    </style>
+
+<meta charset="UTF-8">
+
+<title>Calculadora</title>
+
+<style>
+
+body{
+
+font-family:Arial;
+text-align:center;
+margin-top:100px;
+
+}
+
+input{
+
+font-size:20px;
+padding:10px;
+width:200px;
+
+}
+
+button{
+
+font-size:20px;
+padding:10px;
+margin:5px;
+
+}
+
+</style>
+
 </head>
+
 <body>
-    <div class="aurora-bg">
-        <div class="center-wrap">
-            <div class="aurora-card">
-                <div class="topbar">
-                    <div class="brand">
-                        <div class="brand-dot">🔢</div>
-                        <div>
-                            <div class="brand-title">AURORA</div>
-                            <div class="brand-sub">Calculadora</div>
-                        </div>
-                    </div>
-                    <div class="top-actions">
-                        <a href="/panic" class="pill">🚨 SOS</a>
-                        <a href="/" class="pill">← Voltar</a>
-                    </div>
-                </div>
-                
-                <div class="content">
-                    <h1 class="h1">🔢 CALCULADORA</h1>
-                    <p class="center muted">Saída rápida (disfarce)</p>
-                    
-                    <input type="text" id="calcDisplay" class="calc-display" readonly value="0">
-                    
-                    <div class="calc-grid">
-                        <button class="calc-btn clear" onclick="clearCalc()">C</button>
-                        <button class="calc-btn operator" onclick="appendCalc('(')">(</button>
-                        <button class="calc-btn operator" onclick="appendCalc(')')">)</button>
-                        <button class="calc-btn operator" onclick="appendCalc('/')">÷</button>
-                        
-                        <button class="calc-btn" onclick="appendCalc('7')">7</button>
-                        <button class="calc-btn" onclick="appendCalc('8')">8</button>
-                        <button class="calc-btn" onclick="appendCalc('9')">9</button>
-                        <button class="calc-btn operator" onclick="appendCalc('*')">×</button>
-                        
-                        <button class="calc-btn" onclick="appendCalc('4')">4</button>
-                        <button class="calc-btn" onclick="appendCalc('5')">5</button>
-                        <button class="calc-btn" onclick="appendCalc('6')">6</button>
-                        <button class="calc-btn operator" onclick="appendCalc('-')">-</button>
-                        
-                        <button class="calc-btn" onclick="appendCalc('1')">1</button>
-                        <button class="calc-btn" onclick="appendCalc('2')">2</button>
-                        <button class="calc-btn" onclick="appendCalc('3')">3</button>
-                        <button class="calc-btn operator" onclick="appendCalc('+')">+</button>
-                        
-                        <button class="calc-btn" onclick="appendCalc('0')">0</button>
-                        <button class="calc-btn" onclick="appendCalc('.')">.</button>
-                        <button class="calc-btn equals" onclick="calculate()">=</button>
-                        <button class="calc-btn clear" onclick="deleteLast()">←</button>
-                    </div>
-                    
-                    <div class="info-box">
-                        <p class="small muted">
-                            🎭 <strong>Disfarce:</strong> Esta calculadora serve como saída rápida em situações de risco.
-                        </p>
-                    </div>
-                    
-                    <a href="/panic" class="btn btn-primary">🚨 VOLTAR AO SOS</a>
-                    
-                    <div class="list" style="margin-top: 14px;">
-                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
-                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        let display = document.getElementById('calcDisplay');
-        let currentExpression = '';
-        
-        function appendCalc(value) {
-            if (currentExpression === '0' && value !== '.') {
-                currentExpression = value;
-            } else {
-                currentExpression += value;
-            }
-            display.value = currentExpression;
-        }
-        
-        function clearCalc() {
-            currentExpression = '0';
-            display.value = '0';
-        }
-        
-        function deleteLast() {
-            if (currentExpression.length > 1) {
-                currentExpression = currentExpression.slice(0, -1);
-            } else {
-                currentExpression = '0';
-            }
-            display.value = currentExpression;
-        }
-        
-        function calculate() {
-            try {
-                // Segurança: apenas operações matemáticas básicas
-                if (/^[0-9+\-*/().]+$/.test(currentExpression)) {
-                    const result = eval(currentExpression);
-                    display.value = result;
-                    currentExpression = result.toString();
-                } else {
-                    display.value = 'Erro';
-                    currentExpression = '0';
-                }
-            } catch (e) {
-                display.value = 'Erro';
-                currentExpression = '0';
-            }
-        }
-        
-        // Teclado físico
-        document.addEventListener('keydown', (e) => {
-            if (e.key >= '0' && e.key <= '9' || e.key === '.' || e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/' || e.key === '(' || e.key === ')') {
-                appendCalc(e.key);
-            } else if (e.key === 'Enter' || e.key === '=') {
-                calculate();
-            } else if (e.key === 'Backspace') {
-                deleteLast();
-            } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
-                clearCalc();
-            }
-        });
-    </script>
+
+<h2>Calculadora</h2>
+
+<input id="display" type="text">
+
+<br><br>
+
+<button onclick="calc(1)">1</button>
+<button onclick="calc(2)">2</button>
+<button onclick="calc(3)">3</button>
+
+<br>
+
+<button onclick="calc(4)">4</button>
+<button onclick="calc(5)">5</button>
+<button onclick="calc(6)">6</button>
+
+<br>
+
+<button onclick="calc(7)">7</button>
+<button onclick="calc(8)">8</button>
+<button onclick="calc(9)">9</button>
+
+<br>
+
+<button onclick="calc('+')">+</button>
+<button onclick="calc('-')">-</button>
+<button onclick="calc('*')">*</button>
+
+<script>
+
+function calc(v){
+
+document.getElementById("display").value+=v
+
+}
+
+</script>
+
 </body>
 </html>

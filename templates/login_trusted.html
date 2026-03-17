@@ -2,88 +2,19 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0014">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confiança · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         .alert-live {
             animation: pulse-alert 1s infinite;
             border-color: #f44336 !important;
             background: rgba(244, 67, 54, 0.3) !important;
-            box-shadow: 0 0 30px rgba(244, 67, 54, 0.6);
         }
         @keyframes pulse-alert {
-            0%, 100% { 
-                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
-                transform: scale(1);
-            }
-            50% { 
-                box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0);
-                transform: scale(1.02);
-            }
-        }
-        .siren-active {
-            animation: siren-flash 0.5s infinite;
-            background: linear-gradient(135deg, #f44336 0%, #ff4fc8 100%) !important;
-            color: white !important;
-        }
-        @keyframes siren-flash {
-            0%, 100% { 
-                background: linear-gradient(135deg, #f44336 0%, #ff4fc8 100%);
-                transform: scale(1);
-            }
-            50% { 
-                background: linear-gradient(135deg, #ff4fc8 0%, #f44336 100%);
-                transform: scale(1.05);
-            }
-        }
-        .emergency-banner {
-            background: linear-gradient(135deg, #f44336, #ff4fc8);
-            color: white;
-            padding: 20px;
-            border-radius: 16px;
-            margin: 14px 0;
-            text-align: center;
-            animation: banner-pulse 1.5s infinite;
-            display: none;
-        }
-        .emergency-banner.active {
-            display: block;
-        }
-        @keyframes banner-pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.02); opacity: 0.9; }
-        }
-        .location-box {
-            background: rgba(76, 175, 80, 0.15);
-            border: 2px solid #4caf50;
-            border-radius: 14px;
-            padding: 14px;
-            margin: 14px 0;
-            display: none;
-        }
-        .location-box.active {
-            display: block;
-            animation: slide-in 0.5s ease;
-        }
-        @keyframes slide-in {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        #map {
-            width: 100%;
-            height: 300px;
-            border-radius: 12px;
-            margin: 10px 0;
-            border: 2px solid rgba(255, 98, 212, 0.3);
-            display: none;
-            z-index: 1;
-        }
-        #map.active {
-            display: block;
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
         }
         .siren-btn {
             width: 150px;
@@ -91,7 +22,6 @@
             border-radius: 999px;
             border: 2px solid rgba(255, 208, 240, 0.55);
             background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
-            box-shadow: 0 0 0 14px rgba(255, 79, 200, 0.10), 0 20px 70px rgba(0, 0, 0, 0.55);
             display: grid;
             place-items: center;
             text-align: center;
@@ -102,7 +32,6 @@
         .siren-btn.active {
             animation: pulse 1s infinite;
             background: linear-gradient(135deg, #f44336 0%, #ff4fc8 100%) !important;
-            box-shadow: 0 0 0 14px rgba(244, 67, 54, 0.20), 0 20px 70px rgba(0, 0, 0, 0.55);
         }
         .siren-btn .siren-text {
             font-size: 32px;
@@ -139,34 +68,39 @@
             font-weight: 900;
             font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .action-btn:hover {
-            filter: brightness(1.06);
-            transform: translateY(-2px);
         }
         .action-btn.danger {
             background: rgba(244, 67, 54, 0.2);
             border-color: rgba(244, 67, 54, 0.4);
         }
-        .gps-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 900;
-            margin: 4px 0;
+        #map {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px;
+            margin: 14px 0;
+            border: 2px solid rgba(255, 98, 212, 0.3);
+            display: none;
         }
-        .gps-excellent { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
-        .gps-good { background: rgba(139, 195, 74, 0.2); color: #8bc34a; }
-        .gps-warning { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
-        .gps-error { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+        #map.active {
+            display: block;
+        }
+        .location-info {
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid #4caf50;
+            border-radius: 14px;
+            padding: 14px;
+            margin: 14px 0;
+            display: none;
+        }
+        .location-info.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="aurora-bg">
         <div class="center-wrap">
-            <div class="aurora-card" id="mainCard">
+            <div class="aurora-card">
                 <div class="topbar">
                     <div class="brand">
                         <div class="brand-dot">🔔</div>
@@ -215,12 +149,12 @@
                                 <div class="small" id="alertMessage" style="margin-top: 4px;">
                                     --
                                 </div>
-                                <div id="gpsBadge"></div>
                             </div>
                         </div>
                     </div>
                     
-                    <div id="locationBox" class="location-box">
+                    <!-- ✅ LOCALIZAÇÃO EXATA -->
+                    <div id="locationInfo" class="location-info">
                         <div style="font-weight: 900; margin-bottom: 8px; color: #4caf50;">
                             📍 LOCALIZAÇÃO EXATA (GPS HÍBRIDO)
                         </div>
@@ -232,6 +166,7 @@
                         </div>
                     </div>
                     
+                    <!-- ✅ MAPA LEAFLET -->
                     <div id="map"></div>
                     
                     <a id="mapsLink" href="#" target="_blank" class="btn btn-primary" style="display: none;">
@@ -240,8 +175,8 @@
                     
                     <div class="info-box">
                         <p class="small muted">
-                            🔔 <strong>Sirene:</strong> Toca automaticamente<br>
-                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3s<br>
+                            🔔 <strong>Sirene:</strong> Toca automaticamente ao receber alerta<br>
+                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3 segundos<br>
                             📍 <strong>GPS:</strong> Localização em tempo real<br>
                             🗺️ <strong>Mapa:</strong> Leaflet automático
                         </p>
@@ -255,28 +190,22 @@
         <source src="/static/audio/sirene.mp3" type="audio/mpeg">
     </audio>
     
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let lastAlertId = null;
         let sirenPlaying = false;
         let map = null;
         let marker = null;
-        let alertSoundPlayed = false;
 
-        // Inicializa mapa Leaflet
         function initMap() {
             if (!map) {
-                // Coordenadas padrão (São Paulo)
                 map = L.map('map').setView([-23.5505, -46.6333], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors',
-                    maxZoom: 19
+                    attribution: '© OpenStreetMap contributors'
                 }).addTo(map);
             }
         }
 
-        // Atualiza marcador no mapa
         function updateMarker(lat, lng, accuracy) {
             initMap();
             document.getElementById('map').classList.add('active');
@@ -292,34 +221,22 @@
             map.setView([lat, lng], 16);
         }
 
-        // Toca sirene automaticamente
         function playSiren() {
             const audio = document.getElementById('sirenAudio');
-            
             audio.play().then(() => {
                 sirenPlaying = true;
                 document.getElementById('sirenBtn').classList.add('active');
-                document.getElementById('mainCard').classList.add('siren-active');
-                console.log('🔔 Sirene tocando automaticamente!');
-            }).catch(e => {
-                console.log('⚠️ Auto-play bloqueado:', e);
-                if (navigator.vibrate) {
-                    navigator.vibrate([1000, 500, 1000, 500, 1000]);
-                }
-            });
+            }).catch(e => console.log('Audio error:', e));
         }
 
-        // Para sirene
         function stopSiren() {
             const audio = document.getElementById('sirenAudio');
             audio.pause();
             audio.currentTime = 0;
             sirenPlaying = false;
             document.getElementById('sirenBtn').classList.remove('active');
-            document.getElementById('mainCard').classList.remove('siren-active');
         }
 
-        // Toggle manual da sirene
         function toggleSiren() {
             if (sirenPlaying) {
                 stopSiren();
@@ -328,53 +245,35 @@
             }
         }
 
-        // Limpar alertas
         function clearAlerts() {
-            if (confirm('Deseja limpar todos os alertas?')) {
-                document.getElementById('alertContainer').style.display = 'none';
-                document.getElementById('noAlerts').style.display = 'block';
-                document.getElementById('noAlerts').textContent = '⏳ Aguardando alertas...';
-                document.getElementById('locationBox').classList.remove('active');
-                document.getElementById('map').classList.remove('active');
-                document.getElementById('mapsLink').style.display = 'none';
-                stopSiren();
-                lastAlertId = null;
-                alertSoundPlayed = false;
-            }
+            document.getElementById('alertContainer').style.display = 'none';
+            document.getElementById('noAlerts').style.display = 'block';
+            document.getElementById('locationInfo').classList.remove('active');
+            document.getElementById('map').classList.remove('active');
+            document.getElementById('mapsLink').style.display = 'none';
+            stopSiren();
+            lastAlertId = null;
         }
 
-        // Badge de qualidade do GPS
-        function getGPSBadge(accuracy) {
-            if (accuracy <= 10) return '<span class="gps-badge gps-excellent">🟢 EXCELENTE (±' + Math.round(accuracy) + 'm)</span>';
-            if (accuracy <= 25) return '<span class="gps-badge gps-good">🟡 BOM (±' + Math.round(accuracy) + 'm)</span>';
-            if (accuracy <= 50) return '<span class="gps-badge gps-warning">🟠 MÉDIO (±' + Math.round(accuracy) + 'm)</span>';
-            return '<span class="gps-badge gps-error">🔴 RUIM (±' + Math.round(accuracy) + 'm)</span>';
-        }
-
-        // Atualiza localização
         function updateLocation(lat, lng, accuracy, readings) {
-            const locationBox = document.getElementById('locationBox');
+            const locationInfo = document.getElementById('locationInfo');
             const coordsDiv = document.getElementById('locationCoords');
             const accuracyDiv = document.getElementById('gpsAccuracy');
             const readingsDiv = document.getElementById('gpsReadings');
             const mapsLink = document.getElementById('mapsLink');
-            const gpsBadge = document.getElementById('gpsBadge');
             
             coordsDiv.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
             accuracyDiv.textContent = `±${Math.round(accuracy)} metros`;
             readingsDiv.textContent = readings || 1;
-            gpsBadge.innerHTML = getGPSBadge(accuracy);
             
             mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
             
-            locationBox.classList.add('active');
+            locationInfo.classList.add('active');
             mapsLink.style.display = 'block';
             
-            // Atualiza mapa Leaflet
             updateMarker(lat, lng, accuracy);
         }
 
-        // Carrega alertas
         async function loadAlerts() {
             try {
                 const response = await fetch('/api/alerts');
@@ -385,24 +284,16 @@
                     
                     if (lastAlert.id !== lastAlertId) {
                         console.log('🚨 NOVO ALERTA!', lastAlert);
-                        
                         lastAlertId = lastAlert.id;
-                        alertSoundPlayed = false;
                         
-                        // Mostra alerta
                         document.getElementById('noAlerts').style.display = 'none';
                         document.getElementById('alertContainer').style.display = 'block';
                         document.getElementById('alertSituation').textContent = `⚠️ ${lastAlert.situation || 'Emergência'}`;
                         document.getElementById('alertTime').textContent = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts_br || lastAlert.ts || 'Agora'}`;
                         document.getElementById('alertMessage').textContent = lastAlert.message || '';
                         
-                        // Toca sirene automaticamente
-                        if (!alertSoundPlayed) {
-                            playSiren();
-                            alertSoundPlayed = true;
-                        }
+                        playSiren();
                         
-                        // Atualiza mapa e localização se tiver GPS
                         if (lastAlert.lat && lastAlert.lng && lastAlert.lat != 0) {
                             updateLocation(
                                 parseFloat(lastAlert.lat),
@@ -410,9 +301,6 @@
                                 parseFloat(lastAlert.accuracy || 10),
                                 lastAlert.gps_readings || 1
                             );
-                        } else {
-                            document.getElementById('locationBox').classList.remove('active');
-                            document.getElementById('map').classList.remove('active');
                         }
                     }
                 }
@@ -421,27 +309,9 @@
             }
         }
 
-        // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            // Request notification permission
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-            
             loadAlerts();
-            
-            // Auto-refresh a cada 3 segundos
             setInterval(loadAlerts, 3000);
-            
-            // Interage com a página para permitir auto-play de áudio
-            document.addEventListener('click', function initAudio() {
-                const audio = document.getElementById('sirenAudio');
-                audio.play().then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                }).catch(() => {});
-                document.removeEventListener('click', initAudio);
-            }, { once: true });
         });
     </script>
 </body>

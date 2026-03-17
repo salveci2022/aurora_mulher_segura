@@ -3,8 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termo · Aurora</title>
+    <title>Termo de Responsabilidade · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .termo-container {
+            background: rgba(18, 0, 30, 0.6);
+            border: 2px solid rgba(255, 98, 212, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        .termo-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 98, 212, 0.2);
+        }
+        .termo-section:last-child {
+            border-bottom: none;
+        }
+        .termo-title {
+            font-weight: 900;
+            font-size: 14px;
+            color: var(--hot);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .termo-title::before {
+            content: "▸";
+            color: var(--hot2);
+        }
+        .termo-text {
+            color: var(--muted);
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+        .termo-highlight {
+            background: rgba(244, 67, 54, 0.15);
+            border-left: 3px solid #f44336;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: 700;
+            color: #ff8a80;
+        }
+        .termo-success {
+            background: rgba(76, 175, 80, 0.15);
+            border-left: 3px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            color: #81c784;
+        }
+        .checkbox-container {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(40, 0, 60, 0.5));
+            border: 2px solid rgba(76, 175, 80, 0.4);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #4caf50;
+        }
+        .btn-accept {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 900;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-accept.active {
+            opacity: 1;
+            cursor: pointer;
+        }
+        .btn-accept.active:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+        }
+        .btn-reject {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            padding: 14px;
+            border-radius: 12px;
+            border: 2px solid rgba(244, 67, 54, 0.4);
+            font-weight: 900;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .btn-reject:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+        .warning-box {
+            background: rgba(255, 152, 0, 0.15);
+            border: 2px solid rgba(255, 152, 0, 0.4);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 16px 0;
+        }
+        .emergency-numbers {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .emergency-item {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-weight: 900;
+        }
+        .lgpd-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #673ab7, #3f51b5);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 900;
+            margin-left: 8px;
+        }
+    </style>
 </head>
 <body>
     <div class="aurora-bg">
@@ -15,75 +161,206 @@
                         <div class="brand-dot">📜</div>
                         <div>
                             <div class="brand-title">AURORA</div>
-                            <div class="brand-sub">Termo de Uso</div>
+                            <div class="brand-sub">Termo Legal</div>
                         </div>
                     </div>
                     <div class="top-actions">
-                        <a href="/" class="pill">← Voltar</a>
+                        <a href="/" class="pill">← Início</a>
                     </div>
                 </div>
                 
                 <div class="content">
                     <h1 class="h1">📜 TERMO DE RESPONSABILIDADE</h1>
-                    <p class="center muted">Leia atentamente antes de continuar</p>
+                    <p class="center muted">Leia atentamente antes de utilizar o sistema</p>
                     
-                    <div class="termo-box" style="background: rgba(18, 0, 30, 0.45); border: 1px solid rgba(255, 98, 212, 0.22); border-radius: 14px; padding: 14px; margin: 14px 0; max-height: 300px; overflow-y: auto; font-size: 11px; line-height: 1.6;">
-                        <div style="margin-bottom: 14px;">
-                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">1. NATUREZA DO SISTEMA</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">O AURORA MULHER SEGURA é uma ferramenta tecnológica de apoio à segurança pessoal feminina.</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">O sistema NÃO substitui os órgãos oficiais de segurança pública (190, 180, 192, 193).</div>
+                    <div class="termo-container">
+                        <!-- SEÇÃO 1 -->
+                        <div class="termo-section">
+                            <div class="termo-title">1. NATUREZA E FINALIDADE DO SISTEMA</div>
+                            <div class="termo-text">
+                                O <strong>AURORA MULHER SEGURA</strong> é uma ferramenta tecnológica de apoio à segurança pessoal feminina, 
+                                desenvolvida para facilitar o envio rápido de alertas de emergência para pessoas de confiança previamente cadastradas.
+                            </div>
+                            <div class="termo-highlight">
+                                ⚠️ O sistema NÃO substitui os órgãos oficiais de segurança pública 
+                                (Polícia Militar, SAMU, Bombeiros) e NÃO garante proteção física ou 
+                                intervenção em situações de risco.
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 14px;">
-                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">2. LIMITAÇÕES TÉCNICAS</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">✓ Depende de: internet, GPS ativado, bateria</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">✓ Precisão do GPS: 3-50 metros</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">✓ Pode falhar sem rede ou GPS</div>
+                        <!-- SEÇÃO 2 -->
+                        <div class="termo-section">
+                            <div class="termo-title">2. LIMITAÇÕES TÉCNICAS E RESPONSABILIDADES</div>
+                            <div class="termo-text">
+                                <strong>2.1.</strong> O funcionamento do sistema depende de:
+                            </div>
+                            <div class="termo-text">• Conexão ativa com internet (dados móveis ou Wi-Fi)</div>
+                            <div class="termo-text">• GPS ativado e com precisão adequada</div>
+                            <div class="termo-text">• Bateria suficiente no dispositivo</div>
+                            <div class="termo-text">• Permissões de localização concedidas</div>
+                            <div class="termo-text">• Funcionamento adequado do dispositivo móvel</div>
+                            
+                            <div class="termo-text" style="margin-top: 10px;">
+                                <strong>2.2.</strong> A precisão da localização GPS varia conforme:
+                            </div>
+                            <div class="termo-text">• Condições ambientais (áreas abertas vs. fechadas)</div>
+                            <div class="termo-text">• Cobertura de satélites disponível</div>
+                            <div class="termo-text">• Interferências de edificações</div>
+                            <div class="termo-text">• Margem de erro: 3-50 metros</div>
+                            
+                            <div class="termo-highlight">
+                                ⚠️ O sistema pode falhar em: áreas sem cobertura de rede, 
+                                GPS desativado, bateria esgotada ou falhas técnicas do dispositivo.
+                            </div>
                         </div>
 
-                        <div style="margin-bottom: 14px;">
-                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">3. PROTEÇÃO DE DADOS (LGPD)</div>
-                            <div style="margin: 4px 0; padding-left: 8px;"><strong>Dados Coletados:</strong> Nome (opcional), Localização GPS, Data/hora, Tipo de situação</div>
-                            <div style="margin: 4px 0; padding-left: 8px;"><strong>Finalidade:</strong> Envio de alertas para contatos de confiança</div>
-                            <div style="margin: 4px 0; padding-left: 8px;"><strong>Base Legal:</strong> Consentimento explícito + Proteção da vida</div>
+                        <!-- SEÇÃO 3 -->
+                        <div class="termo-section">
+                            <div class="termo-title">3. PROTEÇÃO DE DADOS PESSOAIS <span class="lgpd-badge">LGPD</span></div>
+                            <div class="termo-text">
+                                <strong>3.1. Dados Coletados:</strong>
+                            </div>
+                            <div class="termo-text">• Nome (opcional, quando informado no alerta)</div>
+                            <div class="termo-text">• Localização GPS (somente quando autorizado)</div>
+                            <div class="termo-text">• Data e hora dos alertas</div>
+                            <div class="termo-text">• Tipo de situação reportada</div>
+                            <div class="termo-text">• Mensagem descritiva (opcional)</div>
+                            <div class="termo-text">• Endereço IP do dispositivo</div>
+                            
+                            <div class="termo-text" style="margin-top: 10px;">
+                                <strong>3.2. Finalidade do Tratamento:</strong>
+                            </div>
+                            <div class="termo-text">• Envio de alertas de emergência para contatos de confiança</div>
+                            <div class="termo-text">• Registro histórico para consulta da usuária</div>
+                            <div class="termo-text">• Geração de relatórios e estatísticas de uso</div>
+                            <div class="termo-text">• Melhoria contínua do sistema</div>
+                            
+                            <div class="termo-text" style="margin-top: 10px;">
+                                <strong>3.3. Base Legal (Art. 7º, LGPD - Lei 13.709/2018):</strong>
+                            </div>
+                            <div class="termo-text">• Consentimento explícito da usuária (Art. 7º, I)</div>
+                            <div class="termo-text">• Execução de procedimento de segurança (Art. 7º, VI)</div>
+                            <div class="termo-text">• Proteção da vida e incolumidade física (Art. 11, II, "d")</div>
+                            
+                            <div class="termo-text" style="margin-top: 10px;">
+                                <strong>3.4. Armazenamento e Segurança:</strong>
+                            </div>
+                            <div class="termo-success">
+                                ✓ Os dados são armazenados em servidores seguros com criptografia<br>
+                                ✓ Acesso restrito à usuária e pessoas de confiança cadastradas<br>
+                                ✓ Retenção por 5 anos (conforme legislação aplicável)<br>
+                                ✓ Não compartilhamos dados com terceiros sem autorização judicial
+                            </div>
+                            
+                            <div class="termo-text" style="margin-top: 10px;">
+                                <strong>3.5. Direitos da Titular (Art. 18, LGPD):</strong>
+                            </div>
+                            <div class="termo-text">✓ Acesso aos dados armazenados</div>
+                            <div class="termo-text">✓ Correção de dados incompletos ou inexatos</div>
+                            <div class="termo-text">✓ Exclusão dos dados (direito ao esquecimento)</div>
+                            <div class="termo-text">✓ Revogação do consentimento a qualquer momento</div>
+                            <div class="termo-text">✓ Portabilidade dos dados para outro sistema</div>
                         </div>
 
-                        <div style="margin-bottom: 14px;">
-                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">4. RESPONSABILIDADES</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">✓ Manter dispositivo carregado e com internet</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">✓ Manter GPS ativado</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">✓ Cadastrar pessoas de confiança atualizadas</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">✓ Ligar 190/180 em emergências reais</div>
+                        <!-- SEÇÃO 4 -->
+                        <div class="termo-section">
+                            <div class="termo-title">4. RESPONSABILIDADES DA USUÁRIA</div>
+                            <div class="termo-text">Ao utilizar o sistema, a usuária se compromete a:</div>
+                            <div class="termo-text">✓ Manter o dispositivo carregado e com internet ativa</div>
+                            <div class="termo-text">✓ Manter GPS ativado durante o uso do sistema</div>
+                            <div class="termo-text">✓ Cadastrar pessoas de confiança com contatos atualizados</div>
+                            <div class="termo-text">✓ Informar às autoridades competentes em caso de emergência real</div>
+                            <div class="termo-text">✓ Utilizar o sistema de boa-fé, sem acionamentos indevidos</div>
+                            <div class="termo-text">✓ Manter sigilo sobre suas pessoas de confiança</div>
+                            <div class="termo-text">✓ Verificar periodicamente o funcionamento do sistema</div>
                         </div>
 
-                        <div style="margin-bottom: 14px;">
-                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">5. EMERGÊNCIAS - NÚMEROS OFICIAIS</div>
-                            <div style="margin: 4px 0; padding-left: 8px;">🚨 190 - Polícia | 👩 180 - Central Mulher | 🚑 192 - SAMU | 🔥 193 - Bombeiros</div>
+                        <!-- SEÇÃO 5 -->
+                        <div class="termo-section">
+                            <div class="termo-title">5. EXENÇÃO DE RESPONSABILIDADE</div>
+                            <div class="termo-text">
+                                A <strong>AURORA MULHER SEGURA</strong> NÃO se responsabiliza por:
+                            </div>
+                            <div class="termo-highlight">
+                                • Falhas técnicas do dispositivo ou da rede de telecomunicações<br>
+                                • Atrasos ou não recebimento de alertas pelos contatos de confiança<br>
+                                • Imprecisão na localização GPS ou falhas de geolocalização<br>
+                                • Danos decorrentes do uso ou mau uso do sistema<br>
+                                • Situações de emergência não atendidas por falha técnica<br>
+                                • Uso indevido ou malicioso do sistema<br>
+                                • Interrupções temporárias do serviço<br>
+                                • Perda ou roubo do dispositivo
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO 6 -->
+                        <div class="termo-section">
+                            <div class="termo-title">6. NÚMEROS DE EMERGÊNCIA OFICIAIS</div>
+                            <div class="termo-text">
+                                Em caso de emergência, ligue IMEDIATAMENTE para:
+                            </div>
+                            <div class="emergency-numbers">
+                                <div class="emergency-item">🚨 190<br><small>Polícia Militar</small></div>
+                                <div class="emergency-item">👩 180<br><small>Central da Mulher</small></div>
+                                <div class="emergency-item">🚑 192<br><small>SAMU</small></div>
+                                <div class="emergency-item">🔥 193<br><small>Bombeiros</small></div>
+                            </div>
+                            <div class="termo-text">
+                                <strong>Delegacia da Mulher:</strong> Atendimento especializado em violência doméstica e familiar.
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO 7 -->
+                        <div class="termo-section">
+                            <div class="termo-title">7. ACEITE E CIÊNCIA</div>
+                            <div class="termo-text">
+                                Ao marcar a opção <strong>"LI E ACEITO OS TERMOS"</strong>, a usuária declara que:
+                            </div>
+                            <div class="termo-success">
+                                ✓ Leu e compreendeu todas as cláusulas deste termo<br>
+                                ✓ Concorda com o tratamento de dados conforme LGPD<br>
+                                ✓ Está ciente das limitações técnicas do sistema<br>
+                                ✓ Assume responsabilidade pelo uso adequado<br>
+                                ✓ Autoriza o envio de alertas com sua localização<br>
+                                ✓ Compreende que o sistema NÃO substitui autoridades oficiais
+                            </div>
                         </div>
                     </div>
 
-                    <div style="background: rgba(40, 0, 60, 0.35); border: 1px solid rgba(255, 98, 212, 0.28); border-radius: 12px; padding: 12px; margin: 14px 0;">
-                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 12px;">
-                            <input type="checkbox" id="aceiteTermo" style="margin-top: 2px; width: 18px; height: 18px; cursor: pointer;">
-                            <span><strong>✅ LI E ACEITO OS TERMOS</strong><br>Declaro que li, compreendi e aceito todas as condições, incluindo tratamento de dados conforme LGPD.</span>
+                    <div class="warning-box">
+                        <strong>⚠️ IMPORTANTE:</strong> Este é um sistema de apoio à segurança. 
+                        Em emergências, SEMPRE ligue para os números oficiais (190, 180, 192, 193).
+                    </div>
+
+                    <div class="checkbox-container">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="aceiteTermo">
+                            <span>
+                                ✅ LI, COMPREENDI E ACEITO INTEGRALMENTE OS TERMOS
+                                <div style="font-weight: 400; font-size: 11px; margin-top: 4px; color: var(--muted);">
+                                    Declaro que li, compreendi e aceito todas as condições deste termo de responsabilidade, 
+                                    incluindo o tratamento de dados pessoais conforme a Lei Geral de Proteção de Dados 
+                                    (LGPD - Lei 13.709/2018). Estou ciente das limitações técnicas do sistema e de que ele 
+                                    NÃO substitui os órgãos oficiais de segurança.
+                                </div>
+                            </span>
                         </label>
                     </div>
 
-                    <button id="btnContinuar" class="btn btn-primary" disabled onclick="continuarParaPanic()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 900; font-size: 14px; cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, #4caf50, #388e3c); color: white; opacity: 0.5; cursor: not-allowed;">
+                    <button id="btnAceito" class="btn-accept" onclick="aceitarTermo()">
                         ✅ ACEITO E CONTINUAR
                     </button>
+                    
+                    <button class="btn-reject" onclick="window.location.href='/'">
+                        ❌ NÃO ACEITO
+                    </button>
 
-                    <div class="list" style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
-                        <a href="/legal" class="link" style="color: #ffd0f0; text-decoration: none; font-size: 12px;">📄 Termos Completos</a>
-                        <a href="/ajuda" class="link" style="color: #ffd0f0; text-decoration: none; font-size: 12px;">📞 Central de Ajuda</a>
-                        <a href="/" class="link" style="color: #ffd0f0; text-decoration: none; font-size: 12px;">← Voltar</a>
-                    </div>
-
-                    <div class="info-box" style="background: rgba(40, 0, 60, 0.35); padding: 12px; border-radius: 14px; margin-top: 10px; border: 1px solid rgba(255, 98, 212, 0.28);">
-                        <p class="small muted" style="text-align: center; font-size: 12px; color: var(--muted);">
+                    <div class="info-box" style="margin-top: 20px;">
+                        <p class="small muted" style="text-align: center;">
                             🌸 <strong>AURORA MULHER SEGURA</strong><br>
                             Protegendo vidas • 2026<br>
-                            🔒 Dados protegidos pela LGPD
+                            🔒 Dados protegidos pela LGPD<br>
+                            📧 contato@aurorasegura.com.br
                         </p>
                     </div>
                 </div>
@@ -93,19 +370,17 @@
 
     <script>
         document.getElementById('aceiteTermo').addEventListener('change', function() {
-            const btn = document.getElementById('btnContinuar');
+            const btn = document.getElementById('btnAceito');
             if (this.checked) {
                 btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
+                btn.classList.add('active');
             } else {
                 btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'not-allowed';
+                btn.classList.remove('active');
             }
         });
 
-        function continuarParaPanic() {
+        function aceitarTermo() {
             const checkbox = document.getElementById('aceiteTermo');
             
             if (!checkbox.checked) {

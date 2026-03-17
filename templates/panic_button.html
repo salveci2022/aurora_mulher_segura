@@ -6,8 +6,94 @@
     <meta name="theme-color" content="#0a0014">
     <title>Aurora - Botão de Pânico</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .location-consent {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid rgba(76, 175, 80, 0.4);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 14px 0;
+        }
+        .location-consent label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .location-consent input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #4caf50;
+        }
+        .location-consent strong {
+            color: #4caf50;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .location-consent small {
+            color: var(--muted);
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+        }
+        .gps-status {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            display: none;
+        }
+        .gps-status.active {
+            display: block;
+        }
+        .gps-status.good {
+            background: rgba(76, 175, 80, 0.15);
+            border-color: rgba(76, 175, 80, 0.4);
+        }
+        .gps-status.poor {
+            background: rgba(244, 67, 54, 0.15);
+            border-color: rgba(244, 67, 54, 0.4);
+        }
+        .sos.sent {
+            background: linear-gradient(145deg, #4caf50, #388e3c) !important;
+            animation: pulse-sent 0.5s ease;
+        }
+        @keyframes pulse-sent {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .quick-exit-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 14px;
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 900;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .quick-exit-btn:hover {
+            background: rgba(244, 67, 54, 1);
+        }
+    </style>
 </head>
 <body>
+    <!-- ✅ BOTÃO DE SAÍDA RÁPIDA -->
+    <a href="/saida-rapida" class="quick-exit-btn" title="Saída rápida de emergência">
+        ⚡ SAÍDA RÁPIDA
+    </a>
+    
     <div class="aurora-bg">
         <div class="center-wrap">
             <div class="aurora-card">
@@ -44,6 +130,25 @@
                     <label class="label">Mensagem opcional</label>
                     <textarea id="message" class="textarea" placeholder="Descreva rapidamente o que está acontecendo..."></textarea>
                     
+                    <!-- ✅ AUTORIZAÇÃO DE LOCALIZAÇÃO -->
+                    <div class="location-consent">
+                        <label>
+                            <input type="checkbox" id="shareLocation">
+                            <div>
+                                <strong>📍 COMPARTILHAR MINHA LOCALIZAÇÃO</strong>
+                                Autorizo o envio da minha localização GPS em tempo real para minhas pessoas de confiança.
+                                <small>• Sua localização só será enviada se você autorizar<br>
+                                • Precisão de 3-50 metros dependendo do GPS<br>
+                                • Você pode ativar/desativar quando quiser</small>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- STATUS DO GPS -->
+                    <div id="gpsStatus" class="gps-status">
+                        📍 <span id="gpsText">Aguardando...</span>
+                    </div>
+                    
                     <div class="alert center" id="status">
                         🌸 Sistema pronto
                     </div>
@@ -55,10 +160,6 @@
                                 <div class="sos-sub">SEGURE POR 1 SEGUNDO</div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="alert" id="gpsStatus">
-                        📍 GPS: Inicializando...
                     </div>
                     
                     <div class="list" style="margin-top: 14px;">

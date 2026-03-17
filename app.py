@@ -1,344 +1,173 @@
 from __future__ import annotations
-from flask import Flask, render_template, request, jsonify, redirect, session, send_file
-from flask_cors import CORS
-from datetime import datetime
-import os
-import json
+from flask import Flask, render_template, request, jsonify, redirect, session, url_for, send_file
 from pathlib import Path
+import json
+import os
+import secrets
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from fpdf import FPDF
 import tempfile
-import pytz
-import bcrypt
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
-app.secret_key = "aurora_v20_ultra_estavel_secure_2026"
-CORS(app)
+# Configurações
+try:
+    TZ = ZoneInfo("America/Sao_Paulo")
+except Exception:
+    TZ = None
 
-BR_TZ = pytz.timezone('America/Sao_Paulo')
 BASE_DIR = Path(__file__).resolve().parent
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
-STATE_FILE = BASE_DIR / "data" / "state.json"
-TERMOS_FILE = BASE_DIR / "data" / "termos_aceitos.log"
+STATE_FILE = BASE_DIR / "state.json"
 
-os.makedirs('data', exist_ok=True)
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+
+def now_br_str():
+    if TZ is None:
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 def ensure_files():
     if not USERS_FILE.exists():
-        admin_hash = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         USERS_FILE.write_text(json.dumps({
-            "admin": {
-                "password": admin_hash,
-                "role": "admin",
-                "name": "Administrador",
-                "created_at": datetime.now(BR_TZ).isoformat(),
-                "last_login": None
-            }
+            "admin": {"password": "admin123", "role": "admin", "name": "Admin Aurora"}
         }, indent=2, ensure_ascii=False), encoding="utf-8")
-
     if not ALERTS_FILE.exists():
         ALERTS_FILE.write_text("", encoding="utf-8")
-
     if not STATE_FILE.exists():
-        STATE_FILE.write_text(json.dumps({"last_id": 0}), encoding="utf-8")
-
-    if not TERMOS_FILE.exists():
-        TERMOS_FILE.write_text("", encoding="utf-8")
+        STATE_FILE.write_text(json.dumps({"last_id": 0}, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def load_users():
     ensure_files()
     try:
         return json.loads(USERS_FILE.read_text(encoding="utf-8"))
     except:
-        return {}
+        return {"admin": {"password": "admin123", "role": "admin", "name": "Admin Aurora"}}
 
-def save_users(users):
-    USERS_FILE.write_text(json.dumps(users, indent=2, ensure_ascii=False), encoding="utf-8")
-
-def verificar_senha(senha_digitada, hash_armazenado):
-    try:
-        if not hash_armazenado.startswith('$2b$'):
-            return senha_digitada == hash_armazenado
-        return bcrypt.checkpw(
-            senha_digitada.encode('utf-8'),
-            hash_armazenado.encode('utf-8')
-        )
-    except Exception as e:
-        print(f"Erro ao verificar senha: {e}")
-        return False
-
-def criar_hash_senha(senha):
-    return bcrypt.hashpw(senha.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+def save_users(data):
+    USERS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def next_alert_id():
     ensure_files()
     try:
-        state = json.loads(STATE_FILE.read_text())
+        st = json.loads(STATE_FILE.read_text(encoding="utf-8"))
     except:
-        state = {"last_id": 0}
-    state["last_id"] += 1
-    STATE_FILE.write_text(json.dumps(state), encoding="utf-8")
-    return state["last_id"]
+        st = {"last_id": 0}
+    st["last_id"] = int(st.get("last_id", 0)) + 1
+    STATE_FILE.write_text(json.dumps(st, indent=2, ensure_ascii=False), encoding="utf-8")
+    return st["last_id"]
 
-def save_alert(alert):
+def log_alert(payload):
     ensure_files()
-    with open(ALERTS_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(alert, ensure_ascii=False) + "\n")
+    with ALERTS_FILE.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
 def get_all_alerts():
-    alerts = []
-    if ALERTS_FILE.exists():
-        with open(ALERTS_FILE, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip():
-                    try:
-                        alerts.append(json.loads(line))
-                    except:
-                        pass
-    return alerts
+    ensure_files()
+    try:
+        txt = ALERTS_FILE.read_text(encoding="utf-8").strip()
+        if not txt:
+            return []
+        alerts = []
+        for line in txt.split("\n"):
+            if line.strip():
+                try:
+                    alerts.append(json.loads(line))
+                except:
+                    pass
+        return alerts
+    except:
+        return []
 
-def get_last_alert():
-    alerts = get_all_alerts()
-    if alerts:
-        return alerts[-1]
-    return None
+# ==========================================
+# ROTAS
+# ==========================================
 
-@app.route("/")
+@app.get("/health")
+def health():
+    return jsonify({"ok": True, "server_time_br": now_br_str()})
+
+@app.get("/")
 def index():
+    return render_template("index.html")
+
+@app.get("/termo")
+@app.get("/termo_responsabilidade")
+def termo():
     return render_template("termo_responsabilidade.html")
 
 @app.route("/aceitar-termo", methods=["POST"])
 def aceitar_termo():
     session["termo_aceito"] = True
-    with open(TERMOS_FILE, "a", encoding="utf-8") as f:
-        f.write(datetime.now(BR_TZ).strftime("%d/%m/%Y %H:%M:%S") + "\n")
     return redirect("/panic")
 
-@app.route("/panic")
+@app.get("/panic")
 def panic():
-    if not session.get("termo_aceito"):
-        return redirect("/")
-    users = load_users()
-    trusted = [v.get("name") for k, v in users.items() if v.get("role") == "trusted"]
-    return render_template("panic_button.html", trusted_names=trusted)
+    return render_template("panic_button.html")
 
-@app.route("/ajuda")
-def ajuda():
-    return render_template("ajuda.html")
-
-@app.route("/plano-seguranca")
-def plano():
-    return render_template("plano_seguranca.html")
-
-@app.route("/saida-rapida")
-def saida():
-    return render_template("saida_rapida.html")
-
-@app.route("/central")
-def central():
-    return render_template("central_aurora.html")
-
-@app.route("/api/send_alert", methods=["POST"])
-def send_alert():
-    data = request.get_json() or {}
-    now = datetime.now(BR_TZ)
-
-    alert = {
-        "id": next_alert_id(),
-        "ts": now.strftime("%Y-%m-%d %H:%M:%S"),
-        "ts_br": now.strftime("%d/%m/%Y %H:%M:%S"),
-        "timestamp": now.isoformat(),
-        "name": data.get("name", "Usuária"),
-        "situation": data.get("situation", "Emergência"),
-        "message": data.get("message", ""),
-        "lat": float(data.get("lat", 0)) if data.get("lat") else None,
-        "lng": float(data.get("lng", 0)) if data.get("lng") else None,
-        "accuracy": float(data.get("accuracy", 0)) if data.get("accuracy") else None,
-        "gps_readings": int(data.get("gps_readings", 1))
-    }
-
-    save_alert(alert)
-    return jsonify({"ok": True, "alert": alert})
-
-@app.route("/api/last_alert")
-def api_last_alert():
-    return jsonify({"ok": True, "last": get_last_alert()})
-
-@app.route("/api/alerts")
-def get_alerts():
-    alerts = get_all_alerts()
-    return jsonify(alerts)
-
-@app.route("/panel/login", methods=["GET", "POST"])
-def admin_login():
-    users = load_users()
-    error = False
-
-    if request.method == "POST":
-        u = request.form.get("user")
-        p = request.form.get("password")
-        info = users.get(u)
-
-        if info and info.get("role") == "admin" and verificar_senha(p, info.get("password", "")):
-            session["role"] = "admin"
-            session["user"] = u
-            return redirect("/panel")
-
-        error = True
-
-    return render_template("login_admin.html", error=error)
-
-@app.route("/panel")
-def admin_panel():
-    if session.get("role") != "admin":
-        return redirect("/panel/login")
-
-    alerts = get_all_alerts()
-    users = load_users()
-    trusted = {k: v for k, v in users.items() if v.get("role") == "trusted"}
-
-    hoje = datetime.now(BR_TZ).strftime("%d/%m/%Y")
-    alerts_hoje = sum(1 for a in alerts if a.get("ts_br", "").startswith(hoje))
-
-    stats = {
-        "total": len(alerts),
-        "today": alerts_hoje,
-        "trusted": len(trusted),
-        "with_location": sum(1 for a in alerts if a.get("lat")),
-        "without_location": sum(1 for a in alerts if not a.get("lat"))
-    }
-
-    return render_template("panel_admin.html", alerts=alerts, trusted=trusted, stats=stats)
-
-@app.route("/panel/add_trusted", methods=["POST"])
-def add_trusted():
-    if session.get("role") != "admin":
-        return redirect("/panel/login")
-    
-    name = request.form.get("trusted_name")
-    username = request.form.get("trusted_user")
-    password = request.form.get("trusted_password")
-
-    users = load_users()
-
-    if username in users:
-        return redirect("/panel?err=Usuário+já+existe")
-
-    password_hash = criar_hash_senha(password)
-
-    users[username] = {
-        "password": password_hash,
-        "role": "trusted",
-        "name": name,
-        "created_at": datetime.now(BR_TZ).isoformat(),
-        "last_login": None
-    }
-
-    save_users(users)
-    return redirect("/panel?msg=Pessoa+de+confiança+cadastrada")
-
-@app.route("/panel/clear_alerts", methods=["POST"])
-def clear_alerts_endpoint():
-    if session.get("role") != "admin":
-        return redirect("/panel/login")
-    
-    if ALERTS_FILE.exists():
-        ALERTS_FILE.write_text("", encoding="utf-8")
-    
-    if STATE_FILE.exists():
-        STATE_FILE.write_text(json.dumps({"last_id": 0}), encoding="utf-8")
-    
-    return redirect("/panel?msg=Alertas+limpos")
-
-@app.route("/logout_admin")
-def logout_admin():
-    session.clear()
-    return redirect("/panel/login")
-
-@app.route("/trusted/login", methods=["GET", "POST"])
-def trusted_login():
-    users = load_users()
-    error = False
-
-    if request.method == "POST":
-        u = request.form.get("user")
-        p = request.form.get("password")
-        info = users.get(u)
-
-        if info and info.get("role") == "trusted" and verificar_senha(p, info.get("password", "")):
-            session["role"] = "trusted"
-            session["trusted"] = u
-            return redirect("/trusted/panel")
-
-        error = True
-
-    return render_template("login_trusted.html", error=error)
-
-@app.route("/trusted/panel")
-def trusted_panel():
-    if session.get("role") != "trusted":
-        return redirect("/trusted/login")
-
-    users = load_users()
-    u = session.get("trusted")
-    name = users.get(u, {}).get("name", u)
-    alerts = get_all_alerts()[-10:]
-
-    return render_template("panel_trusted.html", display_name=name, alerts=alerts)
-
-@app.route("/trusted/change_password", methods=["GET", "POST"])
-def trusted_change_password():
-    if session.get("role") != "trusted":
-        return redirect("/trusted/login")
-    
-    if request.method == "POST":
-        old = request.form.get("old_password")
-        new = request.form.get("new_password")
-        users = load_users()
-        username = session.get("trusted")
-
-        if username in users:
-            if verificar_senha(old, users[username]["password"]):
-                if len(new) >= 4:
-                    users[username]["password"] = criar_hash_senha(new)
-                    save_users(users)
-                    return redirect("/trusted/panel?msg=Senha+alterada")
-
-        return redirect("/trusted/panel?err=Senha+incorreta")
-
-    return render_template("trusted_change_password.html")
-
-@app.route("/trusted/recover", methods=["GET", "POST"])
-def trusted_recover():
-    if request.method == "POST":
-        usuario = request.form.get("usuario")
-        nova_senha = request.form.get("nova_senha")
-        users = load_users()
-
-        if usuario in users and len(nova_senha) >= 4:
-            users[usuario]["password"] = criar_hash_senha(nova_senha)
-            save_users(users)
-            return render_template("trusted_recover.html", msg="Senha+redefinida")
-        
-        return render_template("trusted_recover.html", err="Usuário+não+encontrado")
-
-    return render_template("trusted_recover.html")
-
-@app.route("/logout_trusted")
-def logout_trusted():
-    session.clear()
-    return redirect("/trusted/login")
-
-@app.route("/historico")
+@app.get("/historico")
 def historico():
     alerts = get_all_alerts()
     return render_template("historico.html", alerts=alerts)
 
-@app.route("/relatorio/pdf")
+@app.get("/plano-seguranca")
+def plano_seguranca():
+    return render_template("plano_seguranca.html")
+
+@app.get("/ajuda")
+def ajuda():
+    return render_template("ajuda.html")
+
+@app.get("/saida-rapida")
+def saida_rapida():
+    return render_template("saida_rapida.html")
+
+@app.get("/legal")
+def legal():
+    return render_template("legal.html")
+
+@app.get("/offline")
+def offline():
+    return render_template("offline.html")
+
+@app.get("/anual")
+def anual():
+    return render_template("anual_aurora.html")
+
+@app.get("/central")
+def central():
+    return render_template("central_aurora.html")
+
+@app.get("/pagamentos")
+def pagamentos():
+    return render_template("pagamentos.html")
+
+@app.get("/recibo")
+def recibo():
+    return render_template("recibo_entrega.html")
+
+@app.post("/api/send_alert")
+def send_alert():
+    data = request.get_json(silent=True) or {}
+    payload = {
+        "id": next_alert_id(),
+        "ts": now_br_str(),
+        "name": data.get("name", "Não informado"),
+        "situation": data.get("situation", "Emergência"),
+        "message": data.get("message", ""),
+        "location": data.get("location"),
+        "ip": request.remote_addr
+    }
+    log_alert(payload)
+    return jsonify({"ok": True, "id": payload["id"]})
+
+@app.get("/api/alerts")
+def api_alerts():
+    return jsonify(get_all_alerts())
+
+@app.get("/relatorio/pdf")
 def relatorio_pdf():
-    if session.get("role") != "admin":
-        return redirect("/panel/login")
-    
     alerts = get_all_alerts()
     pdf = FPDF()
     pdf.add_page()
@@ -346,53 +175,149 @@ def relatorio_pdf():
     pdf.cell(0, 10, "RELATORIO DE ALERTAS - AURORA", ln=1)
     pdf.set_font("Arial", "", 12)
     for a in alerts:
-        linha = f"ID {a['id']} - {a['ts_br']} - {a['name']} - {a['situation']}"
-        if a.get('lat') and a.get('lng'):
-            linha += f" - GPS: {a['lat']}, {a['lng']}"
+        linha = f"ID {a['id']} - {a.get('ts', 'N/A')} - {a.get('name', 'N/A')} - {a.get('situation', 'N/A')}"
         pdf.cell(0, 8, linha, ln=1)
     temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(temp.name)
-    return send_file(temp.name, as_attachment=True)
+    return send_file(temp.name, as_attachment=True, download_name="relatorio_aurora.pdf")
 
-@app.route("/legal")
-def legal():
-    return render_template("legal.html")
+# ==========================================
+# ADMIN
+# ==========================================
 
-@app.route("/offline")
-def offline():
-    return render_template("offline.html")
+@app.route("/panel/login", methods=["GET", "POST"])
+def admin_login():
+    if request.method == "POST":
+        users = load_users()
+        u = request.form.get("user", "").strip()
+        p = request.form.get("password", "")
+        info = users.get(u)
+        
+        if info and info.get("password") == p:
+            session.clear()
+            session["role"] = "admin"
+            session["user"] = u
+            return redirect("/panel")
+        
+        return render_template("login_admin.html", error=True)
+    
+    return render_template("login_admin.html")
 
-@app.route("/recibo")
-def recibo():
-    return render_template("recibo_entrega.html")
+@app.get("/panel")
+def admin_panel():
+    if session.get("role") != "admin":
+        return redirect("/panel/login")
+    
+    users = load_users()
+    trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
+    alerts = get_all_alerts()
+    
+    stats = {
+        "total": len(alerts),
+        "today": sum(1 for a in alerts if a.get("ts", "").startswith(datetime.now().strftime("%d/%m/%Y"))),
+        "trusted": len(trusted),
+        "with_location": sum(1 for a in alerts if a.get("location")),
+        "without_location": sum(1 for a in alerts if not a.get("location"))
+    }
+    
+    return render_template("panel_admin.html", trusted=trusted, alerts=alerts, stats=stats)
 
-@app.route("/pagamentos")
-def pagamentos():
-    return render_template("pagamentos.html")
+@app.post("/panel/add_trusted")
+def admin_add_trusted():
+    if session.get("role") != "admin":
+        return redirect("/panel/login")
+    
+    name = request.form.get("trusted_name", "").strip()
+    username = request.form.get("trusted_user", "").strip().lower()
+    password = request.form.get("trusted_password", "")
 
-@app.route("/anual")
-def anual():
-    return render_template("anual_aurora.html")
+    if not name or not username or not password:
+        return redirect("/panel?err=Preencha todos os campos")
 
-@app.route("/health")
-def health():
-    return jsonify({
-        "ok": True,
-        "alerts": len(get_all_alerts()),
-        "users_file": USERS_FILE.exists(),
-        "alerts_file": ALERTS_FILE.exists()
-    })
+    if len(password) < 4:
+        return redirect("/panel?err=Senha muito curta")
+
+    users = load_users()
+
+    if username in users:
+        return redirect("/panel?err=Usuario ja existe")
+
+    users[username] = {
+        "password": password,
+        "role": "trusted",
+        "name": name
+    }
+    save_users(users)
+    return redirect(f"/panel?msg=Pessoa cadastrada: {name}")
+
+@app.post("/panel/delete_trusted")
+def admin_delete_trusted():
+    if session.get("role") != "admin":
+        return redirect("/panel/login")
+    
+    username = request.form.get("username", "").strip()
+    users = load_users()
+
+    if username in users and users[username].get("role") == "trusted":
+        users.pop(username)
+        save_users(users)
+        return redirect("/panel?msg=Pessoa removida")
+
+    return redirect("/panel?err=Erro ao remover")
+
+@app.get("/logout_admin")
+def logout_admin():
+    session.clear()
+    return redirect("/panel/login")
+
+# ==========================================
+# TRUSTED (PESSOA DE CONFIANÇA)
+# ==========================================
+
+@app.route("/trusted/login", methods=["GET", "POST"])
+def trusted_login():
+    if request.method == "POST":
+        users = load_users()
+        u = request.form.get("user", "").strip().lower()
+        p = request.form.get("password", "")
+        info = users.get(u)
+
+        if info and info.get("role") == "trusted" and info.get("password") == p:
+            session.clear()
+            session["role"] = "trusted"
+            session["trusted"] = u
+            return redirect("/trusted/panel")
+
+        return render_template("login_trusted.html", error=True)
+    
+    return render_template("login_trusted.html")
+
+@app.get("/trusted/panel")
+def trusted_panel():
+    if session.get("role") != "trusted":
+        return redirect("/trusted/login")
+    
+    users = load_users()
+    u = session.get("trusted")
+    display_name = users.get(u, {}).get("name") or u
+    alerts = get_all_alerts()[-10:]
+    return render_template("panel_trusted.html", display_name=display_name, alerts=alerts)
+
+@app.get("/logout_trusted")
+def logout_trusted():
+    session.clear()
+    return redirect("/trusted/login")
+
+# ==========================================
+# START
+# ==========================================
 
 if __name__ == "__main__":
     ensure_files()
-    port = int(os.environ.get("PORT", 5000))
     print("=" * 60)
     print("🌸 AURORA MULHER SEGURA v3.0")
     print("=" * 60)
-    print("🚀 Sistema iniciado")
-    print("📍 Fuso: America/Sao_Paulo")
+    print("🚀 http://localhost:5000")
     print("🔐 Admin: admin / admin123")
-    print("🗺️ Mapa: Automático")
-    print("🔔 Sirene: Automática")
     print("=" * 60)
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

@@ -6,36 +6,27 @@
     <title>Histórico · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .alert-item {
-            border: 1px solid rgba(255, 98, 212, 0.22);
-            background: rgba(10, 0, 20, 0.45);
-            border-radius: 16px;
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.2);
+            border: 2px solid rgba(244, 67, 54, 0.4);
+            color: #f44336;
             padding: 12px;
-            margin: 8px 0;
-        }
-        .map-mini {
-            width: 100%;
-            height: 200px;
             border-radius: 12px;
-            margin: 10px 0;
-            overflow: hidden;
-            border: 2px solid rgba(255, 98, 212, 0.3);
-        }
-        .map-mini iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .location-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 11px;
             font-weight: 900;
-            margin-top: 6px;
+            cursor: pointer;
+            margin-top: 14px;
         }
-        .location-ok { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
-        .location-error { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+        .btn-danger:hover {
+            background: rgba(244, 67, 54, 0.3);
+        }
+        .stats-box {
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -47,7 +38,7 @@
                         <div class="brand-dot">📋</div>
                         <div>
                             <div class="brand-title">AURORA</div>
-                            <div class="brand-sub">Histórico</div>
+                            <div class="brand-sub">Histórico de Alertas</div>
                         </div>
                     </div>
                     <div class="top-actions">
@@ -58,61 +49,130 @@
                 
                 <div class="content">
                     <h1 class="h1">📋 HISTÓRICO DE ALERTAS</h1>
+                    <p class="center muted">Todos os alertas registrados</p>
+                    
+                    <!-- ESTATÍSTICAS -->
+                    <div class="stats-box">
+                        <strong>📊 Estatísticas:</strong><br>
+                        Total: <strong id="totalCount">0</strong> alertas<br>
+                        Com GPS: <strong id="gpsCount">0</strong> | 
+                        Sem GPS: <strong id="noGpsCount">0</strong>
+                    </div>
+                    
+                    <!-- ALERTAS -->
+                    <div class="list">
+                        {% if alerts %}
+                            {% for alerta in alerts|reverse %}
+                            <div class="item">
+                                <div>
+                                    <div style="font-weight: 900; color: var(--hot); font-size: 14px;">
+                                        ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts }}
+                                    </div>
+                                    <div style="margin: 4px 0; font-size: 12px;">
+                                        {{ alerta.name }} • ⚠️ {{ alerta.situation }}
+                                    </div>
+                                    {% if alerta.message %}
+                                    <div style="margin: 4px 0; font-size: 11px; color: var(--muted);">
+                                        💬 "{{ alerta.message }}"
+                                    </div>
+                                    {% endif %}
+                                    {% if alerta.lat and alerta.lng %}
+                                    <div style="margin-top: 6px; font-size: 11px; color: #4caf50;">
+                                        ✅ GPS: ±{{ (alerta.accuracy or 10)|round|int }}m<br>
+                                        📍 {{ alerta.lat }}, {{ alerta.lng }}
+                                    </div>
+                                    <a href="https://www.google.com/maps?q={{ alerta.lat }},{{ alerta.lng }}" 
+                                       target="_blank" 
+                                       style="display: inline-block; margin-top: 6px; padding: 6px 10px; background: rgba(76, 175, 80, 0.2); border-radius: 6px; text-decoration: none; color: #4caf50; font-size: 11px; font-weight: 900;">
+                                        🗺️ ABRIR NO MAPS
+                                    </a>
+                                    {% else %}
+                                    <div style="margin-top: 6px; font-size: 11px; color: #ff9800;">
+                                        ❌ GPS não disponível
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert center">
+                                ⏳ Nenhum alerta registrado ainda
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- BOTÕES -->
+                    <button class="btn btn-primary" onclick="window.location.href='/relatorio/pdf'">
+                        📄 BAIXAR RELATÓRIO PDF
+                    </button>
                     
                     {% if alerts %}
-                        {% for alerta in alerts|reverse %}
-                        <div class="alert-item">
-                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 4px;">
-                                ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts }}
-                            </div>
-                            <div class="small muted" style="margin-bottom: 8px;">
-                                {{ alerta.name }} • ⚠️ {{ alerta.situation }}
-                            </div>
-                            
-                            {% if alerta.message %}
-                            <div class="small" style="margin-bottom: 8px; font-style: italic;">
-                                💬 "{{ alerta.message }}"
-                            </div>
-                            {% endif %}
-                            
-                            {% if alerta.lat and alerta.lng %}
-                            <div class="location-badge location-ok">
-                                ✅ GPS: ±{{ (alerta.accuracy or 10)|round|int }}m
-                            </div>
-                            
-                            <div class="map-mini">
-                                <iframe 
-                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.1975778892866!2d{{ alerta.lng }}!3d{{ alerta.lat }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zwrAsIMKs!5e0!3m2!1spt-BR!2sbr!4v1234567890"
-                                    allowfullscreen="" 
-                                    loading="lazy">
-                                </iframe>
-                            </div>
-                            
-                            <div class="small" style="font-family: monospace; color: #4caf50; margin: 8px 0;">
-                                📍 {{ alerta.lat }}, {{ alerta.lng }}
-                            </div>
-                            
-                            <a href="https://www.google.com/maps?q={{ alerta.lat }},{{ alerta.lng }}" 
-                               target="_blank" 
-                               class="btn btn-primary" 
-                               style="margin-top: 8px;">
-                                🗺️ ABRIR NO GOOGLE MAPS
-                            </a>
-                            {% else %}
-                            <div class="location-badge location-error">
-                                ❌ GPS não disponível
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="alert center">⏳ Nenhum alerta</div>
+                    <button class="btn-danger" onclick="clearHistory()">
+                        🗑️ LIMPAR TODO O HISTÓRICO
+                    </button>
                     {% endif %}
                     
-                    <a href="/relatorio/pdf" class="btn btn-primary">📄 BAIXAR PDF</a>
+                    <div class="info-box" style="margin-top: 14px;">
+                        <p class="small muted">
+                            ℹ️ <strong>Informações:</strong><br>
+                            • O botão "Limpar" apaga TODOS os alertas permanentemente<br>
+                            • É necessário confirmar antes de limpar<br>
+                            • O PDF pode ser baixado antes de limpar
+                        </p>
+                    </div>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/panic" class="link">🚨 Voltar ao Botão SOS</a>
+                        <a href="/ajuda" class="link">📞 Central de Ajuda</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    
+    <script>
+        // Atualiza estatísticas
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.item');
+            const total = items.length;
+            let withGps = 0;
+            
+            items.forEach(item => {
+                if (item.textContent.includes('✅ GPS:')) {
+                    withGps++;
+                }
+            });
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('gpsCount').textContent = withGps;
+            document.getElementById('noGpsCount').textContent = total - withGps;
+        });
+        
+        // LIMPAR HISTÓRICO
+        function clearHistory() {
+            if (confirm('⚠️ ATENÇÃO!\n\nVocê está prestes a APAGAR TODO O HISTÓRICO DE ALERTAS.\n\nEsta ação NÃO PODE SER DESFEITA.\n\nDeseja continuar?')) {
+                if (confirm('⚠️ CONFIRMAÇÃO FINAL\n\nTem CERTEZA que deseja apagar todos os alertas?\n\nClique em OK para confirmar.')) {
+                    fetch('/api/clear_alerts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.ok) {
+                            alert('✅ Histórico limpo com sucesso!');
+                            window.location.reload();
+                        } else {
+                            alert('❌ Erro ao limpar: ' + (data.error || 'Erro desconhecido'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('❌ Erro de conexão: ' + error);
+                    });
+                }
+            }
+        }
+    </script>
 </body>
 </html>

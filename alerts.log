@@ -47,3 +47,4 @@
 {"id": 3, "ts": "2026-03-16 18:28:39", "ts_br": "16/03/2026 18:28:39", "name": "salveci", "situation": "Viol\u00eancia", "message": "", "lat": null, "lng": null, "accuracy": null, "gps_readings": null}
 {"id": 4, "ts": "2026-03-16 18:29:50", "ts_br": "16/03/2026 18:29:50", "name": "salveci", "situation": "Viol\u00eancia", "message": "", "lat": null, "lng": null, "accuracy": null, "gps_readings": null}
 {"id": 5, "ts": "2026-03-16 18:43:07", "ts_br": "16/03/2026 18:43:07", "name": "DIEUZA", "situation": "Persegui\u00e7\u00e3o", "message": "", "lat": -16.02014445207722, "lng": -48.020639894886756, "accuracy": 100, "gps_readings": 3}
+{"id": 1, "ts": "2026-03-17 12:33:31", "ts_br": "17/03/2026 12:33:31", "timestamp": "2026-03-17T12:33:31.170067-03:00", "name": "", "situation": "Perseguição", "message": "", "lat": null, "lng": null, "accuracy": null, "gps_readings": 1}

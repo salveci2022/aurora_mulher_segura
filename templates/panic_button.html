@@ -1,264 +1,77 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<script>
-
-// VERIFICAR SE ACEITOU O TERMO
-document.addEventListener("DOMContentLoaded", function(){
-
-    const termo = localStorage.getItem("aurora_termo")
-
-    if(!termo){
-        window.location = "/termo_responsabilidade"
-    }
-
-})
-
-</script>
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Aurora Mulher Segura</title>
-
-<link rel="stylesheet" href="/static/css/style.css">
-<link rel="manifest" href="/manifest.json">
-
-<meta name="theme-color" content="#0a0014">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <title>Aurora - Botão de Pânico</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
-
 <body>
-
-<div class="aurora-bg">
-<div class="center-wrap">
-<div class="aurora-card">
-
-<div class="topbar">
-
-<div class="brand">
-
-<div class="brand-dot">🌸</div>
-
-<div>
-<div class="brand-title">AURORA</div>
-<div class="brand-sub">Mulher Segura</div>
-</div>
-
-</div>
-</div>
-
-<div class="content">
-
-<h1 class="h1">PROTEÇÃO IMEDIATA</h1>
-
-<p class="center muted">
-Toque e segure o botão SOS
-</p>
-
-<!-- SITUAÇÕES -->
-
-<div class="chips">
-
-<div class="chip active" data-value="Assédio">Assédio</div>
-<div class="chip" data-value="Violência">Violência</div>
-<div class="chip" data-value="Perseguição">Perseguição</div>
-<div class="chip" data-value="Emergência médica">Emergência médica</div>
-<div class="chip" data-value="Local suspeito">Local suspeito</div>
-<div class="chip" data-value="Outro">Outro</div>
-
-</div>
-
-<!-- NOME -->
-
-<label class="label">Nome</label>
-
-<input id="nomeInput" class="input" placeholder="Seu nome">
-
-<!-- MENSAGEM -->
-
-<label class="label">Mensagem opcional</label>
-
-<textarea id="mensagemInput" class="textarea"
-placeholder="Descreva rapidamente a situação"></textarea>
-
-<!-- BOTÃO SOS -->
-
-<div class="sos-wrap">
-
-<div id="sosBtn" class="sos">
-
-<div>
-<div class="sos-text">SOS</div>
-<div class="sos-sub">TOQUE E SEGURE</div>
-</div>
-
-</div>
-
-</div>
-
-<!-- STATUS -->
-
-<div id="statusMsg" class="alert center">
-Sistema pronto
-</div>
-
-<!-- GPS -->
-
-<div id="gpsStatus" class="alert center">
-Capturando localização GPS...
-</div>
-
-<!-- BOTÕES -->
-
-<div style="display:flex;gap:10px;justify-content:center;margin-top:15px;flex-wrap:wrap;">
-
-<button onclick="reenviar()" class="btn btn-primary">
-📤 Reenviar
-</button>
-
-<button onclick="limpar()" class="btn btn-danger">
-🧹 Limpar
-</button>
-
-<button onclick="sair()" class="btn">
-↻ Sair
-</button>
-
-</div>
-
-<!-- RELATÓRIO -->
-
-<a href="/historico" class="btn btn-primary">
-📄 Ver histórico de alertas
-</a>
-
-</div>
-</div>
-</div>
-</div>
-
-<script src="/static/js/panic.js"></script>
-
-<script>
-
-let ultimaLocalizacao = null
-
-/* ===============================
-CAPTURAR LOCALIZAÇÃO
-=============================== */
-
-function capturarLocalizacao(){
-
-if(!navigator.geolocation){
-
-document.getElementById("gpsStatus").innerText="GPS não suportado"
-
-return
-
-}
-
-navigator.geolocation.getCurrentPosition(function(pos){
-
-let lat = pos.coords.latitude
-let lng = pos.coords.longitude
-
-ultimaLocalizacao = {lat:lat,lng:lng}
-
-document.getElementById("gpsStatus").innerText="📍 Localização capturada"
-
-})
-
-}
-
-/* ===============================
-REENVIAR ALERTA
-=============================== */
-
-function reenviar(){
-
-if(!ultimaLocalizacao) return
-
-fetch("/api/alert",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-nome:document.getElementById("nomeInput").value || "Usuária",
-mensagem:document.getElementById("mensagemInput").value || "",
-situacao:document.querySelector(".chip.active").dataset.value,
-localizacao:ultimaLocalizacao
-
-})
-
-})
-
-}
-
-/* ===============================
-LIMPAR
-=============================== */
-
-function limpar(){
-
-document.getElementById("mensagemInput").value=""
-
-document.getElementById("statusMsg").innerText="Sistema pronto"
-
-}
-
-/* ===============================
-SAIR
-=============================== */
-
-function sair(){
-
-location.reload()
-
-}
-
-/* ===============================
-SELEÇÃO SITUAÇÃO
-=============================== */
-
-document.querySelectorAll(".chip").forEach(btn=>{
-
-btn.addEventListener("click",()=>{
-
-document.querySelectorAll(".chip")
-.forEach(b=>b.classList.remove("active"))
-
-btn.classList.add("active")
-
-})
-
-})
-
-/* ===============================
-INICIAR GPS
-=============================== */
-
-capturarLocalizacao()
-
-/* ===============================
-SERVICE WORKER
-=============================== */
-
-if ("serviceWorker" in navigator) {
-
-navigator.serviceWorker
-.register("/static/js/service-worker.js")
-.then(() => console.log("Service Worker registrado"))
-.catch(err => console.log("Erro SW:", err))
-
-}
-
-</script>
-
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">⚠️</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Botão de Pânico</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/" class="pill">← Voltar</a>
+                        <a href="/ajuda" class="pill">Ajuda</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">⚠️ SITUAÇÃO DE RISCO</h1>
+                    <p class="center muted">Selecione o tipo de emergência</p>
+                    
+                    <div class="chips">
+                        <div class="chip active" data-value="Assédio">🚫 Assédio</div>
+                        <div class="chip" data-value="Violência">👊 Violência</div>
+                        <div class="chip" data-value="Perseguição">👀 Perseguição</div>
+                        <div class="chip" data-value="Emergência médica">🏥 Emergência médica</div>
+                        <div class="chip" data-value="Local suspeito">⚠️ Local suspeito</div>
+                        <div class="chip" data-value="Outro">❓ Outro</div>
+                    </div>
+                    
+                    <label class="label">Seu nome (opcional)</label>
+                    <input type="text" id="name" class="input" placeholder="Digite seu nome">
+                    
+                    <label class="label">Mensagem opcional</label>
+                    <textarea id="message" class="textarea" placeholder="Descreva rapidamente o que está acontecendo..."></textarea>
+                    
+                    <div class="alert center" id="status">
+                        🌸 Sistema pronto
+                    </div>
+                    
+                    <div class="sos-wrap">
+                        <div class="sos" id="sosBtn">
+                            <div>
+                                <div class="sos-text">SOS</div>
+                                <div class="sos-sub">SEGURE POR 1 SEGUNDO</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert" id="gpsStatus">
+                        📍 GPS: Inicializando...
+                    </div>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/historico" class="link">📄 Baixar Relatório (PDF)</a>
+                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
+                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/panic.js"></script>
 </body>
 </html>

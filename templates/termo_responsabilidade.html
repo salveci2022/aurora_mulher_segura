@@ -1,109 +1,131 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Termo de Responsabilidade</title>
-
-<link rel="stylesheet" href="/static/css/style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termo · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
-
 <body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">📜</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Termo de Uso</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">📜 TERMO DE RESPONSABILIDADE</h1>
+                    <p class="center muted">Leia atentamente antes de continuar</p>
+                    
+                    <div class="termo-box" style="background: rgba(18, 0, 30, 0.45); border: 1px solid rgba(255, 98, 212, 0.22); border-radius: 14px; padding: 14px; margin: 14px 0; max-height: 300px; overflow-y: auto; font-size: 11px; line-height: 1.6;">
+                        <div style="margin-bottom: 14px;">
+                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">1. NATUREZA DO SISTEMA</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">O AURORA MULHER SEGURA é uma ferramenta tecnológica de apoio à segurança pessoal feminina.</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">O sistema NÃO substitui os órgãos oficiais de segurança pública (190, 180, 192, 193).</div>
+                        </div>
 
-<div class="container">
+                        <div style="margin-bottom: 14px;">
+                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">2. LIMITAÇÕES TÉCNICAS</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">✓ Depende de: internet, GPS ativado, bateria</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">✓ Precisão do GPS: 3-50 metros</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">✓ Pode falhar sem rede ou GPS</div>
+                        </div>
 
-<h2>Termo de Responsabilidade</h2>
+                        <div style="margin-bottom: 14px;">
+                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">3. PROTEÇÃO DE DADOS (LGPD)</div>
+                            <div style="margin: 4px 0; padding-left: 8px;"><strong>Dados Coletados:</strong> Nome (opcional), Localização GPS, Data/hora, Tipo de situação</div>
+                            <div style="margin: 4px 0; padding-left: 8px;"><strong>Finalidade:</strong> Envio de alertas para contatos de confiança</div>
+                            <div style="margin: 4px 0; padding-left: 8px;"><strong>Base Legal:</strong> Consentimento explícito + Proteção da vida</div>
+                        </div>
 
-<p>
+                        <div style="margin-bottom: 14px;">
+                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">4. RESPONSABILIDADES</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">✓ Manter dispositivo carregado e com internet</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">✓ Manter GPS ativado</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">✓ Cadastrar pessoas de confiança atualizadas</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">✓ Ligar 190/180 em emergências reais</div>
+                        </div>
 
-O sistema Aurora Mulher Segura é uma ferramenta tecnológica de apoio
-à segurança pessoal.
+                        <div style="margin-bottom: 14px;">
+                            <div style="font-weight: 900; color: var(--hot); margin-bottom: 6px; font-size: 12px;">5. EMERGÊNCIAS - NÚMEROS OFICIAIS</div>
+                            <div style="margin: 4px 0; padding-left: 8px;">🚨 190 - Polícia | 👩 180 - Central Mulher | 🚑 192 - SAMU | 🔥 193 - Bombeiros</div>
+                        </div>
+                    </div>
 
-Ele permite enviar alertas com localização e informações
-para pessoas de confiança previamente cadastradas.
+                    <div style="background: rgba(40, 0, 60, 0.35); border: 1px solid rgba(255, 98, 212, 0.28); border-radius: 12px; padding: 12px; margin: 14px 0;">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 12px;">
+                            <input type="checkbox" id="aceiteTermo" style="margin-top: 2px; width: 18px; height: 18px; cursor: pointer;">
+                            <span><strong>✅ LI E ACEITO OS TERMOS</strong><br>Declaro que li, compreendi e aceito todas as condições, incluindo tratamento de dados conforme LGPD.</span>
+                        </label>
+                    </div>
 
-</p>
+                    <button id="btnContinuar" class="btn btn-primary" disabled onclick="continuarParaPanic()" style="width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 900; font-size: 14px; cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, #4caf50, #388e3c); color: white; opacity: 0.5; cursor: not-allowed;">
+                        ✅ ACEITO E CONTINUAR
+                    </button>
 
-<p>
+                    <div class="list" style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+                        <a href="/legal" class="link" style="color: #ffd0f0; text-decoration: none; font-size: 12px;">📄 Termos Completos</a>
+                        <a href="/ajuda" class="link" style="color: #ffd0f0; text-decoration: none; font-size: 12px;">📞 Central de Ajuda</a>
+                        <a href="/" class="link" style="color: #ffd0f0; text-decoration: none; font-size: 12px;">← Voltar</a>
+                    </div>
 
-O funcionamento do sistema depende de fatores externos como:
+                    <div class="info-box" style="background: rgba(40, 0, 60, 0.35); padding: 12px; border-radius: 14px; margin-top: 10px; border: 1px solid rgba(255, 98, 212, 0.28);">
+                        <p class="small muted" style="text-align: center; font-size: 12px; color: var(--muted);">
+                            🌸 <strong>AURORA MULHER SEGURA</strong><br>
+                            Protegendo vidas • 2026<br>
+                            🔒 Dados protegidos pela LGPD
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-</p>
+    <script>
+        document.getElementById('aceiteTermo').addEventListener('change', function() {
+            const btn = document.getElementById('btnContinuar');
+            if (this.checked) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            }
+        });
 
-<ul>
+        function continuarParaPanic() {
+            const checkbox = document.getElementById('aceiteTermo');
+            
+            if (!checkbox.checked) {
+                alert('⚠️ Por favor, marque "Li e ACEITO" para continuar.');
+                return;
+            }
 
-<li>Conexão com internet</li>
-<li>GPS ativado no dispositivo</li>
-<li>Permissões concedidas pelo navegador</li>
-
-</ul>
-
-<p>
-
-Este sistema não substitui serviços oficiais de emergência.
-
-Em situações de perigo imediato procure também:
-
-</p>
-
-<ul>
-
-<li>Polícia Militar – 190</li>
-<li>Central de Atendimento à Mulher – 180</li>
-<li>SAMU – 192</li>
-<li>Bombeiros – 193</li>
-
-</ul>
-
-<p>
-
-Ao utilizar o Aurora você declara que compreende as limitações
-tecnológicas e concorda com os termos de uso do sistema.
-
-</p>
-
-<button onclick="aceitarTermo()">ACEITO</button>
-
-</div>
-
-<script>
-
-function aceitarTermo(){
-
-localStorage.setItem("aurora_termo","aceito")
-
-window.location="/panic"
-
-}
-
-</script>
-<button onclick="saidaRapida()" style="
-position:fixed;
-top:10px;
-right:10px;
-background:red;
-color:white;
-padding:10px;
-border:none;
-border-radius:8px;
-font-weight:bold;
-z-index:9999;
-">
-SAIR RÁPIDO
-</button>
-
-<script>
-
-function saidaRapida(){
-
-window.location = "https://www.google.com"
-
-}
-
-</script>
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/aceitar-termo';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'aceite';
+            input.value = 'true';
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
 </body>
 </html>

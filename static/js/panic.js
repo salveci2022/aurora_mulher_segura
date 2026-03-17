@@ -44,10 +44,12 @@ document.addEventListener("DOMContentLoaded", function() {
     // GPS
     async function getCurrentLocation() {
         if (!elements.shareLocation || !elements.shareLocation.checked) {
+            console.log("⚠️ Localização não autorizada");
             return null;
         }
 
         if (!navigator.geolocation) {
+            console.error("❌ GPS não suportado");
             if (elements.gpsStatus) {
                 elements.gpsStatus.textContent = "❌ GPS não suportado";
                 elements.gpsStatus.className = "alert alert-danger";
@@ -56,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         try {
+            console.log("📍 Solicitando localização...");
             if (elements.gpsStatus) {
                 elements.gpsStatus.textContent = "📍 Obtendo localização...";
                 elements.gpsStatus.className = "alert";
@@ -79,6 +82,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 accuracy: Math.round(position.coords.accuracy)
             };
 
+            console.log("✅ Localização obtida:", currentLocation);
+            
             if (elements.gpsStatus) {
                 elements.gpsStatus.textContent = `✅ GPS: ±${currentLocation.accuracy}m`;
                 elements.gpsStatus.className = "alert alert-ok";

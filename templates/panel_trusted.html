@@ -15,18 +15,6 @@
             0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
             50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
         }
-        .location-box {
-            background: rgba(76, 175, 80, 0.15);
-            border: 2px solid #4caf50;
-            border-radius: 12px;
-            padding: 12px;
-            margin: 12px 0;
-            font-size: 12px;
-        }
-        .location-box.no-gps {
-            background: rgba(255, 152, 0, 0.15);
-            border-color: #ff9800;
-        }
         .siren-btn {
             width: 150px;
             height: 150px;
@@ -63,6 +51,18 @@
             font-weight: 900;
             font-size: 12px;
             cursor: pointer;
+        }
+        .location-box {
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+            display: none;
+        }
+        .location-box.active {
+            display: block;
         }
     </style>
 </head>
@@ -118,7 +118,7 @@
                                 </div>
                                 
                                 <!-- LOCALIZAÇÃO -->
-                                <div id="locationBox" class="location-box no-gps" style="display: none; margin-top: 10px;">
+                                <div id="locationBox" class="location-box">
                                     <div style="font-weight: 900; margin-bottom: 6px;">📍 LOCALIZAÇÃO GPS</div>
                                     <div id="locationCoords" style="font-family: monospace; word-break: break-all;">
                                         --
@@ -181,6 +181,7 @@
         function clearAlerts() {
             document.getElementById('alertContainer').style.display = 'none';
             document.getElementById('noAlerts').style.display = 'block';
+            document.getElementById('locationBox').classList.remove('active');
             stopSiren();
             lastAlertId = null;
         }
@@ -191,9 +192,7 @@
             const accuracyDiv = document.getElementById('locationAccuracy');
             const mapsLink = document.getElementById('mapsLink');
             
-            locationBox.style.display = 'block';
-            locationBox.classList.remove('no-gps');
-            
+            locationBox.classList.add('active');
             coordsDiv.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
             accuracyDiv.textContent = `Precisão: ±${Math.round(accuracy)} metros`;
             mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
@@ -224,15 +223,8 @@
                         const accuracy = lastAlert.accuracy || (lastAlert.location && lastAlert.location.accuracy) || 0;
                         
                         if (lat && lng) {
-                            console.log('📍 Localização recebida:', lat, lng, accuracy);
+                            console.log('📍 Localização recebida:', lat, lng);
                             updateLocation(parseFloat(lat), parseFloat(lng), parseFloat(accuracy));
-                        } else {
-                            console.log('❌ Sem localização no alerta');
-                            const locationBox = document.getElementById('locationBox');
-                            locationBox.style.display = 'block';
-                            locationBox.classList.add('no-gps');
-                            document.getElementById('locationCoords').textContent = '📍 GPS não disponível';
-                            document.getElementById('locationAccuracy').textContent = 'A usuária não compartilhou a localização';
                         }
                         
                         playSiren();

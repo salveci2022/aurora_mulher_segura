@@ -5,65 +5,223 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confiança · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a0033, #2d005a);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .painel-confianca {
+            max-width: 500px;
+            width: 100%;
+            background: linear-gradient(145deg, #2d005a, #1a0033);
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,79,200,0.3);
+        }
+        
+        .topo {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,79,200,0.3);
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .brand-dot {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,121,218,0.9), rgba(164,92,255,0.75));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 0 25px rgba(255,79,200,0.5);
+        }
+        
+        .brand-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .brand-sub {
+            font-size: 12px;
+            color: #cdb7e6;
+        }
+        
+        .top-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .pill {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,79,200,0.3);
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        
         .alert-live {
             animation: pulse-alert 1s infinite;
-            border-color: #f44336 !important;
-            background: rgba(244, 67, 54, 0.3) !important;
+            border: 2px solid #f44336 !important;
+            background: rgba(244, 67, 54, 0.2) !important;
         }
+        
         @keyframes pulse-alert {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-            50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            50% { box-shadow: 0 0 0 20px rgba(244, 67, 54, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
         }
+        
         .siren-btn {
             width: 150px;
             height: 150px;
-            border-radius: 999px;
+            border-radius: 50%;
             border: 2px solid rgba(255, 208, 240, 0.55);
             background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
-            display: grid;
-            place-items: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
             cursor: pointer;
             margin: 20px auto;
+            transition: all 0.3s;
         }
+        
         .siren-btn.active {
             animation: pulse 1s infinite;
-            background: linear-gradient(135deg, #f44336 0%, #ff4fc8 100%) !important;
+            background: linear-gradient(135deg, #f44336 0%, #ff4fc8 100%);
         }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+        
         .action-buttons {
             display: flex;
             gap: 10px;
-            margin-top: 14px;
+            margin: 20px 0;
         }
+        
         .action-btn {
             flex: 1;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 98, 212, 0.28);
-            background: rgba(40, 0, 60, 0.35);
-            color: var(--text);
-            font-weight: 900;
+            padding: 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,79,200,0.3);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-weight: bold;
             font-size: 12px;
             cursor: pointer;
         }
-        .location-box {
-            background: rgba(76, 175, 80, 0.15);
-            border: 2px solid #4caf50;
-            border-radius: 12px;
-            padding: 12px;
-            margin: 12px 0;
-            font-size: 12px;
-            display: none;
+        
+        .action-btn:hover {
+            background: rgba(255,79,200,0.2);
         }
-        .location-box.active {
+        
+        /* 🗺️ ESTILOS DO MAPA */
+        #mapContainer {
+            height: 300px;
+            width: 100%;
+            border-radius: 20px;
+            margin: 20px 0;
+            border: 2px solid rgba(255,79,200,0.3);
+            display: none;
+            z-index: 1;
+        }
+        
+        #mapContainer.active {
             display: block;
         }
+        
+        .location-info {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid rgba(255,79,200,0.3);
+            display: none;
+        }
+        
+        .location-info.active {
+            display: block;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        .info-label {
+            color: #cdb7e6;
+        }
+        
+        .info-value {
+            color: white;
+            font-weight: bold;
+        }
+        
+        .coords {
+            font-family: monospace;
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            color: #4caf50;
+            font-size: 13px;
+        }
+        
+        .source-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .source-gps {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .source-ip {
+            background: #ff9800;
+            color: white;
+        }
+        
         .legal-badge {
             display: inline-block;
             background: linear-gradient(135deg, #4caf50, #388e3c);
@@ -71,106 +229,164 @@
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 10px;
-            font-weight: 900;
+            font-weight: bold;
             margin-left: 8px;
+        }
+        
+        .maps-link {
+            display: inline-block;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4caf50;
+            color: #4caf50;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 12px;
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .maps-link:hover {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        
+        .alert-item {
+            background: rgba(255,79,200,0.1);
+            border-left: 4px solid #ff4fc8;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-time {
+            color: #cdb7e6;
+            font-size: 11px;
+        }
+        
+        .no-alerts {
+            text-align: center;
+            color: #cdb7e6;
+            padding: 30px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="aurora-bg">
-        <div class="center-wrap">
-            <div class="aurora-card">
-                <div class="topbar">
-                    <div class="brand">
-                        <div class="brand-dot">🔔</div>
-                        <div>
-                            <div class="brand-title">AURORA</div>
-                            <div class="brand-sub">Central de Alertas</div>
-                        </div>
-                    </div>
-                    <div class="top-actions">
-                        <a href="/logout_trusted" class="pill">🚪 Sair</a>
-                    </div>
+    <div class="painel-confianca">
+        <div class="topo">
+            <div class="brand">
+                <div class="brand-dot">🔔</div>
+                <div>
+                    <div class="brand-title">AURORA</div>
+                    <div class="brand-sub">Central de Alertas</div>
+                </div>
+            </div>
+            <div class="top-actions">
+                <a href="/logout_trusted" class="pill">🚪 Sair</a>
+            </div>
+        </div>
+        
+        <h1 class="h1" style="color:white; text-align:center; margin-bottom:10px;">👤 {{ display_name }}</h1>
+        <p style="text-align:center; color:#cdb7e6; margin-bottom:20px;">Pessoa de Confiança</p>
+        
+        <!-- Botão da Sirene -->
+        <div class="siren-btn" id="sirenBtn" onclick="toggleSiren()">
+            <div style="font-size: 48px;">🔔</div>
+            <div style="font-size: 12px; font-weight: bold; margin-top: 5px;">SIRENE</div>
+        </div>
+        
+        <!-- Botões de Ação -->
+        <div class="action-buttons">
+            <button class="action-btn" onclick="clearAlerts()">🗑️ LIMPAR</button>
+            <button class="action-btn" onclick="stopSiren()">⏹️ PARAR</button>
+            <button class="action-btn" onclick="location.reload()">🔄 RECARREGAR</button>
+        </div>
+        
+        <!-- Mensagem quando não há alertas -->
+        <div id="noAlerts" class="no-alerts">
+            ⏳ Aguardando alertas de emergência...
+        </div>
+        
+        <!-- Container do Alerta (aparece quando chega alerta) -->
+        <div id="alertContainer" style="display: none;">
+            <div class="alert-item alert-live" id="alertItem">
+                <div style="font-weight: bold; color: #ff4fc8; font-size: 16px;" id="alertSituation">
+                    ⚠️ Emergência
                 </div>
                 
-                <div class="content">
-                    <h1 class="h1">👤 {{ display_name }}</h1>
-                    <p class="center muted">Pessoa de Confiança</p>
-                    
-                    <div class="siren-btn" id="sirenBtn" onclick="toggleSiren()">
-                        <div>
-                            <div style="font-size: 32px;">🔔</div>
-                            <div style="font-size: 11px; font-weight: 900; margin-top: 8px;">SIRENE</div>
-                        </div>
+                <div class="alert-time" id="alertTime">
+                    Usuária • agora
+                </div>
+                
+                <!-- Badge Legal -->
+                <div style="margin: 8px 0;" id="legalBadge">
+                    <span class="legal-badge">✅ TERMO ACEITO</span>
+                </div>
+                
+                <!-- Mensagem -->
+                <div style="color: white; margin: 8px 0;" id="alertMessage">
+                    --
+                </div>
+                
+                <!-- 🗺️ CONTAINER DO MAPA -->
+                <div id="mapContainer"></div>
+                
+                <!-- Informações da Localização -->
+                <div id="locationInfo" class="location-info">
+                    <div class="info-row">
+                        <span class="info-label">📍 Fonte:</span>
+                        <span class="info-value" id="locationSource">GPS</span>
                     </div>
                     
-                    <div class="action-buttons">
-                        <button class="action-btn" onclick="clearAlerts()">🗑️ Limpar</button>
-                        <button class="action-btn" onclick="location.reload()">🔄 Reiniciar</button>
-                        <button class="action-btn" onclick="stopSiren()">⏹️ Parar</button>
+                    <div class="info-row">
+                        <span class="info-label">🎯 Precisão:</span>
+                        <span class="info-value" id="locationAccuracy">--</span>
                     </div>
                     
-                    <div id="noAlerts" class="alert center" style="margin-top: 14px;">
-                        ⏳ Aguardando alertas...
+                    <div class="coords" id="locationCoords">
+                        --
                     </div>
                     
-                    <div id="alertContainer" style="display: none; margin-top: 14px;">
-                        <div class="item alert-live">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 900; color: var(--hot); font-size: 14px;" id="alertSituation">
-                                    --
-                                </div>
-                                <div class="small muted" id="alertTime">
-                                    --
-                                </div>
-                                
-                                <!-- 🔥 NOVO: BADGE DE LEGALIZAÇÃO -->
-                                <div class="small" id="legalBadge" style="margin: 6px 0;">
-                                    <span class="legal-badge">✅ TERMO ACEITO</span>
-                                </div>
-                                
-                                <div class="small" id="alertMessage" style="margin-top: 4px;">
-                                    --
-                                </div>
-                                
-                                <!-- LOCALIZAÇÃO -->
-                                <div id="locationBox" class="location-box">
-                                    <div style="font-weight: 900; margin-bottom: 6px;">📍 LOCALIZAÇÃO GPS</div>
-                                    <div id="locationCoords" style="font-family: monospace; word-break: break-all;">
-                                        --
-                                    </div>
-                                    <div id="locationAccuracy" style="margin-top: 4px; color: var(--muted);">
-                                        --
-                                    </div>
-                                    <a id="mapsLink" href="#" target="_blank" style="display: inline-block; margin-top: 8px; padding: 6px 10px; background: rgba(76, 175, 80, 0.3); border-radius: 6px; text-decoration: none; color: #4caf50; font-weight: 900; font-size: 11px;">
-                                        🗺️ ABRIR NO GOOGLE MAPS
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-box" style="margin-top: 14px;">
-                        <p class="small muted">
-                            🔔 <strong>Sirene:</strong> Toca automaticamente<br>
-                            🚨 <strong>Auto-atualização:</strong> A cada 3 segundos<br>
-                            📍 <strong>GPS:</strong> Localização em tempo real<br>
-                            📜 <strong>Legal:</strong> Status do termo de responsabilidade incluso
-                        </p>
-                    </div>
+                    <a id="mapsLink" href="#" target="_blank" class="maps-link">
+                        🗺️ ABRIR NO GOOGLE MAPS
+                    </a>
                 </div>
             </div>
         </div>
+        
+        <!-- Informações do Sistema -->
+        <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; margin-top: 20px;">
+            <p style="color: #cdb7e6; font-size: 11px;">
+                🔔 <strong>Sirene:</strong> Toca automaticamente<br>
+                🚨 <strong>Auto-atualização:</strong> A cada 3 segundos<br>
+                📍 <strong>GPS:</strong> Localização em tempo real<br>
+                🗺️ <strong>Mapa:</strong> Leaflet automático
+            </p>
+        </div>
     </div>
     
+    <!-- Áudio da Sirene -->
     <audio id="sirenAudio" loop>
         <source src="/static/audio/sirene.mp3" type="audio/mpeg">
     </audio>
     
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
     <script>
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
         let lastAlertId = null;
         let sirenPlaying = false;
-
+        let map = null;
+        let marker = null;
+        
+        // ============================================
+        // FUNÇÕES DA SIRENE
+        // ============================================
         function playSiren() {
             const audio = document.getElementById('sirenAudio');
             audio.play().then(() => {
@@ -198,23 +414,89 @@
         function clearAlerts() {
             document.getElementById('alertContainer').style.display = 'none';
             document.getElementById('noAlerts').style.display = 'block';
-            document.getElementById('locationBox').classList.remove('active');
+            
+            // Limpa o mapa
+            if (map) {
+                map.remove();
+                map = null;
+            }
+            document.getElementById('mapContainer').classList.remove('active');
+            document.getElementById('locationInfo').classList.remove('active');
+            
             stopSiren();
             lastAlertId = null;
         }
-
-        function updateLocation(lat, lng, accuracy) {
-            const locationBox = document.getElementById('locationBox');
-            const coordsDiv = document.getElementById('locationCoords');
-            const accuracyDiv = document.getElementById('locationAccuracy');
-            const mapsLink = document.getElementById('mapsLink');
+        
+        // ============================================
+        // FUNÇÕES DO MAPA
+        // ============================================
+        function initMap(lat, lng, source, accuracy) {
+            console.log('🗺️ Inicializando mapa:', lat, lng, source, accuracy);
             
-            locationBox.classList.add('active');
-            coordsDiv.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            accuracyDiv.textContent = `Precisão: ±${Math.round(accuracy)} metros`;
-            mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.classList.add('active');
+            
+            // Limpa mapa anterior se existir
+            if (map) {
+                map.remove();
+            }
+            
+            // Garante que o container tem tamanho
+            mapContainer.style.height = '300px';
+            
+            // Cria novo mapa
+            map = L.map('mapContainer').setView([lat, lng], 16);
+            
+            // Camada do OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            // Ícone personalizado para o marcador
+            const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: '📍',
+                iconSize: [30, 30],
+                popupAnchor: [0, -15]
+            });
+            
+            // Marcador
+            marker = L.marker([lat, lng]).addTo(map);
+            
+            // Popup com informações
+            let popupText = `<b>📍 Localização do Alerta</b><br>`;
+            popupText += `Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`;
+            if (accuracy) {
+                popupText += `<br>🎯 Precisão: ±${accuracy}m`;
+            }
+            popupText += `<br>📡 Fonte: ${source === 'gps' ? 'GPS' : 'IP'}`;
+            
+            marker.bindPopup(popupText).openPopup();
+            
+            // Mostra informações de localização
+            const locationInfo = document.getElementById('locationInfo');
+            locationInfo.classList.add('active');
+            
+            document.getElementById('locationCoords').textContent = 
+                `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            
+            const sourceBadge = document.getElementById('locationSource');
+            if (source === 'gps') {
+                sourceBadge.innerHTML = '<span class="source-badge source-gps">GPS</span>';
+                document.getElementById('locationAccuracy').textContent = 
+                    accuracy ? `±${Math.round(accuracy)} metros` : 'Alta precisão';
+            } else {
+                sourceBadge.innerHTML = '<span class="source-badge source-ip">IP (aproximado)</span>';
+                document.getElementById('locationAccuracy').textContent = '±5km (aproximado)';
+            }
+            
+            // Link para Google Maps
+            document.getElementById('mapsLink').href = `https://www.google.com/maps?q=${lat},${lng}`;
         }
-
+        
+        // ============================================
+        // CARREGAR ALERTAS
+        // ============================================
         async function loadAlerts() {
             try {
                 const response = await fetch('/api/alerts');
@@ -223,42 +505,75 @@
                 if (alerts && alerts.length > 0) {
                     const lastAlert = alerts[alerts.length - 1];
                     
+                    // Se for um alerta novo
                     if (lastAlert.id !== lastAlertId) {
                         console.log('🚨 NOVO ALERTA!', lastAlert);
                         lastAlertId = lastAlert.id;
                         
+                        // Mostra container do alerta
                         document.getElementById('noAlerts').style.display = 'none';
                         document.getElementById('alertContainer').style.display = 'block';
                         
-                        document.getElementById('alertSituation').textContent = `⚠️ ${lastAlert.situation || 'Emergência'}`;
+                        // Preenche informações do alerta
+                        document.getElementById('alertSituation').textContent = 
+                            `⚠️ ${lastAlert.situation || 'Emergência'}`;
                         
-                        // 🔥 MOSTRA STATUS LEGAL
+                        // Badge legal
                         const legalBadge = document.getElementById('legalBadge');
                         if (lastAlert.termo_aceito) {
                             legalBadge.innerHTML = '<span class="legal-badge">✅ TERMO ACEITO</span>';
                         } else {
-                            legalBadge.innerHTML = '<span class="legal-badge" style="background: #f44336;">❌ TERMO NÃO ACEITO</span>';
+                            legalBadge.innerHTML = '<span class="legal-badge" style="background:#f44336;">❌ TERMO NÃO ACEITO</span>';
                         }
                         
-                        // 🔥 MOSTRA DATA/HORA DO TERMO
+                        // Data/hora
                         let timeText = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts || 'Agora'}`;
-                        if (lastAlert.termo_aceito_em) {
-                            timeText += ` • Termo: ${lastAlert.termo_aceito_em}`;
-                        }
                         document.getElementById('alertTime').textContent = timeText;
                         
-                        document.getElementById('alertMessage').textContent = lastAlert.message || '';
+                        // Mensagem
+                        document.getElementById('alertMessage').textContent = 
+                            lastAlert.message || 'Sem mensagem adicional';
                         
-                        // Verificar localização
-                        const lat = lastAlert.lat || (lastAlert.location && lastAlert.location.lat);
-                        const lng = lastAlert.lng || (lastAlert.location && lastAlert.location.lng);
-                        const accuracy = lastAlert.accuracy || (lastAlert.location && lastAlert.location.accuracy) || 0;
+                        // 🔥 VERIFICA LOCALIZAÇÃO
+                        let lat = null;
+                        let lng = null;
+                        let accuracy = null;
+                        let source = 'gps';
                         
-                        if (lat && lng) {
-                            console.log('📍 Localização recebida:', lat, lng);
-                            updateLocation(parseFloat(lat), parseFloat(lng), parseFloat(accuracy));
+                        // Tenta diferentes formatos de localização
+                        if (lastAlert.location) {
+                            lat = lastAlert.location.lat;
+                            lng = lastAlert.location.lng;
+                            accuracy = lastAlert.location.accuracy;
+                            source = lastAlert.location.source || 'gps';
+                        } else if (lastAlert.lat && lastAlert.lng) {
+                            lat = lastAlert.lat;
+                            lng = lastAlert.lng;
+                            accuracy = lastAlert.accuracy;
+                            source = lastAlert.location_source || 'gps';
                         }
                         
+                        // Se encontrou localização, mostra mapa
+                        if (lat && lng) {
+                            console.log('📍 Localização encontrada:', lat, lng);
+                            
+                            // Converte para número
+                            lat = parseFloat(lat);
+                            lng = parseFloat(lng);
+                            accuracy = accuracy ? parseFloat(accuracy) : null;
+                            
+                            // Inicializa mapa
+                            setTimeout(() => {
+                                initMap(lat, lng, source, accuracy);
+                            }, 100);
+                            
+                        } else {
+                            console.log('⚠️ Alerta sem localização');
+                            document.getElementById('mapContainer').classList.remove('active');
+                            document.getElementById('locationInfo').classList.remove('active');
+                        }
+                        
+                        // Toca sirene
                         playSiren();
                     }
                 }
@@ -266,10 +581,17 @@
                 console.error('Erro ao carregar alertas:', error);
             }
         }
-
-        // Carregar alertas a cada 3 segundos
+        
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Painel de Confiança iniciado');
+            
+            // Carrega alertas imediatamente
             loadAlerts();
+            
+            // Configura atualização automática a cada 3 segundos
             setInterval(loadAlerts, 3000);
         });
     </script>

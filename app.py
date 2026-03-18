@@ -142,15 +142,17 @@ def send_alert():
     termo_aceito = session.get("termo_aceito", False)
     termo_aceito_em = session.get("termo_aceito_em", None)
     
-    # 🔥 TRATAMENTO DA LOCALIZAÇÃO
+    # 🔥 TRATAMENTO DA LOCALIZAÇÃO - VERSÃO CORRIGIDA
     lat = None
     lng = None
     accuracy = None
+    location_source = None
     
     if location and isinstance(location, dict):
         lat = location.get("lat")
         lng = location.get("lng")
         accuracy = location.get("accuracy")
+        location_source = location.get("source")  # 🔥 NOVO: fonte da localização (gps/ip)
         
         # Converte para float se possível
         try:
@@ -178,6 +180,7 @@ def send_alert():
         "lat": lat,
         "lng": lng,
         "accuracy": accuracy,
+        "location_source": location_source,  # 🔥 NOVO: salva a fonte
         "ip": request.remote_addr,
         "termo_aceito": termo_aceito,
         "termo_aceito_em": termo_aceito_em,
@@ -188,7 +191,7 @@ def send_alert():
     print(f"✅ Alerta #{payload['id']} - {payload['situation']}")
     print(f"📜 Termo aceito: {termo_aceito} em {termo_aceito_em}")
     if lat and lng:
-        print(f"📍 Localização: {lat}, {lng} (±{accuracy}m)")
+        print(f"📍 Localização: {lat}, {lng} (±{accuracy}m) - Fonte: {location_source}")
     else:
         print("📍 Sem localização")
     
@@ -290,5 +293,6 @@ if __name__ == "__main__":
     print("📜 Termo de responsabilidade integrado")
     print("📍 Localização com consentimento")
     print("🚨 Alertas com status legal")
+    print("🔍 Fonte da localização: GPS ou IP")
     print("=" * 60)
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -92,12 +92,57 @@
         }
         .permission-help {
             background: rgba(33, 150, 243, 0.15);
-            border-left: 3px solid #2196f3;
-            padding: 8px 12px;
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+            line-height: 1.6;
+            display: none;
+        }
+        .permission-help strong {
+            color: #2196f3;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .permission-help ul {
             margin: 8px 0;
-            font-size: 11px;
+            padding-left: 20px;
+            color: var(--text);
+        }
+        .permission-help li {
+            margin: 5px 0;
+        }
+        .permission-help .browser-icon {
+            display: inline-block;
+            width: 24px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .reload-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .location-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 4px 8px;
             border-radius: 4px;
-            color: #90caf9;
+            font-size: 10px;
+            font-weight: 900;
+            margin-left: 5px;
+        }
+        .ip-badge {
+            background: #ff9800;
         }
     </style>
 </head>
@@ -151,7 +196,7 @@
                                 <strong>📍 COMPARTILHAR MINHA LOCALIZAÇÃO</strong>
                                 Autorizo o envio da minha localização GPS em tempo real para minhas pessoas de confiança.
                                 <small>• Sua localização só será enviada se você autorizar<br>
-                                • Precisão de 3-50 metros dependendo do GPS<br>
+                                • Precisão de 3-50 metros (GPS) ou ~5km (IP)<br>
                                 • Você pode ativar/desativar quando quiser</small>
                             </div>
                         </label>
@@ -162,9 +207,33 @@
                         <span class="gps-icon">📍</span> <span id="gpsText">Aguardando permissão...</span>
                     </div>
                     
-                    <!-- 🔥 AJUDA PARA PERMISSÃO -->
-                    <div class="permission-help" id="permissionHelp" style="display: none;">
-                        🔒 <strong>Permissão negada?</strong> Clique no ícone de cadeado ao lado da URL e permita "Localização".
+                    <!-- 🔥 AJUDA INTERATIVA PARA PERMISSÃO -->
+                    <div id="permissionHelp" class="permission-help">
+                        <strong>🔒 PERMISSÃO NEGADA</strong>
+                        <p>Para usar a localização, siga os passos abaixo:</p>
+                        
+                        <div id="desktopInstructions" style="display:none;">
+                            <ul>
+                                <li><span class="browser-icon">🔒</span> Clique no ícone de <strong>cadeado</strong> ao lado da URL</li>
+                                <li><span class="browser-icon">⚙️</span> Clique em <strong>Configurações do site</strong></li>
+                                <li><span class="browser-icon">📍</span> Em <strong>Localização</strong>, selecione <strong>Permitir</strong></li>
+                                <li><span class="browser-icon">🔄</span> Recarregue a página</li>
+                            </ul>
+                        </div>
+                        
+                        <div id="mobileInstructions" style="display:none;">
+                            <ul>
+                                <li><span class="browser-icon">⚙️</span> Abra as <strong>Configurações</strong> do celular</li>
+                                <li><span class="browser-icon">📱</span> Vá em <strong>Apps</strong> > <strong>Navegador</strong></li>
+                                <li><span class="browser-icon">📍</span> Toque em <strong>Permissões</strong> > <strong>Localização</strong></li>
+                                <li><span class="browser-icon">✅</span> Selecione <strong>Permitir</strong></li>
+                                <li><span class="browser-icon">🔄</span> Volte e recarregue</li>
+                            </ul>
+                        </div>
+                        
+                        <button class="reload-btn" onclick="location.reload()">
+                            🔄 RECARREGAR PÁGINA
+                        </button>
                     </div>
                     
                     <div class="alert center" id="status">
@@ -190,6 +259,19 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        // Detectar se é mobile para mostrar instruções corretas
+        document.addEventListener('DOMContentLoaded', function() {
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                document.getElementById('mobileInstructions').style.display = 'block';
+            } else {
+                document.getElementById('desktopInstructions').style.display = 'block';
+            }
+        });
+    </script>
     
     <script src="/static/js/panic.js"></script>
 </body>

@@ -24,3 +24,17 @@
 {"id": 2, "ts": "2026-03-18 09:20:32", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
 {"id": 3, "ts": "2026-03-18 09:21:24", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
 {"id": 4, "ts": "2026-03-18 09:30:57", "name": "KAROL", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 5, "ts": "2026-03-18 09:39:15", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 6, "ts": "2026-03-18 09:46:42", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 7, "ts": "2026-03-18 09:46:46", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 8, "ts": "2026-03-18 09:46:58", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 9, "ts": "2026-03-18 09:47:26", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 10, "ts": "2026-03-18 09:48:09", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 11, "ts": "2026-03-18 09:51:36", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 12, "ts": "2026-03-18 10:27:21", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 13, "ts": "2026-03-18 10:27:38", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 14, "ts": "2026-03-18 10:41:45", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "127.0.0.1"}
+{"id": 15, "ts": "2026-03-18 10:42:11", "name": "", "situation": "Violência", "message": "", "location": {"lat": -16.020357, "lng": -48.020633999999994, "accuracy": 323}, "lat": -16.020357, "lng": -48.020633999999994, "accuracy": 323, "ip": "127.0.0.1"}
+{"id": 16, "ts": "2026-03-18 10:43:56", "name": "", "situation": "Violência", "message": "", "location": {"lat": -16.020425663353386, "lng": -48.02063400000001, "accuracy": 198}, "lat": -16.020425663353386, "lng": -48.02063400000001, "accuracy": 198, "ip": "127.0.0.1"}
+{"id": 17, "ts": "2026-03-18 10:53:11", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 18, "ts": "2026-03-18 10:53:23", "name": "", "situation": "Violência", "message": "", "location": {"lat": -16.020357, "lng": -48.020634, "accuracy": 381}, "lat": -16.020357, "lng": -48.020634, "accuracy": 381, "ip": "127.0.0.1"}

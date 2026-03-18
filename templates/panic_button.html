@@ -86,64 +86,6 @@
         .quick-exit-btn:hover {
             background: rgba(244, 67, 54, 1);
         }
-        .gps-icon {
-            display: inline-block;
-            margin-right: 5px;
-        }
-        .permission-help {
-            background: rgba(33, 150, 243, 0.15);
-            border: 2px solid #2196f3;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
-            font-size: 13px;
-            line-height: 1.6;
-            display: none;
-        }
-        .permission-help strong {
-            color: #2196f3;
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .permission-help ul {
-            margin: 8px 0;
-            padding-left: 20px;
-            color: var(--text);
-        }
-        .permission-help li {
-            margin: 5px 0;
-        }
-        .permission-help .browser-icon {
-            display: inline-block;
-            width: 24px;
-            text-align: center;
-            font-size: 18px;
-        }
-        .reload-btn {
-            background: #2196f3;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 900;
-            cursor: pointer;
-            margin-top: 10px;
-            width: 100%;
-        }
-        .location-badge {
-            display: inline-block;
-            background: #4caf50;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 900;
-            margin-left: 5px;
-        }
-        .ip-badge {
-            background: #ff9800;
-        }
     </style>
 </head>
 <body>
@@ -191,12 +133,12 @@
                     <!-- ✅ AUTORIZAÇÃO DE LOCALIZAÇÃO -->
                     <div class="location-consent">
                         <label>
-                            <input type="checkbox" id="shareLocation" checked>
+                            <input type="checkbox" id="shareLocation">
                             <div>
                                 <strong>📍 COMPARTILHAR MINHA LOCALIZAÇÃO</strong>
                                 Autorizo o envio da minha localização GPS em tempo real para minhas pessoas de confiança.
                                 <small>• Sua localização só será enviada se você autorizar<br>
-                                • Precisão de 3-50 metros (GPS) ou ~5km (IP)<br>
+                                • Precisão de 3-50 metros dependendo do GPS<br>
                                 • Você pode ativar/desativar quando quiser</small>
                             </div>
                         </label>
@@ -204,36 +146,7 @@
                     
                     <!-- STATUS DO GPS -->
                     <div id="gpsStatus" class="gps-status">
-                        <span class="gps-icon">📍</span> <span id="gpsText">Aguardando permissão...</span>
-                    </div>
-                    
-                    <!-- 🔥 AJUDA INTERATIVA PARA PERMISSÃO -->
-                    <div id="permissionHelp" class="permission-help">
-                        <strong>🔒 PERMISSÃO NEGADA</strong>
-                        <p>Para usar a localização, siga os passos abaixo:</p>
-                        
-                        <div id="desktopInstructions" style="display:none;">
-                            <ul>
-                                <li><span class="browser-icon">🔒</span> Clique no ícone de <strong>cadeado</strong> ao lado da URL</li>
-                                <li><span class="browser-icon">⚙️</span> Clique em <strong>Configurações do site</strong></li>
-                                <li><span class="browser-icon">📍</span> Em <strong>Localização</strong>, selecione <strong>Permitir</strong></li>
-                                <li><span class="browser-icon">🔄</span> Recarregue a página</li>
-                            </ul>
-                        </div>
-                        
-                        <div id="mobileInstructions" style="display:none;">
-                            <ul>
-                                <li><span class="browser-icon">⚙️</span> Abra as <strong>Configurações</strong> do celular</li>
-                                <li><span class="browser-icon">📱</span> Vá em <strong>Apps</strong> > <strong>Navegador</strong></li>
-                                <li><span class="browser-icon">📍</span> Toque em <strong>Permissões</strong> > <strong>Localização</strong></li>
-                                <li><span class="browser-icon">✅</span> Selecione <strong>Permitir</strong></li>
-                                <li><span class="browser-icon">🔄</span> Volte e recarregue</li>
-                            </ul>
-                        </div>
-                        
-                        <button class="reload-btn" onclick="location.reload()">
-                            🔄 RECARREGAR PÁGINA
-                        </button>
+                        📍 <span id="gpsText">Aguardando...</span>
                     </div>
                     
                     <div class="alert center" id="status">
@@ -251,7 +164,7 @@
                     
                     <div class="list" style="margin-top: 14px;">
                         <a href="/historico" class="link">📄 Baixar Relatório (PDF)</a>
-                        <a href="/plano-seguranca" class="link">📋 Meu Plano de Segurança</a>
+                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
                         <a href="/ajuda" class="link">📞 Números de Emergência</a>
                         <a href="/" class="link">← Voltar ao início</a>
                     </div>
@@ -259,19 +172,6 @@
             </div>
         </div>
     </div>
-    
-    <script>
-        // Detectar se é mobile para mostrar instruções corretas
-        document.addEventListener('DOMContentLoaded', function() {
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                document.getElementById('mobileInstructions').style.display = 'block';
-            } else {
-                document.getElementById('desktopInstructions').style.display = 'block';
-            }
-        });
-    </script>
     
     <script src="/static/js/panic.js"></script>
 </body>

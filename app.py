@@ -16,7 +16,6 @@ BASE_DIR = Path(__file__).resolve().parent
 USERS_FILE = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
 STATE_FILE = BASE_DIR / "state.json"
-TERMOS_FILE = BASE_DIR / "termos_aceitos.log"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
@@ -35,8 +34,6 @@ def ensure_files():
         ALERTS_FILE.write_text("", encoding="utf-8")
     if not STATE_FILE.exists():
         STATE_FILE.write_text(json.dumps({"last_id": 0}, indent=2, ensure_ascii=False), encoding="utf-8")
-    if not TERMOS_FILE.exists():
-        TERMOS_FILE.write_text("", encoding="utf-8")
 
 def load_users():
     ensure_files()
@@ -63,12 +60,6 @@ def log_alert(payload):
     with ALERTS_FILE.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
-def log_termo_aceito():
-    """Registra que o termo foi aceito"""
-    ensure_files()
-    with TERMOS_FILE.open("a", encoding="utf-8") as f:
-        f.write(f"{now_br_str()}\n")
-
 def get_all_alerts():
     ensure_files()
     try:
@@ -83,15 +74,6 @@ def get_all_alerts():
                 except:
                     pass
         return alerts
-    except:
-        return []
-
-def get_all_termos():
-    """Retorna lista de termos aceitos"""
-    ensure_files()
-    try:
-        txt = TERMOS_FILE.read_text(encoding="utf-8").strip()
-        return [t.strip() for t in txt.split("\n") if t.strip()]
     except:
         return []
 
@@ -120,55 +102,11 @@ def ajuda():
 def saida_rapida():
     return render_template("saida_rapida.html")
 
-@app.get("/plano-seguranca")
-def plano_seguranca():
-    return render_template("plano_seguranca.html")
-
-@app.post("/aceitar-termo")
-def aceitar_termo():
-    """Rota para aceitar o termo de responsabilidade"""
-    session["termo_aceito"] = True
-    session["termo_aceito_em"] = now_br_str()
-    log_termo_aceito()
-    return redirect("/panic")
-
 @app.post("/api/send_alert")
 def send_alert():
     data = request.get_json(silent=True) or {}
     
     location = data.get("location")
-    
-    # 🔥 VERIFICA SE O TERMO FOI ACEITO
-    termo_aceito = session.get("termo_aceito", False)
-    termo_aceito_em = session.get("termo_aceito_em", None)
-    
-    # 🔥 TRATAMENTO DA LOCALIZAÇÃO - VERSÃO CORRIGIDA
-    lat = None
-    lng = None
-    accuracy = None
-    location_source = None
-    
-    if location and isinstance(location, dict):
-        lat = location.get("lat")
-        lng = location.get("lng")
-        accuracy = location.get("accuracy")
-        location_source = location.get("source")  # 🔥 NOVO: fonte da localização (gps/ip)
-        
-        # Converte para float se possível
-        try:
-            lat = float(lat) if lat not in (None, "", 0) else None
-        except (ValueError, TypeError):
-            lat = None
-            
-        try:
-            lng = float(lng) if lng not in (None, "", 0) else None
-        except (ValueError, TypeError):
-            lng = None
-            
-        try:
-            accuracy = float(accuracy) if accuracy not in (None, "", 0) else None
-        except (ValueError, TypeError):
-            accuracy = None
     
     payload = {
         "id": next_alert_id(),
@@ -177,34 +115,22 @@ def send_alert():
         "situation": data.get("situation", "Emergência"),
         "message": data.get("message", ""),
         "location": location,
-        "lat": lat,
-        "lng": lng,
-        "accuracy": accuracy,
-        "location_source": location_source,  # 🔥 NOVO: salva a fonte
-        "ip": request.remote_addr,
-        "termo_aceito": termo_aceito,
-        "termo_aceito_em": termo_aceito_em,
-        "user_agent": request.headers.get("User-Agent", "")
+        "lat": location.get("lat") if location and isinstance(location, dict) else None,
+        "lng": location.get("lng") if location and isinstance(location, dict) else None,
+        "accuracy": location.get("accuracy") if location and isinstance(location, dict) else None,
+        "ip": request.remote_addr
     }
     
     log_alert(payload)
     print(f"✅ Alerta #{payload['id']} - {payload['situation']}")
-    print(f"📜 Termo aceito: {termo_aceito} em {termo_aceito_em}")
-    if lat and lng:
-        print(f"📍 Localização: {lat}, {lng} (±{accuracy}m) - Fonte: {location_source}")
-    else:
-        print("📍 Sem localização")
+    if location:
+        print(f"📍 {location.get('lat')}, {location.get('lng')}")
     
     return jsonify({"ok": True, "id": payload["id"]})
 
 @app.get("/api/alerts")
 def api_alerts():
     return jsonify(get_all_alerts())
-
-@app.get("/api/termos")
-def api_termos():
-    """Retorna lista de termos aceitos"""
-    return jsonify(get_all_termos())
 
 @app.route("/panel/login", methods=["GET", "POST"])
 def admin_login():
@@ -232,15 +158,13 @@ def admin_panel():
     users = load_users()
     trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
     alerts = get_all_alerts()
-    termos = get_all_termos()
     
     stats = {
         "total": len(alerts),
-        "today": sum(1 for a in alerts if a.get("ts", "").startswith(datetime.now().strftime("%Y-%m-%d"))),
+        "today": sum(1 for a in alerts if a.get("ts", "").startswith(datetime.now().strftime("%d/%m/%Y"))),
         "trusted": len(trusted),
-        "with_location": sum(1 for a in alerts if a.get("lat") and a.get("lng")),
-        "without_location": sum(1 for a in alerts if not a.get("lat") or not a.get("lng")),
-        "termos_aceitos": len(termos)
+        "with_location": sum(1 for a in alerts if a.get("location")),
+        "without_location": sum(1 for a in alerts if not a.get("location"))
     }
     
     return render_template("panel_admin.html", trusted=trusted, alerts=alerts, stats=stats)
@@ -288,11 +212,6 @@ def logout_trusted():
 if __name__ == "__main__":
     ensure_files()
     print("=" * 60)
-    print("🌸 AURORA v3.0 - COM LEGALIZAÇÃO")
-    print("=" * 60)
-    print("📜 Termo de responsabilidade integrado")
-    print("📍 Localização com consentimento")
-    print("🚨 Alertas com status legal")
-    print("🔍 Fonte da localização: GPS ou IP")
+    print("🌸 AURORA v3.0")
     print("=" * 60)
     app.run(host="0.0.0.0", port=5000, debug=True)

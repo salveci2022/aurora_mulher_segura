@@ -1,162 +1,207 @@
-// =========================
-// AURORA + DRIVER-SHIELD + TEMPO REAL
-// =========================
+// Sistema SOS Aurora Mulher Segura
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("🌸 Aurora - Sistema SOS iniciando...");
+    
+    const elements = {
+        chips: document.querySelectorAll(".chip"),
+        sos: document.getElementById("sosBtn"),
+        status: document.getElementById("status"),
+        name: document.getElementById("name"),
+        message: document.getElementById("message"),
+        shareLocation: document.getElementById("shareLocation"),
+        gpsStatus: document.getElementById("gpsStatus")
+    };
 
-let btn = document.getElementById("sos")
-let tempoPressionado = null
-let watchId = null
-
-if(btn){
-    btn.addEventListener("mousedown", iniciarPress)
-    btn.addEventListener("mouseup", cancelarPress)
-
-    btn.addEventListener("touchstart", iniciarPress)
-    btn.addEventListener("touchend", cancelarPress)
-}
-
-function iniciarPress(){
-    btn.classList.add("holding")
-
-    tempoPressionado = setTimeout(() => {
-        enviarAlerta()
-    }, 2000)
-}
-
-function cancelarPress(){
-    btn.classList.remove("holding")
-    if(tempoPressionado) clearTimeout(tempoPressionado)
-}
-
-// =========================
-// 🚨 ALERTA COM RASTREAMENTO
-// =========================
-
-function enviarAlerta(){
-
-    let nome = document.getElementById("nome")?.value || "Não informado"
-    let situacao = document.querySelector(".chip.active")?.innerText || "SOS"
-    let mensagem = document.getElementById("mensagem")?.value || ""
-
-    if(navigator.geolocation){
-
-        watchId = navigator.geolocation.watchPosition(function(pos){
-
-            let location = {
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                accuracy: pos.coords.accuracy,
-                source: "gps"
-            }
-
-            enviarParaServidor(nome, situacao, mensagem, location)
-
-        }, function(){
-
-            obterLocalizacaoIP(nome, situacao, mensagem)
-
-        }, {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 5000
-        })
-
-    } else {
-        obterLocalizacaoIP(nome, situacao, mensagem)
+    if (!elements.sos || !elements.status) {
+        console.error("❌ Elementos não encontrados!");
+        return;
     }
 
-    mostrarConfirmacao("🚨 Rastreamento iniciado...")
-}
+    let selectedSituation = "";
+    let holdTimer = null;
+    let isHolding = false;
+    let currentLocation = null;
 
-// =========================
-// 🌐 FALLBACK IP
-// =========================
+    function showStatus(message, type = "info") {
+        if (!elements.status) return;
+        elements.status.textContent = message;
+        elements.status.className = "alert center";
+        if (type === "success") elements.status.classList.add("alert-ok");
+        else if (type === "error") elements.status.classList.add("alert-danger");
+    }
 
-function obterLocalizacaoIP(nome, situacao, mensagem){
+    // Chips
+    elements.chips.forEach(chip => {
+        chip.addEventListener("click", function(e) {
+            e.preventDefault();
+            elements.chips.forEach(c => c.classList.remove("active"));
+            this.classList.add("active");
+            selectedSituation = this.dataset.value || this.textContent.trim();
+            showStatus(`✓ Situação: ${selectedSituation}`, "success");
+        });
+    });
 
-    fetch("https://ipapi.co/json/")
-    .then(res => res.json())
-    .then(data => {
-
-        let location = {
-            lat: data.latitude,
-            lng: data.longitude,
-            accuracy: 5000,
-            source: "ip"
+    // GPS
+    async function getCurrentLocation() {
+        if (!elements.shareLocation || !elements.shareLocation.checked) {
+            console.log("⚠️ Localização não autorizada");
+            return null;
         }
 
-        enviarParaServidor(nome, situacao, mensagem, location)
+        if (!navigator.geolocation) {
+            console.error("❌ GPS não suportado");
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = "❌ GPS não suportado";
+                elements.gpsStatus.className = "alert alert-danger";
+            }
+            return null;
+        }
 
-    })
-    .catch(() => {
-        enviarParaServidor(nome, situacao, mensagem, null)
-    })
-}
+        try {
+            console.log("📍 Solicitando localização...");
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = "📍 Obtendo localização...";
+                elements.gpsStatus.className = "alert";
+            }
 
-// =========================
-// 📡 ENVIO
-// =========================
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(
+                    resolve,
+                    reject,
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
 
-function enviarParaServidor(nome, situacao, mensagem, location){
+            currentLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: Math.round(position.coords.accuracy)
+            };
 
-    const payload = {
-        name: nome,
-        situation: situacao,
-        message: mensagem,
+            console.log("✅ Localização obtida:", currentLocation);
+            
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = `✅ GPS: ±${currentLocation.accuracy}m`;
+                elements.gpsStatus.className = "alert alert-ok";
+            }
 
-        location: location,
-
-        lat: location ? location.lat : null,
-        lng: location ? location.lng : null,
-        accuracy: location ? location.accuracy : null,
-
-        locationSource: location?.source || 'none',
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent
+            return currentLocation;
+        } catch (error) {
+            console.error("❌ Erro GPS:", error);
+            if (elements.gpsStatus) {
+                elements.gpsStatus.textContent = "❌ Erro ao capturar GPS";
+                elements.gpsStatus.className = "alert alert-danger";
+            }
+            return null;
+        }
     }
 
-    fetch("/api/send_alert", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(() => {
-        console.log("Localização enviada")
-    })
-    .catch(err => {
-        console.error("Erro:", err)
-    })
-}
+    // Enviar alerta
+    async function sendSOSAlert() {
+        try {
+            if (!selectedSituation) {
+                showStatus("⚠️ Selecione a situação", "error");
+                return false;
+            }
 
-// =========================
-// FEEDBACK
-// =========================
+            showStatus("⏳ Preparando alerta...", "info");
 
-function mostrarConfirmacao(msg){
+            const location = await getCurrentLocation();
 
-    let el = document.getElementById("status")
+            const payload = {
+                name: elements.name ? elements.name.value.trim() : "Usuária",
+                situation: selectedSituation,
+                message: elements.message ? elements.message.value.trim() : "",
+                location: location,
+                timestamp: new Date().toISOString()
+            };
 
-    if(!el){
-        el = document.createElement("div")
-        el.id = "status"
-        el.style.marginTop = "10px"
-        document.body.appendChild(el)
+            console.log("📤 Enviando:", payload);
+            showStatus("📤 Enviando...", "info");
+
+            const response = await fetch("/api/send_alert", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("✅ Enviado:", result);
+
+            showStatus("✅ ALERTA ENVIADO!", "success");
+            
+            if (elements.sos) {
+                elements.sos.style.background = "linear-gradient(145deg, #4caf50, #388e3c)";
+                setTimeout(() => {
+                    elements.sos.style.background = "";
+                }, 2000);
+            }
+
+            return true;
+        } catch (error) {
+            console.error("❌ Erro:", error);
+            showStatus(`❌ Erro: ${error.message}`, "error");
+            return false;
+        }
     }
 
-    el.innerText = msg
+    // Hold
+    function startHold(e) {
+        e.preventDefault();
+        if (isHolding) return;
+        
+        isHolding = true;
+        if (elements.sos) {
+            elements.sos.classList.add("holding");
+        }
+        
+        showStatus("⚠️ Segure por 1 segundo...", "info");
+        
+        holdTimer = setTimeout(() => {
+            if (isHolding) {
+                sendSOSAlert();
+            }
+        }, 1000);
+    }
 
-    setTimeout(() => el.innerText = "", 4000)
-}
+    function cancelHold(e) {
+        e.preventDefault();
+        if (!isHolding) return;
+        
+        if (holdTimer) {
+            clearTimeout(holdTimer);
+            holdTimer = null;
+        }
+        
+        if (elements.sos) {
+            elements.sos.classList.remove("holding");
+        }
+        
+        isHolding = false;
+        
+        if (!elements.status.textContent.includes("✅")) {
+            showStatus("", "info");
+        }
+    }
 
-// =========================
-// CHIPS
-// =========================
+    // Events
+    if (elements.sos) {
+        elements.sos.addEventListener("mousedown", startHold);
+        elements.sos.addEventListener("mouseup", cancelHold);
+        elements.sos.addEventListener("mouseleave", cancelHold);
+        elements.sos.addEventListener("touchstart", startHold, { passive: false });
+        elements.sos.addEventListener("touchend", cancelHold);
+    }
 
-document.querySelectorAll(".chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-        document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"))
-        chip.classList.add("active")
-    })
-})
+    console.log("✅ Sistema pronto!");
+});

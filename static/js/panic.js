@@ -9,7 +9,8 @@ document.addEventListener("DOMContentLoaded", function() {
         name: document.getElementById("name"),
         message: document.getElementById("message"),
         shareLocation: document.getElementById("shareLocation"),
-        gpsStatus: document.getElementById("gpsStatus")
+        gpsStatus: document.getElementById("gpsStatus"),
+        gpsText: document.getElementById("gpsText")
     };
 
     if (!elements.sos || !elements.status) {
@@ -21,13 +22,22 @@ document.addEventListener("DOMContentLoaded", function() {
     let holdTimer = null;
     let isHolding = false;
     let currentLocation = null;
+    let watchId = null;
+    let permissionRequested = false;
 
     function showStatus(message, type = "info") {
         if (!elements.status) return;
         elements.status.textContent = message;
         elements.status.className = "alert center";
-        if (type === "success") elements.status.classList.add("alert-ok");
-        else if (type === "error") elements.status.classList.add("alert-danger");
+        if (type === "success") {
+            elements.status.classList.add("alert-ok");
+            elements.status.classList.remove("alert-danger");
+        } else if (type === "error") {
+            elements.status.classList.add("alert-danger");
+            elements.status.classList.remove("alert-ok");
+        } else {
+            elements.status.classList.remove("alert-ok", "alert-danger");
+        }
     }
 
     // Chips
@@ -41,63 +51,217 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // GPS
-    async function getCurrentLocation() {
+    // 🔥 FUNÇÃO PARA SOLICITAR PERMISSÃO EXPLICITAMENTE
+    async function requestLocationPermission() {
+        if (!navigator.permissions || !navigator.permissions.query) {
+            console.log("⚠️ API de permissão não suportada");
+            return true; // Tenta mesmo assim
+        }
+
+        try {
+            const permission = await navigator.permissions.query({ name: 'geolocation' });
+            console.log("📌 Status da permissão:", permission.state);
+            
+            if (permission.state === 'granted') {
+                return true;
+            } else if (permission.state === 'prompt') {
+                showStatus("📍 Por favor, permita o acesso à localização", "info");
+                return true; // Vai pedir na hora do getCurrentPosition
+            } else {
+                updateGPSStatus("❌ Permissão negada - ative nas configurações", "poor");
+                return false;
+            }
+        } catch (error) {
+            console.log("Erro ao verificar permissão:", error);
+            return true;
+        }
+    }
+
+    function updateGPSStatus(message, type = "info") {
+        if (!elements.gpsStatus || !elements.gpsText) return;
+        
+        elements.gpsStatus.style.display = "block";
+        elements.gpsText.textContent = message;
+        
+        elements.gpsStatus.classList.remove("good", "poor", "active");
+        
+        if (type === "good") {
+            elements.gpsStatus.classList.add("good", "active");
+        } else if (type === "poor") {
+            elements.gpsStatus.classList.add("poor", "active");
+        } else if (type === "info") {
+            elements.gpsStatus.classList.add("active");
+        }
+    }
+
+    async function startWatchingLocation() {
+        if (!navigator.geolocation) {
+            updateGPSStatus("❌ GPS não suportado neste dispositivo", "poor");
+            return;
+        }
+
+        // Verifica permissão primeiro
+        const hasPermission = await requestLocationPermission();
+        if (!hasPermission) {
+            return;
+        }
+
+        // Para watch anterior se existir
+        if (watchId) {
+            navigator.geolocation.clearWatch(watchId);
+        }
+
+        updateGPSStatus("📍 Solicitando permissão de localização...", "info");
+
+        // Primeiro tenta getCurrentPosition para pedir permissão
+        navigator.geolocation.getCurrentPosition(
+            // Sucesso - permissão concedida
+            (position) => {
+                console.log("✅ Permissão concedida!");
+                
+                // Agora inicia o watch
+                watchId = navigator.geolocation.watchPosition(
+                    // Sucesso do watch
+                    (pos) => {
+                        currentLocation = {
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                            accuracy: Math.round(pos.coords.accuracy)
+                        };
+                        
+                        console.log("📍 GPS atualizado:", currentLocation);
+                        
+                        if (currentLocation.accuracy < 50) {
+                            updateGPSStatus(`✅ GPS ativo: ±${currentLocation.accuracy}m`, "good");
+                        } else {
+                            updateGPSStatus(`⚠️ GPS aproximado: ±${currentLocation.accuracy}m`, "poor");
+                        }
+                    },
+                    // Erro do watch
+                    (error) => {
+                        console.error("❌ Erro no watch GPS:", error);
+                        handleGPSError(error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: 10000
+                    }
+                );
+            },
+            // Erro - permissão negada
+            (error) => {
+                console.error("❌ Erro ao solicitar permissão:", error);
+                handleGPSError(error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    function handleGPSError(error) {
+        let errorMsg = "Erro no GPS";
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                errorMsg = "❌ Permissão negada - clique no ícone 🔒 ao lado da URL e permita acesso à localização";
+                break;
+            case error.POSITION_UNAVAILABLE:
+                errorMsg = "❌ Sinal GPS indisponível - tente em área aberta";
+                break;
+            case error.TIMEOUT:
+                errorMsg = "❌ Tempo esgotado - tente novamente";
+                break;
+        }
+        updateGPSStatus(errorMsg, "poor");
+        currentLocation = null;
+    }
+
+    function stopWatchingLocation() {
+        if (watchId) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+        if (elements.gpsStatus) {
+            elements.gpsStatus.style.display = "none";
+        }
+    }
+
+    // 🔥 Ativar/desativar GPS conforme checkbox
+    if (elements.shareLocation) {
+        elements.shareLocation.addEventListener('change', function() {
+            if (this.checked) {
+                console.log("📍 GPS ativado pelo usuário");
+                startWatchingLocation();
+            } else {
+                console.log("📍 GPS desativado pelo usuário");
+                stopWatchingLocation();
+                currentLocation = null;
+                if (elements.gpsStatus) {
+                    elements.gpsStatus.style.display = "none";
+                }
+            }
+        });
+    }
+
+    // 🔥 Função para obter localização atual (para o alerta)
+    async function getCurrentLocationForAlert() {
+        // Se não autorizou, retorna null
         if (!elements.shareLocation || !elements.shareLocation.checked) {
             console.log("⚠️ Localização não autorizada");
             return null;
         }
 
-        if (!navigator.geolocation) {
-            console.error("❌ GPS não suportado");
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = "❌ GPS não suportado";
-                elements.gpsStatus.className = "alert alert-danger";
-            }
-            return null;
-        }
-
-        try {
-            console.log("📍 Solicitando localização...");
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = "📍 Obtendo localização...";
-                elements.gpsStatus.className = "alert";
-            }
-
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(
-                    resolve,
-                    reject,
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    }
-                );
-            });
-
-            currentLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                accuracy: Math.round(position.coords.accuracy)
-            };
-
-            console.log("✅ Localização obtida:", currentLocation);
-            
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = `✅ GPS: ±${currentLocation.accuracy}m`;
-                elements.gpsStatus.className = "alert alert-ok";
-            }
-
+        // Se já temos localização recente (menos de 30 segundos), usa ela
+        if (currentLocation) {
+            console.log("📍 Usando localização em cache:", currentLocation);
             return currentLocation;
-        } catch (error) {
-            console.error("❌ Erro GPS:", error);
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = "❌ Erro ao capturar GPS";
-                elements.gpsStatus.className = "alert alert-danger";
-            }
-            return null;
         }
+
+        // Tenta obter uma posição atual
+        if (navigator.geolocation) {
+            try {
+                console.log("📍 Obtendo localização para o alerta...");
+                updateGPSStatus("📍 Obtendo localização...", "info");
+                
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(
+                        resolve,
+                        reject,
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 30000
+                        }
+                    );
+                });
+                
+                const location = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    accuracy: Math.round(position.coords.accuracy)
+                };
+                
+                console.log("✅ Localização obtida:", location);
+                currentLocation = location;
+                
+                if (location.accuracy < 50) {
+                    updateGPSStatus(`✅ GPS ativo: ±${location.accuracy}m`, "good");
+                } else {
+                    updateGPSStatus(`⚠️ GPS aproximado: ±${location.accuracy}m`, "poor");
+                }
+                
+                return location;
+            } catch (error) {
+                console.error("❌ Erro ao obter localização:", error);
+                handleGPSError(error);
+                return null;
+            }
+        }
+        
+        return null;
     }
 
     // Enviar alerta
@@ -110,7 +274,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
             showStatus("⏳ Preparando alerta...", "info");
 
-            const location = await getCurrentLocation();
+            // 🔥 Obtém localização APENAS se autorizado
+            let location = null;
+            if (elements.shareLocation && elements.shareLocation.checked) {
+                location = await getCurrentLocationForAlert();
+                if (location) {
+                    showStatus("📍 Localização obtida!", "success");
+                } else {
+                    showStatus("⚠️ Enviando alerta sem localização", "info");
+                }
+            } else {
+                console.log("⚠️ Localização não autorizada - enviando sem GPS");
+                showStatus("📤 Enviando alerta (sem localização)", "info");
+            }
 
             const payload = {
                 name: elements.name ? elements.name.value.trim() : "Usuária",
@@ -120,8 +296,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 timestamp: new Date().toISOString()
             };
 
-            console.log("📤 Enviando:", payload);
-            showStatus("📤 Enviando...", "info");
+            console.log("📤 Enviando payload:", payload);
+            showStatus("📤 Enviando alerta...", "info");
 
             const response = await fetch("/api/send_alert", {
                 method: "POST",
@@ -136,7 +312,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             const result = await response.json();
-            console.log("✅ Enviado:", result);
+            console.log("✅ Alerta enviado:", result);
 
             showStatus("✅ ALERTA ENVIADO!", "success");
             
@@ -149,7 +325,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             return true;
         } catch (error) {
-            console.error("❌ Erro:", error);
+            console.error("❌ Erro no envio:", error);
             showStatus(`❌ Erro: ${error.message}`, "error");
             return false;
         }
@@ -189,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         isHolding = false;
         
-        if (!elements.status.textContent.includes("✅")) {
+        if (elements.status && !elements.status.textContent.includes("✅") && !elements.status.textContent.includes("❌")) {
             showStatus("", "info");
         }
     }
@@ -201,6 +377,15 @@ document.addEventListener("DOMContentLoaded", function() {
         elements.sos.addEventListener("mouseleave", cancelHold);
         elements.sos.addEventListener("touchstart", startHold, { passive: false });
         elements.sos.addEventListener("touchend", cancelHold);
+    }
+
+    // 🔥 INICIAR GPS AUTOMATICAMENTE se checkbox estiver marcado
+    if (elements.shareLocation && elements.shareLocation.checked) {
+        console.log("📍 Iniciando GPS automaticamente");
+        // Pequeno delay para garantir que a página carregou
+        setTimeout(() => {
+            startWatchingLocation();
+        }, 1000);
     }
 
     console.log("✅ Sistema pronto!");

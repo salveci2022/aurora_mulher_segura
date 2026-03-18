@@ -120,6 +120,10 @@ def ajuda():
 def saida_rapida():
     return render_template("saida_rapida.html")
 
+@app.get("/plano-seguranca")
+def plano_seguranca():
+    return render_template("plano_seguranca.html")
+
 @app.post("/aceitar-termo")
 def aceitar_termo():
     """Rota para aceitar o termo de responsabilidade"""
@@ -138,6 +142,32 @@ def send_alert():
     termo_aceito = session.get("termo_aceito", False)
     termo_aceito_em = session.get("termo_aceito_em", None)
     
+    # 🔥 TRATAMENTO DA LOCALIZAÇÃO
+    lat = None
+    lng = None
+    accuracy = None
+    
+    if location and isinstance(location, dict):
+        lat = location.get("lat")
+        lng = location.get("lng")
+        accuracy = location.get("accuracy")
+        
+        # Converte para float se possível
+        try:
+            lat = float(lat) if lat not in (None, "", 0) else None
+        except (ValueError, TypeError):
+            lat = None
+            
+        try:
+            lng = float(lng) if lng not in (None, "", 0) else None
+        except (ValueError, TypeError):
+            lng = None
+            
+        try:
+            accuracy = float(accuracy) if accuracy not in (None, "", 0) else None
+        except (ValueError, TypeError):
+            accuracy = None
+    
     payload = {
         "id": next_alert_id(),
         "ts": now_br_str(),
@@ -145,11 +175,10 @@ def send_alert():
         "situation": data.get("situation", "Emergência"),
         "message": data.get("message", ""),
         "location": location,
-        "lat": location.get("lat") if location and isinstance(location, dict) else None,
-        "lng": location.get("lng") if location and isinstance(location, dict) else None,
-        "accuracy": location.get("accuracy") if location and isinstance(location, dict) else None,
+        "lat": lat,
+        "lng": lng,
+        "accuracy": accuracy,
         "ip": request.remote_addr,
-        # 🔥 NOVOS CAMPOS: LEGALIZAÇÃO
         "termo_aceito": termo_aceito,
         "termo_aceito_em": termo_aceito_em,
         "user_agent": request.headers.get("User-Agent", "")
@@ -158,8 +187,10 @@ def send_alert():
     log_alert(payload)
     print(f"✅ Alerta #{payload['id']} - {payload['situation']}")
     print(f"📜 Termo aceito: {termo_aceito} em {termo_aceito_em}")
-    if location:
-        print(f"📍 {location.get('lat')}, {location.get('lng')}")
+    if lat and lng:
+        print(f"📍 Localização: {lat}, {lng} (±{accuracy}m)")
+    else:
+        print("📍 Sem localização")
     
     return jsonify({"ok": True, "id": payload["id"]})
 
@@ -204,9 +235,9 @@ def admin_panel():
         "total": len(alerts),
         "today": sum(1 for a in alerts if a.get("ts", "").startswith(datetime.now().strftime("%Y-%m-%d"))),
         "trusted": len(trusted),
-        "with_location": sum(1 for a in alerts if a.get("location")),
-        "without_location": sum(1 for a in alerts if not a.get("location")),
-        "termos_aceitos": len(termos)  # 🔥 NOVA ESTATÍSTICA
+        "with_location": sum(1 for a in alerts if a.get("lat") and a.get("lng")),
+        "without_location": sum(1 for a in alerts if not a.get("lat") or not a.get("lng")),
+        "termos_aceitos": len(termos)
     }
     
     return render_template("panel_admin.html", trusted=trusted, alerts=alerts, stats=stats)

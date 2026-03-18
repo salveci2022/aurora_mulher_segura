@@ -95,6 +95,7 @@
             margin: 10px 0;
             opacity: 0.5;
             cursor: not-allowed;
+            transition: all 0.3s ease;
         }
         .btn-accept.active {
             opacity: 1;
@@ -115,6 +116,7 @@
             cursor: pointer;
             width: 100%;
             margin: 10px 0;
+            transition: all 0.3s ease;
         }
         .btn-reject:hover {
             background: rgba(244, 67, 54, 0.3);
@@ -388,18 +390,18 @@
                 return;
             }
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/aceitar-termo';
-            
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'aceite';
-            input.value = 'true';
-            
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+            // 🔥 CORREÇÃO: Envia o aceite via POST
+            fetch('/aceitar-termo', {
+                method: 'POST'
+            }).then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                }
+            }).catch(error => {
+                console.error('Erro:', error);
+                // Fallback: redireciona mesmo assim
+                window.location.href = '/panic';
+            });
         }
     </script>
 </body>

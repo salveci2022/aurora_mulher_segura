@@ -6,3 +6,5 @@
 {"id": 6, "ts": "2026-03-17 17:29:56", "name": "", "situation": "Emergência médica", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
 {"id": 7, "ts": "2026-03-17 17:52:41", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
 {"id": 8, "ts": "2026-03-17 17:53:38", "name": "", "situation": "Violência", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 1, "ts": "2026-03-17 17:59:47", "name": "", "situation": "Local suspeito", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}
+{"id": 2, "ts": "2026-03-17 20:08:10", "name": "", "situation": "Local suspeito", "message": "", "location": null, "lat": null, "lng": null, "accuracy": null, "ip": "192.168.15.93"}

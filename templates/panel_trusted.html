@@ -64,6 +64,16 @@
         .location-box.active {
             display: block;
         }
+        .legal-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 900;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
@@ -113,6 +123,12 @@
                                 <div class="small muted" id="alertTime">
                                     --
                                 </div>
+                                
+                                <!-- 🔥 NOVO: BADGE DE LEGALIZAÇÃO -->
+                                <div class="small" id="legalBadge" style="margin: 6px 0;">
+                                    <span class="legal-badge">✅ TERMO ACEITO</span>
+                                </div>
+                                
                                 <div class="small" id="alertMessage" style="margin-top: 4px;">
                                     --
                                 </div>
@@ -138,7 +154,8 @@
                         <p class="small muted">
                             🔔 <strong>Sirene:</strong> Toca automaticamente<br>
                             🚨 <strong>Auto-atualização:</strong> A cada 3 segundos<br>
-                            📍 <strong>GPS:</strong> Localização em tempo real
+                            📍 <strong>GPS:</strong> Localização em tempo real<br>
+                            📜 <strong>Legal:</strong> Status do termo de responsabilidade incluso
                         </p>
                     </div>
                 </div>
@@ -214,7 +231,22 @@
                         document.getElementById('alertContainer').style.display = 'block';
                         
                         document.getElementById('alertSituation').textContent = `⚠️ ${lastAlert.situation || 'Emergência'}`;
-                        document.getElementById('alertTime').textContent = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts || 'Agora'}`;
+                        
+                        // 🔥 MOSTRA STATUS LEGAL
+                        const legalBadge = document.getElementById('legalBadge');
+                        if (lastAlert.termo_aceito) {
+                            legalBadge.innerHTML = '<span class="legal-badge">✅ TERMO ACEITO</span>';
+                        } else {
+                            legalBadge.innerHTML = '<span class="legal-badge" style="background: #f44336;">❌ TERMO NÃO ACEITO</span>';
+                        }
+                        
+                        // 🔥 MOSTRA DATA/HORA DO TERMO
+                        let timeText = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts || 'Agora'}`;
+                        if (lastAlert.termo_aceito_em) {
+                            timeText += ` • Termo: ${lastAlert.termo_aceito_em}`;
+                        }
+                        document.getElementById('alertTime').textContent = timeText;
+                        
                         document.getElementById('alertMessage').textContent = lastAlert.message || '';
                         
                         // Verificar localização

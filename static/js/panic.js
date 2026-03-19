@@ -106,11 +106,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const location = await getCurrentLocation();
 
+            // Pega client_id da URL (?c=...) ou do campo hidden
+            const urlParams = new URLSearchParams(window.location.search);
+            const clientId = urlParams.get('c') ||
+                             (document.getElementById('clientId') ? document.getElementById('clientId').value : null);
+
             const payload = {
                 name: elements.name ? (elements.name.value.trim() || "Usuária") : "Usuária",
                 situation: selectedSituation,
                 message: elements.message ? elements.message.value.trim() : "",
                 location: location,
+                client_id: clientId,
                 timestamp: new Date().toISOString()
             };
 

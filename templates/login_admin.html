@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0014">
-    <meta name="description" content="Aurora - Login Administrativo">
     <title>Admin · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="manifest" href="/static/manifest.json">
@@ -26,50 +25,30 @@
                         <a href="/" class="pill">← Voltar</a>
                     </div>
                 </div>
-                
                 <div class="content">
                     <h1 class="h1">⚙️ LOGIN ADMIN</h1>
                     <p class="center muted">Acesso administrativo</p>
-                    
                     {% if error %}
-                    <div class="alert alert-danger center">
-                        ❌ Usuário ou senha inválidos. Tente novamente.
-                    </div>
+                    <div class="alert alert-danger center">❌ Usuário ou senha inválidos.</div>
                     {% endif %}
-                    
                     {% if request.args.get('msg') %}
-                    <div class="alert alert-ok center">
-                        ✅ {{ request.args.get('msg').replace('+', ' ') }}
-                    </div>
+                    <div class="alert alert-ok center">✅ {{ request.args.get('msg').replace('+', ' ') }}</div>
                     {% endif %}
-                    
                     <form method="POST" action="/panel/login">
                         <label class="label">Usuário</label>
                         <input type="text" name="user" class="input" placeholder="Digite seu usuário" required autocomplete="username">
-                        
                         <label class="label">Senha</label>
                         <input type="password" name="password" class="input" placeholder="Digite sua senha" required autocomplete="current-password">
-                        
                         <button type="submit" class="btn btn-primary">ENTRAR</button>
                     </form>
-                    
                     <div class="info-box">
-                        <p class="small muted">
-                            ℹ️ <strong>Informações:</strong><br>
-                            • Gerencie as pessoas de confiança<br>
-                            • Acesse o relatório completo de alertas<br>
-                            • Atualize configurações do sistema
-                        </p>
+                        <p class="small muted">ℹ️ <strong>Painel Admin:</strong><br>• Gerencie pessoas de confiança<br>• Relatório completo de alertas<br>• Configurações do sistema</p>
                     </div>
-                    
-                    <div class="list" style="margin-top: 14px;">
+                    <!-- FIX: Default credentials removed from public page -->
+                    <div class="list" style="margin-top:14px;">
                         <a href="/ajuda" class="link">📞 Central de Ajuda</a>
                         <a href="/" class="link">← Voltar ao início</a>
                     </div>
-                    
-                    <p class="center small muted" style="margin-top: 14px;">
-                        🔐 Admin padrão: admin / admin123
-                    </p>
                 </div>
             </div>
         </div>

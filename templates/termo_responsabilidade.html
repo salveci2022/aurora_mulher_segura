@@ -353,7 +353,7 @@
                         ✅ ACEITO E CONTINUAR
                     </button>
                     
-                    <button class="btn-reject" onclick="window.location.href='/'">
+                    <button class="btn-reject" onclick="naoAceito()">
                         ❌ NÃO ACEITO
                     </button>
 
@@ -369,8 +369,8 @@
             </div>
         </div>
     </div>
-
     <script>
+        // Habilitar botão apenas quando checkbox marcado
         document.getElementById('aceiteTermo').addEventListener('change', function() {
             const btn = document.getElementById('btnAceito');
             if (this.checked) {
@@ -384,24 +384,35 @@
 
         function aceitarTermo() {
             const checkbox = document.getElementById('aceiteTermo');
-            
             if (!checkbox.checked) {
                 alert('⚠️ Por favor, marque "Li e ACEITO" para continuar.');
                 return;
             }
 
-            // 🔥 CORREÇÃO: Envia o aceite via POST
+            // Envia aceite via POST para o Flask registrar na sessão
             fetch('/aceitar-termo', {
-                method: 'POST'
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
             }).then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
+                if (response.redirected || response.ok) {
+                    window.location.href = '/';
+                } else {
+                    window.location.href = '/';
                 }
-            }).catch(error => {
-                console.error('Erro:', error);
-                // Fallback: redireciona mesmo assim
-                window.location.href = '/panic';
+            }).catch(() => {
+                // Fallback: formulário direto
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/aceitar-termo';
+                document.body.appendChild(form);
+                form.submit();
             });
+        }
+
+        function naoAceito() {
+            if (confirm('⚠️ Ao recusar os termos, você não poderá usar o sistema Aurora.\n\nDeseja realmente recusar?')) {
+                window.location.href = 'https://www.google.com.br';
+            }
         }
     </script>
 </body>

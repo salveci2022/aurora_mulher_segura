@@ -3,99 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0014">
     <title>Confiança · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        .alert-live {
-            animation: pulse-alert 1s infinite;
-            border-color: #f44336 !important;
-            background: rgba(244, 67, 54, 0.3) !important;
-        }
-        @keyframes pulse-alert {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-            50% { box-shadow: 0 0 30px 20px rgba(244, 67, 54, 0); }
-        }
-        .siren-btn {
-            width: 150px;
-            height: 150px;
-            border-radius: 999px;
-            border: 2px solid rgba(255, 208, 240, 0.55);
-            background: radial-gradient(circle at 50% 45%, rgba(255, 121, 218, 0.95), rgba(138, 36, 139, 0.65) 55%, rgba(40, 0, 60, 0.75));
-            display: grid;
-            place-items: center;
-            text-align: center;
-            cursor: pointer;
-            margin: 20px auto;
-            transition: all 0.3s ease;
-        }
-        .siren-btn.active {
-            animation: pulse 1s infinite;
-            background: linear-gradient(135deg, #f44336 0%, #ff4fc8 100%) !important;
-        }
-        .siren-btn .siren-text {
-            font-size: 32px;
-            font-weight: 1000;
-            color: #180013;
-        }
-        .siren-btn .siren-sub {
-            font-size: 11px;
-            font-weight: 1000;
-            color: #220019;
-            margin-top: 8px;
-        }
-        .siren-btn.active .siren-text,
-        .siren-btn.active .siren-sub {
-            color: white;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 14px;
-        }
-        .action-btn {
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 98, 212, 0.28);
-            background: rgba(40, 0, 60, 0.35);
-            color: var(--text);
-            font-weight: 900;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .action-btn.danger {
-            background: rgba(244, 67, 54, 0.2);
-            border-color: rgba(244, 67, 54, 0.4);
-        }
-        #map {
-            width: 100%;
-            height: 300px;
-            border-radius: 12px;
-            margin: 14px 0;
-            border: 2px solid rgba(255, 98, 212, 0.3);
-            display: none;
-        }
-        #map.active {
-            display: block;
-        }
-        .location-info {
-            background: rgba(76, 175, 80, 0.15);
-            border: 2px solid #4caf50;
-            border-radius: 14px;
-            padding: 14px;
-            margin: 14px 0;
-            display: none;
-        }
-        .location-info.active {
-            display: block;
-        }
-    </style>
 </head>
 <body>
     <div class="aurora-bg">
@@ -106,213 +16,37 @@
                         <div class="brand-dot">🔔</div>
                         <div>
                             <div class="brand-title">AURORA</div>
-                            <div class="brand-sub">Central de Alertas</div>
+                            <div class="brand-sub">Pessoa de Confiança</div>
                         </div>
                     </div>
                     <div class="top-actions">
-                        <a href="/logout_trusted" class="pill">🚪 Sair</a>
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/" class="pill">← Voltar</a>
                     </div>
                 </div>
-                
                 <div class="content">
-                    <h1 class="h1">👤 {{ display_name }}</h1>
-                    <p class="center muted">Pessoa de Confiança</p>
-                    
-                    <div class="sos-wrap">
-                        <div id="sirenBtn" class="siren-btn" onclick="toggleSiren()">
-                            <div>
-                                <div class="siren-text">🔔</div>
-                                <div class="siren-sub">SIRENE</div>
-                            </div>
-                        </div>
+                    <h1 class="h1">🔔 ACESSO CONFIANÇA</h1>
+                    <p class="center muted">Painel de recebimento de alertas</p>
+                    {% if error %}
+                    <div class="alert alert-danger center">❌ Usuário ou senha inválidos.</div>
+                    {% endif %}
+                    <form method="POST" action="/trusted/login">
+                        <label class="label">Usuário</label>
+                        <input type="text" name="user" class="input" placeholder="Digite seu usuário" required autocomplete="username">
+                        <label class="label">Senha</label>
+                        <input type="password" name="password" class="input" placeholder="Digite sua senha" required autocomplete="current-password">
+                        <button type="submit" class="btn btn-primary">ENTRAR</button>
+                    </form>
+                    <div class="info-box" style="margin-top:14px;">
+                        <p class="small muted">🔔 <strong>Pessoa de Confiança:</strong><br>• Receba alertas em tempo real<br>• Veja localização GPS no mapa<br>• Sirene automática ao receber SOS</p>
                     </div>
-                    
-                    <div class="action-buttons">
-                        <button class="action-btn" onclick="clearAlerts()">🗑️ Limpar</button>
-                        <button class="action-btn" onclick="location.reload()">🔄 Reiniciar</button>
-                        <button class="action-btn danger" onclick="stopSiren()">⏹️ Parar</button>
-                    </div>
-                    
-                    <div id="noAlerts" class="alert center">
-                        ⏳ Aguardando alertas...
-                    </div>
-                    
-                    <div id="alertContainer" style="display: none;">
-                        <div class="item alert-live">
-                            <div>
-                                <div style="font-weight: 900; color: var(--hot); font-size: 14px;" id="alertSituation">
-                                    --
-                                </div>
-                                <div class="small muted" id="alertTime">
-                                    --
-                                </div>
-                                <div class="small" id="alertMessage" style="margin-top: 4px;">
-                                    --
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- ✅ LOCALIZAÇÃO EXATA -->
-                    <div id="locationInfo" class="location-info">
-                        <div style="font-weight: 900; margin-bottom: 8px; color: #4caf50;">
-                            📍 LOCALIZAÇÃO EXATA (GPS HÍBRIDO)
-                        </div>
-                        <div style="font-family: monospace; font-size: 13px; color: var(--text); word-break: break-all;" id="locationCoords">
-                            Aguardando...
-                        </div>
-                        <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">
-                            Precisão: <span id="gpsAccuracy">--</span> | Leituras: <span id="gpsReadings">--</span>
-                        </div>
-                    </div>
-                    
-                    <!-- ✅ MAPA LEAFLET -->
-                    <div id="map"></div>
-                    
-                    <a id="mapsLink" href="#" target="_blank" class="btn btn-primary" style="display: none;">
-                        🗺️ ABRIR NO GOOGLE MAPS
-                    </a>
-                    
-                    <div class="info-box">
-                        <p class="small muted">
-                            🔔 <strong>Sirene:</strong> Toca automaticamente ao receber alerta<br>
-                            🚨 <strong>Auto-alerta:</strong> Atualiza a cada 3 segundos<br>
-                            📍 <strong>GPS:</strong> Localização em tempo real<br>
-                            🗺️ <strong>Mapa:</strong> Leaflet automático
-                        </p>
+                    <div class="list" style="margin-top:14px;">
+                        <a href="/trusted/recover" class="link">🔐 Esqueci minha senha</a>
+                        <a href="/" class="link">← Voltar ao início</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <audio id="sirenAudio" loop>
-        <source src="/static/audio/sirene.mp3" type="audio/mpeg">
-    </audio>
-    
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        let lastAlertId = null;
-        let sirenPlaying = false;
-        let map = null;
-        let marker = null;
-
-        function initMap() {
-            if (!map) {
-                map = L.map('map').setView([-23.5505, -46.6333], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
-            }
-        }
-
-        function updateMarker(lat, lng, accuracy) {
-            initMap();
-            document.getElementById('map').classList.add('active');
-            
-            if (marker) {
-                map.removeLayer(marker);
-            }
-            
-            marker = L.marker([lat, lng]).addTo(map)
-                .bindPopup(`🚨 Alerta Aurora<br>📍 Precisão: ±${Math.round(accuracy)}m<br>⏰ ${new Date().toLocaleTimeString('pt-BR')}`)
-                .openPopup();
-            
-            map.setView([lat, lng], 16);
-        }
-
-        function playSiren() {
-            const audio = document.getElementById('sirenAudio');
-            audio.play().then(() => {
-                sirenPlaying = true;
-                document.getElementById('sirenBtn').classList.add('active');
-            }).catch(e => console.log('Audio error:', e));
-        }
-
-        function stopSiren() {
-            const audio = document.getElementById('sirenAudio');
-            audio.pause();
-            audio.currentTime = 0;
-            sirenPlaying = false;
-            document.getElementById('sirenBtn').classList.remove('active');
-        }
-
-        function toggleSiren() {
-            if (sirenPlaying) {
-                stopSiren();
-            } else {
-                playSiren();
-            }
-        }
-
-        function clearAlerts() {
-            document.getElementById('alertContainer').style.display = 'none';
-            document.getElementById('noAlerts').style.display = 'block';
-            document.getElementById('locationInfo').classList.remove('active');
-            document.getElementById('map').classList.remove('active');
-            document.getElementById('mapsLink').style.display = 'none';
-            stopSiren();
-            lastAlertId = null;
-        }
-
-        function updateLocation(lat, lng, accuracy, readings) {
-            const locationInfo = document.getElementById('locationInfo');
-            const coordsDiv = document.getElementById('locationCoords');
-            const accuracyDiv = document.getElementById('gpsAccuracy');
-            const readingsDiv = document.getElementById('gpsReadings');
-            const mapsLink = document.getElementById('mapsLink');
-            
-            coordsDiv.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            accuracyDiv.textContent = `±${Math.round(accuracy)} metros`;
-            readingsDiv.textContent = readings || 1;
-            
-            mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
-            
-            locationInfo.classList.add('active');
-            mapsLink.style.display = 'block';
-            
-            updateMarker(lat, lng, accuracy);
-        }
-
-        async function loadAlerts() {
-            try {
-                const response = await fetch('/api/alerts');
-                const alerts = await response.json();
-                
-                if (alerts && alerts.length > 0) {
-                    const lastAlert = alerts[alerts.length - 1];
-                    
-                    if (lastAlert.id !== lastAlertId) {
-                        console.log('🚨 NOVO ALERTA!', lastAlert);
-                        lastAlertId = lastAlert.id;
-                        
-                        document.getElementById('noAlerts').style.display = 'none';
-                        document.getElementById('alertContainer').style.display = 'block';
-                        document.getElementById('alertSituation').textContent = `⚠️ ${lastAlert.situation || 'Emergência'}`;
-                        document.getElementById('alertTime').textContent = `${lastAlert.name || 'Usuária'} • ${lastAlert.ts_br || lastAlert.ts || 'Agora'}`;
-                        document.getElementById('alertMessage').textContent = lastAlert.message || '';
-                        
-                        playSiren();
-                        
-                        if (lastAlert.lat && lastAlert.lng && lastAlert.lat != 0) {
-                            updateLocation(
-                                parseFloat(lastAlert.lat),
-                                parseFloat(lastAlert.lng),
-                                parseFloat(lastAlert.accuracy || 10),
-                                lastAlert.gps_readings || 1
-                            );
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Erro ao carregar alertas:', error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAlerts();
-            setInterval(loadAlerts, 3000);
-        });
-    </script>
 </body>
 </html>

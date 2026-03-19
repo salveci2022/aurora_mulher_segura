@@ -67,6 +67,30 @@
             background: rgba(255, 79, 200, 0.2);
             border-color: rgba(255, 79, 200, 0.5);
         }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .stat-card {
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--hot);
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
     </style>
 </head>
 <body>
@@ -114,7 +138,7 @@
                             {% for alerta in alerts|reverse %}
                             <div class="alert-item" data-has-gps="{{ 'true' if alerta.lat else 'false' }}">
                                 <div class="alert-id">
-                                    ID {{ alerta.id }} • {{ alerta.ts_br or alerta.ts or 'Data não disponível' }}
+                                    ID {{ alerta.id }} • {{ alerta.ts or 'Data não disponível' }}
                                 </div>
                                 <div class="alert-situation">
                                     ⚠️ {{ alerta.situation or 'Emergência' }}

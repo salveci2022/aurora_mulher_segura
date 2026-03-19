@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <meta name="description" content="Aurora IA - Assistente de apoio à mulher">
+    <title>Aurora IA · Assistente</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <style>
+        .chat-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 14px 0;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+            scroll-behavior: smooth;
+        }
+        .chat-box::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-box::-webkit-scrollbar-thumb {
+            background: rgba(255, 79, 200, 0.3);
+            border-radius: 99px;
+        }
+        .msg {
+            max-width: 86%;
+            padding: 10px 13px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.55;
+            word-break: break-word;
+        }
+        .msg.ia {
+            align-self: flex-start;
+            background: rgba(40, 0, 60, 0.65);
+            border: 1px solid rgba(255, 98, 212, 0.25);
+            border-bottom-left-radius: 4px;
+            color: var(--text);
+        }
+        .msg.user {
+            align-self: flex-end;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.35), rgba(164, 92, 255, 0.2));
+            border: 1px solid rgba(255, 79, 200, 0.35);
+            border-bottom-right-radius: 4px;
+            color: var(--text);
+        }
+        .msg.ia .msg-name {
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--hot);
+            margin-bottom: 4px;
+            letter-spacing: 0.06em;
+        }
+        .typing-indicator {
+            align-self: flex-start;
+            display: flex;
+            gap: 5px;
+            padding: 12px 14px;
+            background: rgba(40, 0, 60, 0.65);
+            border: 1px solid rgba(255, 98, 212, 0.25);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+        }
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--hot);
+            animation: typing-bounce 1.2s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            align-items: flex-end;
+        }
+        .input-row textarea {
+            flex: 1;
+            min-height: 44px;
+            max-height: 110px;
+            resize: none;
+            border-radius: 14px;
+            padding: 11px 13px;
+            border: 1px solid rgba(255, 98, 212, 0.30);
+            outline: none;
+            background: rgba(10, 0, 20, 0.55);
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            line-height: 1.4;
+        }
+        .input-row textarea::placeholder { color: var(--muted); }
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.95), rgba(164, 92, 255, 0.75));
+            color: #180013;
+            font-size: 20px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            font-weight: 900;
+        }
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .quick-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin: 10px 0 4px;
+        }
+        .quick-chip {
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid rgba(255, 98, 212, 0.28);
+            background: rgba(18, 0, 30, 0.55);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .quick-chip:hover {
+            background: rgba(255, 79, 200, 0.15);
+            border-color: rgba(255, 79, 200, 0.5);
+        }
+        .divider {
+            text-align: center;
+            font-size: 10px;
+            color: var(--muted);
+            margin: 6px 0;
+            letter-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+    <a href="/panic" style="position:fixed;top:10px;right:10px;padding:8px 14px;background:rgba(244,67,54,0.9);color:white;border-radius:8px;text-decoration:none;font-size:11px;font-weight:900;z-index:1000;">⚡ SAÍDA RÁPIDA</a>
+
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🌸</div>
+                        <div>
+                            <div class="brand-title">AURORA IA</div>
+                            <div class="brand-sub">Assistente de Apoio</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <p class="center muted small">Converse com segurança. Suas mensagens não são salvas.</p>
+
+                    <!-- SUGESTÕES RÁPIDAS -->
+                    <div class="quick-chips" id="quickChips">
+                        <div class="quick-chip" onclick="sendQuick(this)">O que é violência doméstica?</div>
+                        <div class="quick-chip" onclick="sendQuick(this)">Quais são meus direitos?</div>
+                        <div class="quick-chip" onclick="sendQuick(this)">Como pedir medida protetiva?</div>
+                        <div class="quick-chip" onclick="sendQuick(this)">Estou com medo, o que faço?</div>
+                        <div class="quick-chip" onclick="sendQuick(this)">O que é Lei Maria da Penha?</div>
+                        <div class="quick-chip" onclick="sendQuick(this)">Como denunciar com segurança?</div>
+                    </div>
+
+                    <!-- CHAT -->
+                    <div class="chat-box" id="chatBox">
+                        <div class="msg ia">
+                            <div class="msg-name">🌸 AURORA IA</div>
+                            Olá! Sou a Aurora IA, sua assistente de apoio. Estou aqui para te ouvir e te ajudar com informações sobre violência doméstica, seus direitos e como buscar ajuda. Tudo que você escrever aqui é sigiloso e não fica salvo.<br><br>
+                            Como posso te ajudar hoje? 💜
+                        </div>
+                    </div>
+
+                    <div class="divider">— Sua conversa é privada —</div>
+
+                    <!-- INPUT -->
+                    <div class="input-row">
+                        <textarea id="userInput"
+                                  placeholder="Digite sua mensagem..."
+                                  rows="1"
+                                  onkeydown="handleKey(event)"
+                                  oninput="autoResize(this)"></textarea>
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+                    </div>
+
+                    <div class="info-box" style="margin-top:14px;">
+                        <p class="small muted">
+                            🔒 <strong>Privacidade:</strong> Esta conversa não é gravada.<br>
+                            🚨 <strong>Emergência:</strong> Ligue <strong>190</strong> ou <strong>180</strong> imediatamente.<br>
+                            💜 A Aurora IA oferece apoio e informação, não substitui ajuda profissional.
+                        </p>
+                    </div>
+
+                    <div class="list" style="margin-top:14px;">
+                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
+                        <a href="/plano-seguranca" class="link">📋 Plano de Segurança</a>
+                        <a href="/panic" class="link">🚨 Botão de Pânico</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Conversation history for context
+    const history = [];
+
+    const SYSTEM_PROMPT = `Você é a Aurora IA, uma assistente virtual especializada em apoio a mulheres vítimas de violência doméstica no Brasil.
+
+Seu papel é:
+- Oferecer acolhimento, empatia e apoio emocional
+- Informar sobre direitos das mulheres (Lei Maria da Penha, Lei 11.340/2006)
+- Explicar como denunciar, pedir medidas protetivas e buscar refúgio seguro
+- Fornecer informações sobre violência física, psicológica, sexual, patrimonial e moral
+- Orientar sobre os canais de ajuda: 180 (Central da Mulher), 190 (Polícia), CRAM, DEAM, CRAS
+- Ajudar a mulher a reconhecer sinais de relacionamento abusivo
+- Explicar o ciclo da violência doméstica
+- Orientar sobre como sair de uma situação de perigo com segurança
+
+Regras importantes:
+- Seja sempre acolhedora, gentil e sem julgamentos
+- Nunca culpe a vítima
+- Em caso de perigo imediato, sempre oriente a ligar 190 ou 180
+- Respostas curtas e claras — no máximo 4 parágrafos
+- Use linguagem simples, acessível, em português do Brasil
+- Não forneça informações médicas, jurídicas formais ou diagnósticos
+- Se a pessoa demonstrar desespero ou risco de vida, priorize encaminhá-la aos serviços de emergência`;
+
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addMessage(text, role) {
+        const div = document.createElement('div');
+        div.className = `msg ${role}`;
+        if (role === 'ia') {
+            div.innerHTML = `<div class="msg-name">🌸 AURORA IA</div>${text.replace(/\n/g, '<br>')}`;
+        } else {
+            div.textContent = text;
+        }
+        chatBox.appendChild(div);
+        scrollToBottom();
+        return div;
+    }
+
+    function showTyping() {
+        const div = document.createElement('div');
+        div.className = 'typing-indicator';
+        div.id = 'typingIndicator';
+        div.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
+        chatBox.appendChild(div);
+        scrollToBottom();
+    }
+
+    function removeTyping() {
+        const t = document.getElementById('typingIndicator');
+        if (t) t.remove();
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function sendQuick(el) {
+        userInput.value = el.textContent;
+        // Hide quick chips after first use
+        document.getElementById('quickChips').style.display = 'none';
+        sendMessage();
+    }
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        sendBtn.disabled = true;
+
+        // Add user message to UI and history
+        addMessage(text, 'user');
+        history.push({ role: 'user', content: text });
+
+        showTyping();
+
+        try {
+            // FIX: Call Flask backend proxy instead of Anthropic directly (CORS fix)
+            const response = await fetch('/api/aurora-ia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: history })
+            });
+
+            const data = await response.json();
+            removeTyping();
+
+            if (data.reply) {
+                addMessage(data.reply, 'ia');
+                history.push({ role: 'assistant', content: data.reply });
+                if (history.length > 20) history.splice(0, 2);
+            } else {
+                addMessage('Desculpe, tive um problema ao responder. Tente novamente.', 'ia');
+            }
+
+        } catch (error) {
+            removeTyping();
+            addMessage('Sem conexão no momento. Ligue 180 ou 190 se precisar de ajuda urgente. 💜', 'ia');
+        }
+
+        sendBtn.disabled = false;
+        userInput.focus();
+    }
+    </script>
+</body>
+</html>

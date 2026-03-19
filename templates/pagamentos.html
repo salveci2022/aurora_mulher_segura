@@ -1,247 +1,216 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formas de Pagamento - Aurora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <title>Pagamentos · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
     <style>
-        body {
-            background: linear-gradient(135deg, #1a0033, #2d005a);
-            min-height: 100vh;
-            padding: 20px;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            color: white;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: linear-gradient(145deg, #2d005a, #1a0033);
-            border-radius: 40px;
-            padding: 30px;
-            border: 1px solid rgba(255,79,200,0.3);
-        }
-        
-        h1 {
-            color: #ff4fc8;
+        .pix-box {
+            background: rgba(10, 0, 20, 0.55);
+            border: 2px dashed rgba(255, 79, 200, 0.5);
+            border-radius: 16px;
+            padding: 18px;
             text-align: center;
-            margin-bottom: 30px;
+            margin: 14px 0;
         }
-        
-        .qr-pix {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            margin: 20px 0;
+        .pix-key {
+            font-family: monospace;
+            font-size: 15px;
+            color: var(--hot);
+            font-weight: 900;
+            margin: 10px 0;
+            word-break: break-all;
         }
-        
         .qr-placeholder {
-            width: 200px;
-            height: 200px;
-            background: #f0f0f0;
-            margin: 0 auto;
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 12px;
+            margin: 12px auto;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #333;
-            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 900;
         }
-        
-        .chave-pix {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 18px;
-            text-align: center;
-            margin: 20px 0;
-            border: 1px dashed #ff4fc8;
-        }
-        
-        .botao-copiar {
-            background: #ff4fc8;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .cartoes {
+        .cards-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 30px 0;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 12px 0;
         }
-        
-        .cartao-item {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,79,200,0.3);
-            border-radius: 15px;
-            padding: 15px;
+        .card-item {
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 14px;
+            padding: 12px;
             text-align: center;
+            font-size: 12px;
         }
-        
-        .bandeiras {
-            font-size: 30px;
-            margin: 10px 0;
+        .card-item strong {
+            display: block;
+            color: var(--hot);
+            margin-bottom: 4px;
         }
-        
-        .toast-mensagem {
+        .card-item small {
+            color: var(--muted);
+        }
+        .bank-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(255, 98, 212, 0.12);
+            font-size: 12px;
+        }
+        .bank-row:last-child { border-bottom: none; }
+        .bank-label { color: var(--muted); }
+        .bank-value { font-weight: 900; }
+        .section-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--hot);
+            margin: 18px 0 10px;
+            letter-spacing: 0.06em;
+        }
+        .toast {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: #4caf50;
             color: white;
-            padding: 12px 24px;
+            padding: 10px 22px;
             border-radius: 50px;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-weight: 900;
+            font-size: 13px;
             z-index: 1000;
-            animation: fadeInOut 2s ease;
+            animation: fadeInOut 2s ease forwards;
         }
-        
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, 20px); }
-            15% { opacity: 1; transform: translate(-50%, 0); }
-            85% { opacity: 1; transform: translate(-50%, 0); }
-            100% { opacity: 0; transform: translate(-50%, -20px); }
+            0%   { opacity: 0; transform: translate(-50%, 14px); }
+            15%  { opacity: 1; transform: translate(-50%, 0); }
+            85%  { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -10px); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>💳 FORMAS DE PAGAMENTO</h1>
-        
-        <h2 style="color: #ffb0f0;">📱 PIX (5% de desconto)</h2>
-        <div class="qr-pix">
-            <div class="qr-placeholder">
-                [QR CODE DO PIX]
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">💳</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Pagamentos</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/recibo" class="pill">📄 Recibo</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <h1 class="h1">💳 FORMAS DE PAGAMENTO</h1>
+
+                    <!-- PIX -->
+                    <div class="section-title">📱 PIX — 5% de desconto</div>
+                    <div class="pix-box">
+                        <div class="qr-placeholder">📱 QR CODE<br>DO PIX</div>
+                        <div class="pix-key" id="chavePix">contato@aurorasegura.com.br</div>
+                        <button class="btn btn-primary" onclick="copiarPix()" style="margin-top:10px;">
+                            📋 COPIAR CHAVE PIX
+                        </button>
+                    </div>
+
+                    <!-- CARTÃO -->
+                    <div class="section-title">💳 Cartão de Crédito</div>
+                    <div class="cards-grid">
+                        <div class="card-item"><strong>Visa</strong><small>Até 12x</small></div>
+                        <div class="card-item"><strong>Mastercard</strong><small>Até 12x</small></div>
+                        <div class="card-item"><strong>Elo</strong><small>Até 12x</small></div>
+                        <div class="card-item"><strong>American Express</strong><small>Até 10x</small></div>
+                        <div class="card-item"><strong>Hipercard</strong><small>Até 10x</small></div>
+                        <div class="card-item"><strong>Diners</strong><small>Até 8x</small></div>
+                    </div>
+
+                    <!-- TRANSFERÊNCIA -->
+                    <div class="section-title">🏦 Transferência Bancária</div>
+                    <div class="info-box">
+                        <div class="bank-row"><span class="bank-label">Banco</span><span class="bank-value">000 - Banco do Brasil</span></div>
+                        <div class="bank-row"><span class="bank-label">Agência</span><span class="bank-value">1234-5</span></div>
+                        <div class="bank-row"><span class="bank-label">Conta</span><span class="bank-value">12345-6</span></div>
+                        <div class="bank-row"><span class="bank-label">CNPJ</span><span class="bank-value">00.000.000/0001-00</span></div>
+                        <div class="bank-row"><span class="bank-label">Razão Social</span><span class="bank-value">Aurora Tecnologia Ltda</span></div>
+                    </div>
+
+                    <!-- BOLETO -->
+                    <div class="section-title">📄 Boleto</div>
+                    <div class="info-box">
+                        <p class="small muted">Vencimento em 3 dias úteis após a emissão.</p>
+                        <button class="btn btn-primary" onclick="gerarBoleto()">📄 GERAR BOLETO</button>
+                    </div>
+
+                    <div class="info-box" style="margin-top:14px;">
+                        <p class="small muted">
+                            ⏱️ Acesso liberado em até <strong>1 hora</strong> após confirmação.<br>
+                            📱 Dúvidas? WhatsApp: <strong>(XX) XXXXX-XXXX</strong>
+                        </p>
+                    </div>
+
+                    <div class="list" style="margin-top:14px;">
+                        <a href="/recibo" class="link">📄 Gerar Recibo</a>
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
             </div>
-            <p style="color: #333; margin-top: 10px;">Escaneie o QR Code com seu banco</p>
-        </div>
-        
-        <div class="chave-pix">
-            <strong>Chave Pix (copia e cola):</strong><br>
-            <span id="chavePix">aurora@segura.com.br</span>
-        </div>
-        
-        <button class="botao-copiar" onclick="copiarPix()">📋 COPIAR CHAVE PIX</button>
-        
-        <h2 style="color: #ffb0f0; margin-top: 40px;">💳 CARTÃO DE CRÉDITO</h2>
-        
-        <div class="cartoes">
-            <div class="cartao-item">
-                <div class="bandeiras">💳</div>
-                <strong>Visa</strong>
-                <p>Até 12x</p>
-            </div>
-            <div class="cartao-item">
-                <div class="bandeiras">💳</div>
-                <strong>Mastercard</strong>
-                <p>Até 12x</p>
-            </div>
-            <div class="cartao-item">
-                <div class="bandeiras">💳</div>
-                <strong>American Express</strong>
-                <p>Até 10x</p>
-            </div>
-            <div class="cartao-item">
-                <div class="bandeiras">💳</div>
-                <strong>Elo</strong>
-                <p>Até 12x</p>
-            </div>
-            <div class="cartao-item">
-                <div class="bandeiras">💳</div>
-                <strong>Hipercard</strong>
-                <p>Até 10x</p>
-            </div>
-            <div class="cartao-item">
-                <div class="bandeiras">💳</div>
-                <strong>Diners</strong>
-                <p>Até 8x</p>
-            </div>
-        </div>
-        
-        <h2 style="color: #ffb0f0; margin-top: 40px;">🏦 TRANSFERÊNCIA BANCÁRIA</h2>
-        
-        <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px;">
-            <p><strong>Banco:</strong> 000 - Banco do Brasil</p>
-            <p><strong>Agência:</strong> 1234-5</p>
-            <p><strong>Conta:</strong> 12345-6</p>
-            <p><strong>CNPJ:</strong> 00.000.000/0001-00</p>
-            <p><strong>Razão Social:</strong> Aurora Tecnologia Ltda</p>
-        </div>
-        
-        <h2 style="color: #ffb0f0; margin-top: 40px;">📄 BOLETO</h2>
-        
-        <div style="background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; text-align: center;">
-            <p>Vencimento em 3 dias úteis</p>
-            <button class="botao-copiar" onclick="gerarBoleto()">📄 GERAR BOLETO</button>
-        </div>
-        
-        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,79,200,0.3);">
-            <p style="color: #ffb0f0; text-align: center;">Após o pagamento, o acesso é liberado em até 1 hora</p>
-            <p style="text-align: center;">Dúvidas? WhatsApp: (XX) XXXXX-XXXX</p>
         </div>
     </div>
-    
+
     <script>
-        function mostrarToast(mensagem) {
-            const toast = document.createElement('div')
-            toast.className = 'toast-mensagem'
-            toast.textContent = mensagem
-            document.body.appendChild(toast)
-            setTimeout(() => {
-                document.body.removeChild(toast)
-            }, 2000)
+        function mostrarToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2000);
         }
-        
-        function fallbackCopiar(texto) {
-            try {
-                const input = document.createElement('input')
-                input.value = texto
-                input.style.position = 'absolute'
-                input.style.left = '-9999px'
-                document.body.appendChild(input)
-                input.select()
-                document.execCommand('copy')
-                document.body.removeChild(input)
-                mostrarToast('✅ Chave Pix copiada!')
-                return true
-            } catch (e) {
-                console.error('Erro no fallback:', e)
-                return false
-            }
-        }
-        
+
         function copiarPix() {
-            const chave = document.getElementById('chavePix').innerText;
-            
-            // Verifica se a API Clipboard está disponível
+            const chave = document.getElementById('chavePix').textContent.trim();
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(chave).then(() => {
-                    mostrarToast('✅ Chave Pix copiada!')
-                }).catch(() => {
-                    // Se falhar, tenta o método fallback
-                    if (!fallbackCopiar(chave)) {
-                        alert('❌ Não foi possível copiar. Selecione e copie manualmente.')
-                    }
-                })
+                navigator.clipboard.writeText(chave)
+                    .then(() => mostrarToast('✅ Chave Pix copiada!'))
+                    .catch(() => fallbackCopiar(chave));
             } else {
-                // Se não tiver API Clipboard, usa fallback
-                if (!fallbackCopiar(chave)) {
-                    alert('❌ Não foi possível copiar. Selecione e copie manualmente.')
-                }
+                fallbackCopiar(chave);
             }
         }
-        
+
+        function fallbackCopiar(texto) {
+            const el = document.createElement('input');
+            el.value = texto;
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                mostrarToast('✅ Chave Pix copiada!');
+            } catch(e) {
+                alert('Copie manualmente: ' + texto);
+            }
+            document.body.removeChild(el);
+        }
+
         function gerarBoleto() {
-            mostrarToast('📄 Boleto gerado com sucesso!')
-            // Aqui você implementaria a lógica real de geração de boleto
+            mostrarToast('📄 Boleto gerado com sucesso!');
         }
     </script>
 </body>

@@ -1,133 +1,217 @@
-# 🌸 Aurora Mulher Segura v2.0
-
-Sistema de botão de pânico para segurança feminina com localização GPS em tempo real.
-
-## 🚀 Funcionalidades
-
-- ✅ Botão SOS com toque e segure (1 segundo)
-- ✅ Envio de alerta com localização GPS em tempo real
-- ✅ Sirene automática no painel da pessoa de confiança
-- ✅ Mapa integrado com Google Maps
-- ✅ Histórico de alertas
-- ✅ Relatórios em PDF
-- ✅ Diagnóstico do sistema
-- ✅ PWA (Progressive Web App) para uso offline
-- ✅ Modo de disfarce (calculadora)
-- ✅ Plano de segurança pessoal
-
-## 📱 Como Usar
-
-### Localmente
-
-```bash
-# 1. Instalar dependências
-pip install -r requirements.txt
-
-# 2. Rodar o servidor
-python app.py
-
-# 3. Acessar no navegador
-http://localhost:5000
-
-# 4. Login Admin
-Usuário: admin
-Senha: admin123
-🌸 Aurora Mulher Segura
 # 🌸 Aurora Mulher Segura
 
-> **Sistema de Emergência SOS com GPS em Tempo Real para Proteção Feminina**
-
-[![Versão](https://img.shields.io/badge/versão-3.0-purple)](https://github.com/seu-usuario/aurora-mulher-segura)
-[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/flask-3.0-green)](https://flask.palletsprojects.com/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![PWA](https://img.shields.io/badge/PWA-ready-orange)](https://web.dev/progressive-web-apps/)
+> Sistema de emergência SOS para proteção de mulheres em situação de risco, com botão de pânico, GPS em tempo real, chat com IA de apoio e painel para pessoas de confiança.
 
 ---
 
-## 📖 Sobre o Projeto
+## 📱 Funcionalidades
 
-**Aurora Mulher Segura** é um sistema de botão de pânico desenvolvido para proteger mulheres em situações de risco. Através de um clique, a usuária pode enviar alertas de emergência com sua localização GPS em tempo real para pessoas de confiança previamente cadastradas.
-
-### 🎯 Objetivo
-
-Fornecer uma ferramenta tecnológica **acessível, rápida e eficiente** que possa:
-
-- ✅ **Salvar vidas** em situações de violência doméstica, assédio ou perseguição
-- ✅ **Notificar rapidamente** pessoas de confiança sobre emergências
-- ✅ **Registrar evidências** com localização exata e timestamp
-- ✅ **Funcionar offline** quando não há conexão com a internet
-- ✅ **Ser acessível** em qualquer dispositivo móvel sem necessidade de instalação
-
-### 👥 Público-Alvo
-
-- Mulheres em situação de violência doméstica
-- Estudantes universitárias
-- Trabalhadoras noturnas
-- Qualquer pessoa que deseje maior segurança pessoal
+- 🚨 **Botão de Pânico SOS** — segure por 1 segundo para disparar alerta imediato
+- 📍 **GPS em tempo real** — envia localização exata para pessoas de confiança
+- 🔔 **Painel da Pessoa de Confiança** — recebe alertas com mapa Leaflet e sirene automática
+- 🤖 **Aurora IA** — chat de apoio sobre violência doméstica, direitos e orientações
+- ⚙️ **Painel Admin** — gerencia pessoas de confiança e histórico de alertas
+- 📄 **Relatório PDF** — exporta histórico completo de alertas
+- 📋 **Histórico de Alertas** — com filtros e links diretos para o Google Maps
+- 📜 **Termo de Responsabilidade** — obrigatório antes de usar o sistema (LGPD)
+- ⚡ **Saída Rápida** — disfarça o app como calculadora em situação de perigo
+- 📱 **PWA** — instala como aplicativo na tela inicial do celular
+- 🔐 **Senhas criptografadas** — bcrypt via Werkzeug
 
 ---
 
-## 🚀 Funcionalidades
+## 🗂️ Estrutura do Projeto
 
-### 🔐 Segurança e Autenticação
-- [x] Login com criptografia **bcrypt**
-- [x] Rate limiting contra ataques de força bruta
-- [x] Session management seguro
-- [x] Proteção CSRF
-- [x] LGPD compliant (dados mínimos coletados)
-
-### 🚨 Sistema de Emergência
-- [x] Botão SOS com toque e segure (1 segundo)
-- [x] GPS de **alta precisão** (±3-10 metros)
-- [x] Múltiplas leituras de GPS para maior exatidão
-- [x] Envio automático de alertas
-- [x] Modo offline com envio automático quando online
-- [x] Histórico completo de alertas
-
-### 🔔 Painel da Pessoa de Confiança
-- [x] **Sirene automática** ao receber alerta
-- [x] Notificações em tempo real
-- [x] Localização exata no Google Maps
-- [x] Auto-refresh a cada 5 segundos
-- [x] Vibração e notificação push
-
-### 📊 Painel Administrativo
-- [x] Estatísticas de alertas (total, hoje, com GPS)
-- [x] Gerenciamento de pessoas de confiança (máx. 3)
-- [x] Relatórios em PDF para download
-- [x] Histórico completo de todos os alertas
-- [x] Health check do sistema
-
-### 📱 Progressive Web App (PWA)
-- [x] Instalável na tela inicial do celular
-- [x] Funciona offline (Service Worker)
-- [x] Ícones em 9 tamanhos diferentes
-- [x] Manifest.json configurado
-- [x] Cache de arquivos estáticos
-
-### 🎨 Interface e UX
-- [x] Design responsivo (mobile-first)
-- [x] Tema escuro com cores suaves
-- [x] Acessibilidade (ARIA labels, teclado)
-- [x] Feedback tátil (vibração)
-- [x] Calculadora como disfarce (saída rápida)
+```
+aurora/
+├── app.py                        ← Servidor Flask principal
+├── requirements.txt              ← Dependências Python
+├── render.yaml                   ← Configuração de deploy (Render.com)
+├── README.md                     ← Este arquivo
+│
+├── templates/                    ← Páginas HTML (20 arquivos)
+│   ├── index.html                ← Página inicial
+│   ├── panic_button.html         ← Botão de pânico SOS
+│   ├── aurora_ia.html            ← Chat com Aurora IA
+│   ├── panel_admin.html          ← Painel administrativo
+│   ├── panel_trusted.html        ← Painel pessoa de confiança
+│   ├── login_admin.html          ← Login admin
+│   ├── login_trusted.html        ← Login pessoa de confiança
+│   ├── historico.html            ← Histórico de alertas
+│   ├── ajuda.html                ← Números de emergência
+│   ├── plano_seguranca.html      ← Plano de segurança pessoal
+│   ├── termo_responsabilidade.html ← Termo de uso (LGPD)
+│   ├── saida_rapida.html         ← Saída rápida (calculadora)
+│   ├── offline.html              ← Página sem internet
+│   ├── legal.html                ← Termos e privacidade
+│   ├── trusted_change_password.html
+│   ├── trusted_recover.html
+│   ├── pagamentos.html
+│   ├── recibo_entrega.html
+│   ├── central_aurora.html
+│   └── anual_aurora.html
+│
+└── static/
+    ├── css/style.css             ← Estilos globais Aurora
+    ├── js/panic.js               ← Lógica do botão SOS + GPS
+    ├── js/sw.js                  ← Service Worker (PWA offline)
+    ├── audio/sirene.mp3          ← Sirene de alerta
+    ├── manifest.json             ← PWA manifest
+    └── img/
+        ├── favicon.png
+        ├── icon-192.png
+        └── icon-512.png
+```
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## ⚙️ Instalação Local
 
-| Categoria | Tecnologia |
-|-----------|-----------|
-| **Backend** | Python 3.11, Flask 3.0 |
-| **Frontend** | HTML5, CSS3, JavaScript (Vanilla) |
-| **Banco de Dados** | JSON files (users.json, alerts.log, state.json) |
-| **Segurança** | bcrypt, Flask-Limiter, CORS |
-| **PWA** | Service Worker, Manifest.json |
-| **PDF** | FPDF |
-| **Deploy** | Render, Cloudflare |
-| **Timezone** | pytz (America/Sao_Paulo) |
+### Pré-requisitos
+- Python 3.10 ou superior
+- pip
+
+### Passo a passo
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/seu-usuario/aurora.git
+cd aurora
+
+# 2. Crie o ambiente virtual
+python -m venv venv
+
+# 3. Ative o ambiente virtual
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# 4. Instale as dependências
+pip install -r requirements.txt
+
+# 5. Configure as variáveis de ambiente (opcional para teste local)
+set ANTHROPIC_API_KEY=sk-ant-XXXXXXXXXXXXXXXX   # Windows
+export ANTHROPIC_API_KEY=sk-ant-XXXXXXXXXXXXXXXX # Linux/Mac
+
+# 6. Inicie o servidor
+python app.py
+```
+
+### Acesse no navegador
+```
+http://localhost:5000
+```
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🔐 Credenciais padrão
+
+| Acesso | Usuário | Senha |
+|--------|---------|-------|
+| Admin | `admin` | `admin123` |
+
+> ⚠️ **Troque a senha do admin imediatamente após o primeiro acesso!**
+
+Para criar uma **Pessoa de Confiança**:
+1. Acesse `/panel/login`
+2. Entre com admin / admin123
+3. Preencha o formulário "Cadastrar Pessoa de Confiança"
+
+---
+
+## 🚀 Deploy no Render.com
+
+### Passo a passo
+
+1. Faça push do projeto para o GitHub
+2. Acesse [render.com](https://render.com) → **New** → **Web Service**
+3. Conecte seu repositório GitHub
+4. O `render.yaml` configura tudo automaticamente
+5. Adicione as variáveis de ambiente:
+
+| Variável | Valor |
+|----------|-------|
+| `SECRET_KEY` | Texto longo e aleatório (ex: `aurora-prod-2026-xYz...`) |
+| `ANTHROPIC_API_KEY` | Sua chave da API Anthropic |
+
+6. Clique em **Deploy** e aguarde 2-3 minutos
+
+### URLs após o deploy
+
+| Página | URL |
+|--------|-----|
+| Página inicial | `https://seusite.onrender.com/` |
+| Botão SOS | `https://seusite.onrender.com/panic` |
+| Aurora IA | `https://seusite.onrender.com/aurora-ia` |
+| Painel Admin | `https://seusite.onrender.com/panel/login` |
+| Pessoa de Confiança | `https://seusite.onrender.com/trusted/login` |
+
+---
+
+## 🤖 Aurora IA
+
+O chat de apoio usa a API da Anthropic (Claude). Para ativar:
+
+1. Crie uma conta em [console.anthropic.com](https://console.anthropic.com)
+2. Gere uma API Key
+3. Adicione como variável de ambiente: `ANTHROPIC_API_KEY`
+
+A IA é especializada em:
+- Lei Maria da Penha (Lei 11.340/2006)
+- Medidas protetivas de urgência
+- Canais de ajuda: 180, 190, DEAM, CRAM, CRAS
+- Reconhecimento de relacionamento abusivo
+- Ciclo da violência doméstica
+- Como sair de uma situação de perigo com segurança
+
+---
+
+## 📞 Números de Emergência
+
+| Número | Serviço |
+|--------|---------|
+| **180** | Central da Mulher — 24h, gratuito |
+| **190** | Polícia Militar |
+| **192** | SAMU |
+| **193** | Bombeiros |
+| **197** | Polícia Civil |
+| **100** | Direitos Humanos |
+
+---
+
+## 🔒 Privacidade e LGPD
+
+- Senhas armazenadas com hash bcrypt (Werkzeug)
+- Localização GPS coletada **somente com consentimento explícito**
+- Conversa com a Aurora IA **não é gravada**
+- Termo de Responsabilidade obrigatório (LGPD — Lei 13.709/2018)
+- Dados não compartilhados com terceiros
+
+---
+
+## 🛠️ Tecnologias
+
+| Tecnologia | Uso |
+|-----------|-----|
+| Python + Flask | Backend e servidor web |
+| Jinja2 | Templates HTML |
+| Werkzeug | Segurança e senhas |
+| fpdf2 | Geração de PDF |
+| Leaflet.js | Mapas interativos |
+| Claude API (Anthropic) | Aurora IA |
+| Service Worker | PWA e modo offline |
+
+---
+
+## 📄 Licença
+
+Este projeto é de uso comercial. Todos os direitos reservados.
+
+© 2026 Aurora Mulher Segura
+
+---
+
+<p align="center">
+🌸 <strong>Aurora Mulher Segura</strong> — Protegendo vidas desde 2024
+</p>

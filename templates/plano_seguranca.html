@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0014">
+    <title>Plano de Segurança · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .plan-step {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 14px;
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            background: rgba(10, 0, 20, 0.45);
+            border-radius: 16px;
+            margin-bottom: 10px;
+        }
+        .step-num {
+            min-width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 79, 200, 0.7), rgba(164, 92, 255, 0.5));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 16px;
+        }
+        .step-body .step-title {
+            font-weight: 900;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .step-body p {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0;
+        }
+        .section-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin: 18px 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">📋</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Plano de Segurança</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <h1 class="h1">📋 PLANO DE SEGURANÇA</h1>
+                    <p class="center muted">Passos para situações de emergência</p>
+
+                    <div class="section-title">🚨 Em Situação de Perigo Imediato</div>
+
+                    <div class="plan-step">
+                        <div class="step-num">1</div>
+                        <div class="step-body">
+                            <div class="step-title">Acione o botão SOS</div>
+                            <p>Abra o Aurora e segure o botão SOS por 1 segundo.
+                            Ative o GPS para enviar sua localização.</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-step">
+                        <div class="step-num">2</div>
+                        <div class="step-body">
+                            <div class="step-title">Vá para um lugar seguro</div>
+                            <p>Vizinhos, farmácia, delegacia, local público movimentado
+                            ou estabelecimento comercial.</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-step">
+                        <div class="step-num">3</div>
+                        <div class="step-body">
+                            <div class="step-title">Ligue para o 190 ou 180</div>
+                            <p>Polícia Militar (190) ou Central da Mulher (180).
+                            Ambos funcionam 24h e são gratuitos.</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-step">
+                        <div class="step-num">4</div>
+                        <div class="step-body">
+                            <div class="step-title">Contate sua pessoa de confiança</div>
+                            <p>Ela receberá o alerta automaticamente pelo Aurora
+                            com sua localização em tempo real.</p>
+                        </div>
+                    </div>
+
+                    <div class="section-title">🛡️ Prevenção e Preparação</div>
+
+                    <div class="plan-step">
+                        <div class="step-num">✓</div>
+                        <div class="step-body">
+                            <div class="step-title">Cadastre pessoas de confiança</div>
+                            <p>Família, amigos ou vizinhos que podem agir rapidamente
+                            ao receber um alerta.</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-step">
+                        <div class="step-num">✓</div>
+                        <div class="step-body">
+                            <div class="step-title">Instale o Aurora na tela inicial</div>
+                            <p>Adicione o atalho na tela inicial do celular para
+                            acesso em 1 toque em situações de emergência.</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-step">
+                        <div class="step-num">✓</div>
+                        <div class="step-body">
+                            <div class="step-title">Mantenha GPS ativado</div>
+                            <p>Com GPS ativo, sua localização exata é enviada
+                            junto com o alerta.</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-step">
+                        <div class="step-num">✓</div>
+                        <div class="step-body">
+                            <div class="step-title">Memorize os números de emergência</div>
+                            <p>180 (Central da Mulher), 190 (Polícia), 192 (SAMU),
+                            193 (Bombeiros).</p>
+                        </div>
+                    </div>
+
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
+                        <a href="/panic" class="link">🚨 Botão de Pânico</a>
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

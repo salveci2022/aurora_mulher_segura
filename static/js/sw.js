@@ -1,171 +1,125 @@
 // ============================================
-// AURORA - SERVICE WORKER (MODO OFFLINE)
-// VERSÃO 2.0 - CORRIGIDA E OTIMIZADA
+// AURORA — SERVICE WORKER v3.1
+// Single consolidated SW (replaces service-worker.js + sw.js)
 // ============================================
 
-const CACHE_NAME = 'aurora-cache-v2';
-const STATIC_CACHE = 'aurora-static-v2';
+const CACHE_VERSION = "aurora-v3";
+const STATIC_CACHE = `${CACHE_VERSION}-static`;
+const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
-const urlsToCache = [
-    '/',
-    '/offline',
-    '/panic',
-    '/static/css/style.css',
-    '/static/js/panic.js',
-    '/static/js/sw.js',
-    '/static/manifest.json'
+const STATIC_ASSETS = [
+    "/",
+    "/offline",
+    "/panic",
+    "/static/css/style.css",
+    "/static/js/panic.js",
+    "/static/manifest.json"
 ];
 
-// Instalação - cache dos arquivos estáticos
-self.addEventListener('install', event => {
-    console.log('🛠️ Instalando Service Worker v2...');
-    
+// Install — cache static assets
+self.addEventListener("install", event => {
+    console.log("🛠️ Aurora SW v3.1 — instalando...");
+
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then(cache => {
-                console.log('📦 Cacheando arquivos estáticos...');
-                return cache.addAll(urlsToCache).catch(error => {
-                    console.error('❌ Erro ao cachear:', error);
-                    return Promise.all(
-                        urlsToCache.map(url => 
-                            cache.add(url).catch(err => 
-                                console.warn(`⚠️ Não foi possível cachear ${url}:`, err)
-                            )
+                return Promise.all(
+                    STATIC_ASSETS.map(url =>
+                        cache.add(url).catch(err =>
+                            console.warn(`⚠️ Não foi possível cachear ${url}:`, err)
                         )
-                    );
-                });
+                    )
+                );
             })
             .then(() => {
-                console.log('✅ Instalação concluída');
+                console.log("✅ Instalação concluída");
                 return self.skipWaiting();
             })
     );
 });
 
-// Ativação - limpa caches antigos
-self.addEventListener('activate', event => {
-    console.log('✅ Service Worker ativado');
-    
+// Activate — remove ALL old caches
+self.addEventListener("activate", event => {
+    console.log("✅ Aurora SW v3.1 — ativado");
+
     event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheName !== STATIC_CACHE && cacheName !== CACHE_NAME) {
-                        console.log('🗑️ Removendo cache antigo:', cacheName);
-                        return caches.delete(cacheName);
+        caches.keys().then(keys =>
+            Promise.all(
+                keys.map(key => {
+                    if (key !== STATIC_CACHE && key !== DYNAMIC_CACHE) {
+                        console.log("🗑️ Removendo cache antigo:", key);
+                        return caches.delete(key);
                     }
                 })
-            );
-        }).then(() => {
-            console.log('✅ Service Worker pronto para controle');
-            return self.clients.claim();
+            )
+        ).then(() => self.clients.claim())
+    );
+});
+
+// Fetch strategy
+self.addEventListener("fetch", event => {
+    const { request } = event;
+    const url = new URL(request.url);
+
+    // Never intercept API calls — always go to network
+    if (url.pathname.startsWith("/api/")) return;
+
+    // Non-GET requests pass through
+    if (request.method !== "GET") return;
+
+    // Navigation: Network-first, fall back to cache then offline page
+    if (request.mode === "navigate") {
+        event.respondWith(
+            fetch(request)
+                .then(response => {
+                    const clone = response.clone();
+                    caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, clone));
+                    return response;
+                })
+                .catch(() =>
+                    caches.match(request)
+                        .then(cached => cached || caches.match("/offline"))
+                        .then(r => r || new Response(
+                            "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Offline</title></head><body><h1>📴 Sem conexão</h1><p>Você está offline. Tente novamente.</p></body></html>",
+                            { headers: { "Content-Type": "text/html" } }
+                        ))
+                )
+        );
+        return;
+    }
+
+    // Static assets: Cache-first, update in background
+    event.respondWith(
+        caches.match(request).then(cached => {
+            const networkFetch = fetch(request).then(response => {
+                if (response && response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(STATIC_CACHE).then(cache => cache.put(request, clone));
+                }
+                return response;
+            }).catch(() => null);
+
+            return cached || networkFetch;
         })
     );
 });
 
-// Estratégia de cache
-self.addEventListener('fetch', event => {
-    const { request } = event;
-    const url = new URL(request.url);
-    
-    // Ignora requisições de API
-    if (url.pathname.startsWith('/api/')) {
-        return;
-    }
-    
-    // Para navegação (páginas HTML)
-    if (request.mode === 'navigate') {
-        event.respondWith(
-            fetch(request)
-                .then(response => {
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(request, responseClone);
-                    });
-                    return response;
-                })
-                .catch(() => {
-                    return caches.match(request).then(response => {
-                        if (response) {
-                            return response;
-                        }
-                        return caches.match('/offline').then(offlineResponse => {
-                            if (offlineResponse) {
-                                return offlineResponse;
-                            }
-                            return new Response(
-                                '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Offline</title></head><body><h1>📴 Offline</h1><p>Sem conexão com internet</p></body></html>',
-                                { headers: { 'Content-Type': 'text/html' } }
-                            );
-                        });
-                    });
-                })
+// Background sync for queued alerts
+self.addEventListener("sync", event => {
+    if (event.tag === "sync-alerts") {
+        event.waitUntil(
+            self.clients.matchAll().then(clients =>
+                clients.forEach(client =>
+                    client.postMessage({ type: "SYNC_ALERTS", timestamp: Date.now() })
+                )
+            )
         );
-        return;
-    }
-    
-    // Para arquivos estáticos
-    event.respondWith(
-        caches.match(request)
-            .then(response => {
-                if (response) {
-                    fetch(request)
-                        .then(networkResponse => {
-                            if (networkResponse && networkResponse.status === 200) {
-                                caches.open(STATIC_CACHE).then(cache => {
-                                    cache.put(request, networkResponse);
-                                });
-                            }
-                        })
-                        .catch(() => {});
-                    
-                    return response;
-                }
-                
-                return fetch(request)
-                    .then(networkResponse => {
-                        if (networkResponse && networkResponse.status === 200) {
-                            const responseClone = networkResponse.clone();
-                            caches.open(STATIC_CACHE).then(cache => { 
-                                cache.put(request, responseClone);
-                            });
-                        }
-                        return networkResponse;
-                    })
-                    .catch(() => {
-                        return new Response('', { status: 404, statusText: 'Not Found' });
-                    });
-            })
-    );
-});
-
-// Sincronização em segundo plano
-self.addEventListener('sync', event => {
-    if (event.tag === 'sync-alerts') {
-        console.log('🔄 Sincronizando alertas pendentes...');
-        event.waitUntil(syncAlerts());
     }
 });
 
-async function syncAlerts() {
-    try {
-        const clients = await self.clients.matchAll();
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'SYNC_ALERTS',
-                timestamp: Date.now()
-            });
-        });
-    } catch (error) {
-        console.error('❌ Erro na sincronização:', error);
-    }
-}
-
-// Mensagens do cliente
-self.addEventListener('message', event => {
-    console.log('📨 Mensagem recebida:', event.data);
-    
-    if (event.data && event.data.type === 'SKIP_WAITING') {
+// Message handler
+self.addEventListener("message", event => {
+    if (event.data && event.data.type === "SKIP_WAITING") {
         self.skipWaiting();
     }
 });

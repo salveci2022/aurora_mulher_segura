@@ -2,77 +2,70 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0a0014">
-    <meta name="description" content="Aurora - Central de Ajuda e Emergência">
     <title>Ajuda · Aurora</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="manifest" href="/static/manifest.json">
     <style>
-        .emergency-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 14px 0;
-        }
-        .emergency-btn {
+        .emergency-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 98, 212, 0.25);
+            background: rgba(10, 0, 20, 0.45);
+            margin-bottom: 10px;
             text-decoration: none;
-            text-align: center;
-            padding: 16px 12px;
-            border-radius: 14px;
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.4);
-            color: var(--text);
-            font-weight: 900;
-            transition: all 0.2s ease;
         }
-        .emergency-btn:hover {
-            background: rgba(244, 67, 54, 0.3);
-            transform: translateY(-2px);
+        .emergency-card:hover {
+            border-color: rgba(255, 79, 200, 0.5);
+            background: rgba(255, 79, 200, 0.08);
         }
-        .emergency-number {
-            display: block;
+        .emergency-card .em-icon {
             font-size: 28px;
-            margin-top: 6px;
-            color: var(--hot);
+            min-width: 36px;
+            text-align: center;
         }
-        .emergency-desc {
+        .emergency-card .em-info {
+            flex: 1;
+        }
+        .emergency-card .em-name {
+            font-weight: 900;
+            font-size: 14px;
+            color: var(--text);
+        }
+        .emergency-card .em-desc {
             font-size: 11px;
             color: var(--muted);
-            margin-top: 4px;
-            font-weight: 400;
+            margin-top: 2px;
         }
-        .info-section {
-            margin: 14px 0;
-            padding: 14px;
-            border-radius: 14px;
-            background: rgba(40, 0, 60, 0.35);
-            border: 1px solid rgba(255, 98, 212, 0.22);
-        }
-        .info-title {
-            font-size: 14px;
+        .emergency-card .em-num {
+            font-size: 22px;
             font-weight: 900;
             color: var(--hot);
-            margin-bottom: 8px;
         }
-        .info-text {
+        .section-title {
             font-size: 12px;
-            color: var(--text);
-            line-height: 1.6;
+            font-weight: 900;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin: 18px 0 10px;
         }
-        .violence-types {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
+        .tip-box {
+            background: rgba(40, 0, 60, 0.35);
+            border: 1px solid rgba(255, 98, 212, 0.22);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            font-size: 12px;
         }
-        .violence-chip {
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 11px;
-            background: rgba(255, 79, 200, 0.2);
-            border: 1px solid rgba(255, 79, 200, 0.4);
-            color: var(--text);
+        .tip-box .tip-title {
+            font-weight: 900;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -93,81 +86,92 @@
                         <a href="/" class="pill">← Voltar</a>
                     </div>
                 </div>
-                
+
                 <div class="content">
-                    <h1 class="h1">📞 CENTRAL DE AJUDA</h1>
-                    <p class="center muted">Números de emergência e orientações</p>
-                    
-                    <div class="alert alert-danger center">
-                        🚨 EMERGÊNCIA? LIGUE AGORA!
-                    </div>
-                    
-                    <div class="emergency-grid">
-                        <a href="tel:190" class="emergency-btn">
-                            🚔 Polícia
-                            <span class="emergency-number">190</span>
-                            <span class="emergency-desc">Emergência 24h</span>
-                        </a>
-                        <a href="tel:180" class="emergency-btn">
-                            👩 Central Mulher
-                            <span class="emergency-number">180</span>
-                            <span class="emergency-desc">Orientação 24h</span>
-                        </a>
-                        <a href="tel:192" class="emergency-btn">
-                            🚑 SAMU
-                            <span class="emergency-number">192</span>
-                            <span class="emergency-desc">Emergência médica</span>
-                        </a>
-                        <a href="tel:193" class="emergency-btn">
-                            🔥 Bombeiros
-                            <span class="emergency-number">193</span>
-                            <span class="emergency-desc">Emergência 24h</span>
-                        </a>
-                    </div>
-                    
-                    <div class="info-section">
-                        <div class="info-title">⚖️ LEI MARIA DA PENHA (Lei 11.340/2006)</div>
-                        <div class="info-text">
-                            Cria mecanismos para coibir e prevenir a violência doméstica e familiar contra a mulher.
+                    <h1 class="h1">📞 AJUDA</h1>
+                    <p class="center muted">Números de emergência e recursos</p>
+
+                    <div class="section-title">🚨 Ligue Agora</div>
+
+                    <a href="tel:180" class="emergency-card">
+                        <div class="em-icon">👩</div>
+                        <div class="em-info">
+                            <div class="em-name">Central da Mulher</div>
+                            <div class="em-desc">Violência contra a mulher · 24h · gratuito</div>
                         </div>
-                        <div class="violence-types">
-                            <span class="violence-chip">🔴 Física</span>
-                            <span class="violence-chip">🟠 Psicológica</span>
-                            <span class="violence-chip">🟡 Sexual</span>
-                            <span class="violence-chip">🟢 Patrimonial</span>
-                            <span class="violence-chip">🔵 Moral</span>
+                        <div class="em-num">180</div>
+                    </a>
+
+                    <a href="tel:190" class="emergency-card">
+                        <div class="em-icon">🚓</div>
+                        <div class="em-info">
+                            <div class="em-name">Polícia Militar</div>
+                            <div class="em-desc">Emergência policial · 24h</div>
                         </div>
-                    </div>
-                    
-                    <div class="info-section">
-                        <div class="info-title">📌 ORIENTAÇÕES IMPORTANTES</div>
-                        <div class="info-text">
-                            ✓ <strong>Ligue 190 em emergência</strong> - A polícia vai até você<br>
-                            ✓ <strong>Ligue 180 para orientação</strong> - Gratuito, 24h e sigiloso<br>
-                            ✓ <strong>Delegacias da Mulher</strong> - Atendimento especializado<br>
-                            ✓ <strong>Medidas Protetivas</strong> - Afastamento do agressor, proibição de contato
+                        <div class="em-num">190</div>
+                    </a>
+
+                    <a href="tel:192" class="emergency-card">
+                        <div class="em-icon">🚑</div>
+                        <div class="em-info">
+                            <div class="em-name">SAMU</div>
+                            <div class="em-desc">Urgência médica · 24h</div>
                         </div>
-                    </div>
-                    
-                    <div class="info-section">
-                        <div class="info-title">💬 WHATSAPP 180</div>
-                        <div class="info-text">
-                            Chat de orientação disponível 24h para dúvidas sobre violência doméstica.
+                        <div class="em-num">192</div>
+                    </a>
+
+                    <a href="tel:193" class="emergency-card">
+                        <div class="em-icon">🔥</div>
+                        <div class="em-info">
+                            <div class="em-name">Bombeiros</div>
+                            <div class="em-desc">Incêndio e resgate · 24h</div>
                         </div>
-                        <a href="https://wa.me/5511999999999" target="_blank" class="btn btn-primary">📱 ABRIR WHATSAPP</a>
+                        <div class="em-num">193</div>
+                    </a>
+
+                    <a href="tel:197" class="emergency-card">
+                        <div class="em-icon">🕵️</div>
+                        <div class="em-info">
+                            <div class="em-name">Polícia Civil</div>
+                            <div class="em-desc">Denúncias e investigação</div>
+                        </div>
+                        <div class="em-num">197</div>
+                    </a>
+
+                    <a href="tel:100" class="emergency-card">
+                        <div class="em-icon">🆘</div>
+                        <div class="em-info">
+                            <div class="em-name">Direitos Humanos</div>
+                            <div class="em-desc">Violações de direitos · 24h · gratuito</div>
+                        </div>
+                        <div class="em-num">100</div>
+                    </a>
+
+                    <div class="section-title">💡 Dicas de Segurança</div>
+
+                    <div class="tip-box">
+                        <div class="tip-title">🔐 Use o botão SOS com discreção</div>
+                        <p class="muted">O botão requer segurar por 1 segundo para evitar acionamento acidental.
+                        Em situação de risco, pressione e segure silenciosamente.</p>
                     </div>
-                    
-                    <a href="/panic" class="btn btn-primary">🚨 VOLTAR AO BOTÃO SOS</a>
-                    
+
+                    <div class="tip-box">
+                        <div class="tip-title">📍 Ative o GPS sempre que possível</div>
+                        <p class="muted">Com o GPS ativado, sua pessoa de confiança verá sua localização
+                        exata no mapa em tempo real.</p>
+                    </div>
+
+                    <div class="tip-box">
+                        <div class="tip-title">⚡ Use a Saída Rápida se necessário</div>
+                        <p class="muted">O botão "SAÍDA RÁPIDA" no topo da tela fecha o app imediatamente
+                        e abre outro site para disfarçar o uso.</p>
+                    </div>
+
                     <div class="list" style="margin-top: 14px;">
-                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
-                        <a href="/legal" class="link">📄 Termos e Privacidade</a>
+                        <a href="/plano-seguranca" class="link">📋 Meu Plano de Segurança</a>
+                        <a href="/panic" class="link">🚨 Botão de Pânico</a>
                         <a href="/" class="link">← Voltar ao início</a>
                     </div>
-                    
-                    <p class="center small muted" style="margin-top: 14px;">
-                        🌸 AURORA MULHER SEGURA - Protegendo vidas
-                    </p>
                 </div>
             </div>
         </div>

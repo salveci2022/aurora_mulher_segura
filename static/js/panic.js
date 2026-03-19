@@ -1,7 +1,7 @@
-// Sistema SOS Aurora Mulher Segura
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("🌸 Aurora - Sistema SOS iniciando...");
-    
+// Sistema SOS Aurora Mulher Segura v3.1
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("🌸 Aurora — Sistema SOS iniciando...");
+
     const elements = {
         chips: document.querySelectorAll(".chip"),
         sos: document.getElementById("sosBtn"),
@@ -9,30 +9,42 @@ document.addEventListener("DOMContentLoaded", function() {
         name: document.getElementById("name"),
         message: document.getElementById("message"),
         shareLocation: document.getElementById("shareLocation"),
-        gpsStatus: document.getElementById("gpsStatus")
+        // FIX: Target the wrapper div and the inner span separately
+        gpsStatusBox: document.getElementById("gpsStatus"),
+        gpsStatusText: document.getElementById("gpsText")
     };
 
     if (!elements.sos || !elements.status) {
-        console.error("❌ Elementos não encontrados!");
+        console.error("❌ Elementos essenciais não encontrados!");
         return;
     }
 
-    let selectedSituation = "";
+    let selectedSituation = "Assédio"; // FIX: Default matches the pre-selected chip
     let holdTimer = null;
     let isHolding = false;
     let currentLocation = null;
 
-    function showStatus(message, type = "info") {
+    function showStatus(msg, type = "info") {
         if (!elements.status) return;
-        elements.status.textContent = message;
+        elements.status.textContent = msg;
         elements.status.className = "alert center";
         if (type === "success") elements.status.classList.add("alert-ok");
         else if (type === "error") elements.status.classList.add("alert-danger");
     }
 
+    // FIX: Update GPS status without clobbering the inner <span>
+    function showGpsStatus(msg, state = "") {
+        const box = elements.gpsStatusBox;
+        const txt = elements.gpsStatusText;
+        if (!box) return;
+        box.classList.add("active");
+        box.className = "gps-status active" + (state ? " " + state : "");
+        if (txt) txt.textContent = msg;
+    }
+
     // Chips
     elements.chips.forEach(chip => {
-        chip.addEventListener("click", function(e) {
+        chip.addEventListener("click", function (e) {
             e.preventDefault();
             elements.chips.forEach(c => c.classList.remove("active"));
             this.classList.add("active");
@@ -50,30 +62,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (!navigator.geolocation) {
             console.error("❌ GPS não suportado");
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = "❌ GPS não suportado";
-                elements.gpsStatus.className = "alert alert-danger";
-            }
+            showGpsStatus("GPS não suportado neste dispositivo", "poor");
             return null;
         }
 
         try {
-            console.log("📍 Solicitando localização...");
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = "📍 Obtendo localização...";
-                elements.gpsStatus.className = "alert";
-            }
+            showGpsStatus("Obtendo localização...");
 
             const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(
-                    resolve,
-                    reject,
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    }
-                );
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
             });
 
             currentLocation = {
@@ -83,19 +84,12 @@ document.addEventListener("DOMContentLoaded", function() {
             };
 
             console.log("✅ Localização obtida:", currentLocation);
-            
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = `✅ GPS: ±${currentLocation.accuracy}m`;
-                elements.gpsStatus.className = "alert alert-ok";
-            }
-
+            showGpsStatus(`GPS obtido ±${currentLocation.accuracy}m`, "good");
             return currentLocation;
+
         } catch (error) {
             console.error("❌ Erro GPS:", error);
-            if (elements.gpsStatus) {
-                elements.gpsStatus.textContent = "❌ Erro ao capturar GPS";
-                elements.gpsStatus.className = "alert alert-danger";
-            }
+            showGpsStatus("Erro ao capturar GPS", "poor");
             return null;
         }
     }
@@ -113,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const location = await getCurrentLocation();
 
             const payload = {
-                name: elements.name ? elements.name.value.trim() : "Usuária",
+                name: elements.name ? (elements.name.value.trim() || "Usuária") : "Usuária",
                 situation: selectedSituation,
                 message: elements.message ? elements.message.value.trim() : "",
                 location: location,
@@ -125,9 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const response = await fetch("/api/send_alert", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
 
@@ -137,71 +129,63 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const result = await response.json();
             console.log("✅ Enviado:", result);
+            showStatus("✅ ALERTA ENVIADO COM SUCESSO!", "success");
 
-            showStatus("✅ ALERTA ENVIADO!", "success");
-            
             if (elements.sos) {
-                elements.sos.style.background = "linear-gradient(145deg, #4caf50, #388e3c)";
-                setTimeout(() => {
-                    elements.sos.style.background = "";
-                }, 2000);
+                elements.sos.classList.add("sent");
+                setTimeout(() => elements.sos.classList.remove("sent"), 3000);
             }
 
             return true;
+
         } catch (error) {
             console.error("❌ Erro:", error);
-            showStatus(`❌ Erro: ${error.message}`, "error");
+            showStatus(`❌ Erro ao enviar: ${error.message}`, "error");
             return false;
         }
     }
 
-    // Hold
+    // Hold detection
     function startHold(e) {
         e.preventDefault();
         if (isHolding) return;
-        
+
         isHolding = true;
-        if (elements.sos) {
-            elements.sos.classList.add("holding");
-        }
-        
+        if (elements.sos) elements.sos.classList.add("holding");
         showStatus("⚠️ Segure por 1 segundo...", "info");
-        
+
         holdTimer = setTimeout(() => {
-            if (isHolding) {
-                sendSOSAlert();
-            }
+            if (isHolding) sendSOSAlert();
         }, 1000);
     }
 
     function cancelHold(e) {
         e.preventDefault();
         if (!isHolding) return;
-        
+
         if (holdTimer) {
             clearTimeout(holdTimer);
             holdTimer = null;
         }
-        
-        if (elements.sos) {
-            elements.sos.classList.remove("holding");
-        }
-        
+
+        if (elements.sos) elements.sos.classList.remove("holding");
         isHolding = false;
-        
-        if (!elements.status.textContent.includes("✅")) {
-            showStatus("", "info");
+
+        // Only reset status if alert was not successfully sent
+        if (elements.status && !elements.status.textContent.includes("✅")) {
+            showStatus("🌸 Sistema pronto", "info");
         }
     }
 
-    // Events
+    // Events — mouse + touch
     if (elements.sos) {
         elements.sos.addEventListener("mousedown", startHold);
         elements.sos.addEventListener("mouseup", cancelHold);
         elements.sos.addEventListener("mouseleave", cancelHold);
         elements.sos.addEventListener("touchstart", startHold, { passive: false });
         elements.sos.addEventListener("touchend", cancelHold);
+        elements.sos.addEventListener("touchcancel", cancelHold);
     }
 
-    console.log("✅ Sistema pronto!");
+    console.log("✅ Aurora SOS — Sistema pronto!");
 });

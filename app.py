@@ -119,19 +119,33 @@ def require_role(role):
 # ==========================================
 
 def get_all_clients():
-    """Retorna lista de clientes únicos a partir dos usuários."""
+    """Retorna clientes salvos no users.json (role=client)."""
     users = load_users()
     clients = {}
+
+    # Primeiro coleta clientes registrados com role=client
     for username, info in users.items():
-        cid = info.get("client_id")
-        if cid and cid not in clients:
+        if info.get("role") == "client":
+            cid = info.get("client_id", username)
             clients[cid] = {
                 "client_id": cid,
-                "name": info.get("client_name", cid),
-                "users": []
+                "name":      info.get("name", cid),
+                "users":     []
             }
-        if cid:
-            clients[cid]["users"].append(username)
+
+    # Depois associa trusted aos seus clientes
+    for username, info in users.items():
+        if info.get("role") == "trusted":
+            cid = info.get("client_id")
+            if cid:
+                if cid not in clients:
+                    clients[cid] = {
+                        "client_id": cid,
+                        "name":      info.get("client_name", cid),
+                        "users":     []
+                    }
+                clients[cid]["users"].append(username)
+
     return clients
 
 def generate_client_id():
@@ -389,7 +403,7 @@ def admin_panel():
 
 @app.post("/panel/add_client")
 def admin_add_client():
-    """Cria um novo cliente com ID único."""
+    """Cria um novo cliente — salvo dentro do users.json para persistir no Render."""
     redir = require_role("admin")
     if redir:
         return redir
@@ -400,21 +414,18 @@ def admin_add_client():
 
     client_id = generate_client_id()
 
-    # Salva o cliente no arquivo de clientes
-    clients_file = BASE_DIR / "clients.json"
-    try:
-        clients = json.loads(clients_file.read_text(encoding="utf-8")) if clients_file.exists() else {}
-    except Exception:
-        clients = {}
-
-    clients[client_id] = {
+    # FIX: Salva cliente dentro do users.json com role="client"
+    users = load_users()
+    users[f"__client__{client_id}"] = {
+        "role":       "client",
         "name":       client_name,
+        "client_id":  client_id,
         "created_at": now_br_str(),
-        "active":     True
+        "password":   ""
     }
-    clients_file.write_text(json.dumps(clients, indent=2, ensure_ascii=False), encoding="utf-8")
+    save_users(users)
 
-    return redirect(f"/panel?msg=Cliente+criado:+{client_name}&client_id={client_id}")
+    return redirect(f"/panel?msg=Cliente+criada:+{client_name}&client_id={client_id}")
 
 @app.post("/panel/add_trusted")
 def admin_add_trusted():
@@ -436,15 +447,11 @@ def admin_add_trusted():
     if username in users:
         return redirect("/panel?err=Usuario+ja+existe")
 
-    # Carrega nome do cliente
-    clients_file = BASE_DIR / "clients.json"
-    client_name  = client_id
-    if clients_file.exists():
-        try:
-            cdata = json.loads(clients_file.read_text(encoding="utf-8"))
-            client_name = cdata.get(client_id, {}).get("name", client_id)
-        except Exception:
-            pass
+    # Carrega nome do cliente direto do users.json
+    client_name = client_id
+    client_entry = users.get(f"__client__{client_id}", {})
+    if client_entry:
+        client_name = client_entry.get("name", client_id)
 
     users[username] = {
         "password":    generate_password_hash(password),
@@ -491,15 +498,11 @@ def admin_delete_client():
         users.pop(u)
     save_users(users)
 
-    # Remove do clients.json
-    clients_file = BASE_DIR / "clients.json"
-    if clients_file.exists():
-        try:
-            clients = json.loads(clients_file.read_text(encoding="utf-8"))
-            clients.pop(client_id, None)
-            clients_file.write_text(json.dumps(clients, indent=2, ensure_ascii=False), encoding="utf-8")
-        except Exception:
-            pass
+    # Remove entrada __client__ do users.json
+    client_key = f"__client__{client_id}"
+    if client_key in users:
+        users.pop(client_key)
+    save_users(users)
 
     return redirect("/panel?msg=Cliente+removido")
 

@@ -1,0 +1,7 @@
+{
+  "admin": {
+    "password": "scrypt:32768:8:1$7R5BfIIDUILaEGHC$c2c617c0e21740860fb11ee444ff2d709b892bd5301a45c69b2f243837406e04ef34f6efc624da3029aa7de24d6b52b891060a8bd0bef9a279256ed659b9eaed",
+    "role": "admin",
+    "name": "Admin Aurora"
+  }
+}

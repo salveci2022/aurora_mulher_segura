@@ -1,5 +1,5 @@
 from __future__ import annotations
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for, send_file
+from flask import Flask, render_template, request, jsonify, redirect, session, send_file
 from pathlib import Path
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
@@ -20,18 +20,16 @@ except Exception:
     TZ = None
 
 BASE_DIR = Path(__file__).resolve().parent
-USERS_FILE = BASE_DIR / "users.json"
+USERS_FILE  = BASE_DIR / "users.json"
 ALERTS_FILE = BASE_DIR / "alerts.log"
-STATE_FILE = BASE_DIR / "state.json"
+STATE_FILE  = BASE_DIR / "state.json"
 
 app = Flask(__name__)
-# FIX: Fixed fallback key so session survives server restarts during local testing
-# In production, always set SECRET_KEY as an environment variable on Render.com
 _default_key = "aurora-local-dev-key-2026-change-in-production"
 app.secret_key = os.environ.get("SECRET_KEY") or _default_key
 
 # ==========================================
-# UTILITÁRIOS
+# UTILITÁRIOS DE DATA
 # ==========================================
 
 def now_br_str():
@@ -44,12 +42,15 @@ def today_str():
         return datetime.now().strftime("%Y-%m-%d")
     return datetime.now(TZ).strftime("%Y-%m-%d")
 
+# ==========================================
+# GESTÃO DE ARQUIVOS
+# ==========================================
+
 def ensure_files():
     if not USERS_FILE.exists():
-        # FIX: Default admin password is hashed, not plaintext
         hashed = generate_password_hash("admin123")
         USERS_FILE.write_text(json.dumps({
-            "admin": {"password": hashed, "role": "admin", "name": "Admin Aurora"}
+            "admin": {"password": hashed, "role": "admin", "name": "Admin Aurora", "client_id": None}
         }, indent=2, ensure_ascii=False), encoding="utf-8")
     if not ALERTS_FILE.exists():
         ALERTS_FILE.write_text("", encoding="utf-8")
@@ -62,7 +63,7 @@ def load_users():
         return json.loads(USERS_FILE.read_text(encoding="utf-8"))
     except Exception:
         hashed = generate_password_hash("admin123")
-        return {"admin": {"password": hashed, "role": "admin", "name": "Admin Aurora"}}
+        return {"admin": {"password": hashed, "role": "admin", "name": "Admin Aurora", "client_id": None}}
 
 def save_users(data):
     USERS_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -99,13 +100,57 @@ def get_all_alerts():
     except Exception:
         return []
 
+def get_alerts_for_client(client_id):
+    """Retorna apenas os alertas do cliente específico."""
+    all_alerts = get_all_alerts()
+    if client_id is None:
+        return all_alerts  # admin vê tudo
+    return [a for a in all_alerts if a.get("client_id") == client_id]
+
 def require_role(role):
-    """Check session role, redirect if not authorized."""
     if session.get("role") != role:
         if role == "admin":
             return redirect("/panel/login")
         return redirect("/trusted/login")
     return None
+
+# ==========================================
+# GESTÃO DE CLIENTES
+# ==========================================
+
+def get_all_clients():
+    """Retorna clientes salvos no users.json (role=client)."""
+    users = load_users()
+    clients = {}
+
+    # Primeiro coleta clientes registrados com role=client
+    for username, info in users.items():
+        if info.get("role") == "client":
+            cid = info.get("client_id", username)
+            clients[cid] = {
+                "client_id": cid,
+                "name":      info.get("name", cid),
+                "users":     []
+            }
+
+    # Depois associa trusted aos seus clientes
+    for username, info in users.items():
+        if info.get("role") == "trusted":
+            cid = info.get("client_id")
+            if cid:
+                if cid not in clients:
+                    clients[cid] = {
+                        "client_id": cid,
+                        "name":      info.get("client_name", cid),
+                        "users":     []
+                    }
+                clients[cid]["users"].append(username)
+
+    return clients
+
+def generate_client_id():
+    """Gera um ID único para novo cliente."""
+    return secrets.token_hex(8)
 
 # ==========================================
 # ROTAS PÚBLICAS
@@ -117,7 +162,6 @@ def health():
 
 @app.get("/")
 def index():
-    # Se ainda não aceitou o termo, redireciona para assinar primeiro
     if not session.get("termo_aceito"):
         return redirect("/termo")
     return render_template("index.html")
@@ -137,7 +181,6 @@ def historico():
 def ajuda():
     return render_template("ajuda.html")
 
-# FIX: Both hyphen and underscore accepted for safety
 @app.get("/plano-seguranca")
 @app.get("/plano_seguranca")
 def plano_seguranca():
@@ -175,27 +218,30 @@ def send_alert():
     data = request.get_json(silent=True) or {}
     location = data.get("location")
 
-    # Sanitize string inputs
-    name = str(data.get("name", "Não informado"))[:100].strip() or "Não informado"
+    name      = str(data.get("name", "Não informado"))[:100].strip() or "Não informado"
     situation = str(data.get("situation", "Emergência"))[:100].strip() or "Emergência"
-    message = str(data.get("message", ""))[:500].strip()
+    message   = str(data.get("message", ""))[:500].strip()
+
+    # Pega o client_id da sessão se a mulher estiver logada,
+    # ou do parâmetro enviado pelo frontend
+    client_id = session.get("client_id") or data.get("client_id")
 
     payload = {
-        "id": next_alert_id(),
-        "ts": now_br_str(),
-        "name": name,
+        "id":        next_alert_id(),
+        "ts":        now_br_str(),
+        "name":      name,
         "situation": situation,
-        "message": message,
-        "location": location,
-        # FIX: Flatten lat/lng to top level for easy access by trusted panel
-        "lat": location.get("lat") if location and isinstance(location, dict) else None,
-        "lng": location.get("lng") if location and isinstance(location, dict) else None,
-        "accuracy": location.get("accuracy") if location and isinstance(location, dict) else None,
-        "ip": request.remote_addr
+        "message":   message,
+        "client_id": client_id,
+        "location":  location,
+        "lat":       location.get("lat")      if location and isinstance(location, dict) else None,
+        "lng":       location.get("lng")      if location and isinstance(location, dict) else None,
+        "accuracy":  location.get("accuracy") if location and isinstance(location, dict) else None,
+        "ip":        request.remote_addr
     }
 
     log_alert(payload)
-    print(f"✅ Alerta #{payload['id']} — {situation}")
+    print(f"✅ Alerta #{payload['id']} — {situation} — cliente: {client_id}")
     if location:
         print(f"📍 {payload.get('lat')}, {payload.get('lng')}")
 
@@ -203,27 +249,48 @@ def send_alert():
 
 @app.get("/api/alerts")
 def api_alerts():
+    """Admin vê tudo. Trusted vê só do seu cliente."""
+    role = session.get("role")
+    if role == "trusted":
+        client_id = session.get("client_id")
+        return jsonify(get_alerts_for_client(client_id))
     return jsonify(get_all_alerts())
 
 @app.get("/api/last_alert")
 def api_last_alert():
-    """FIX: Added missing endpoint that trusted.js depends on."""
-    alerts = get_all_alerts()
+    role = session.get("role")
+    if role == "trusted":
+        client_id = session.get("client_id")
+        alerts = get_alerts_for_client(client_id)
+    else:
+        alerts = get_all_alerts()
+
     if not alerts:
         return jsonify({"alerta": False})
     last = alerts[-1]
     return jsonify({
-        "alerta": True,
-        "id": last.get("id"),
-        "nome": last.get("name"),
-        "situacao": last.get("situation"),
-        "mensagem": last.get("message"),
-        "hora": last.get("ts"),
-        "lat": last.get("lat"),
-        "lng": last.get("lng"),
+        "alerta":    True,
+        "id":        last.get("id"),
+        "nome":      last.get("name"),
+        "situacao":  last.get("situation"),
+        "mensagem":  last.get("message"),
+        "hora":      last.get("ts"),
+        "lat":       last.get("lat"),
+        "lng":       last.get("lng"),
         "localizacao": last.get("location"),
         **last
     })
+
+@app.post("/api/clear_alerts")
+def api_clear_alerts():
+    if session.get("role") != "admin":
+        return jsonify({"ok": False, "error": "Não autorizado"}), 403
+    try:
+        ALERTS_FILE.write_text("", encoding="utf-8")
+        STATE_FILE.write_text('{"last_id": 0}', encoding="utf-8")
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 # ==========================================
 # RELATÓRIO PDF
@@ -234,7 +301,11 @@ def relatorio_pdf():
     if session.get("role") not in ("admin", "trusted"):
         return redirect("/panel/login")
 
-    alerts = get_all_alerts()
+    if session.get("role") == "trusted":
+        alerts = get_alerts_for_client(session.get("client_id"))
+    else:
+        alerts = get_all_alerts()
+
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 18)
@@ -255,7 +326,6 @@ def relatorio_pdf():
             pdf.cell(0, 6, f"   GPS: {a['lat']}, {a['lng']}", ln=1)
         pdf.ln(1)
 
-    # FIX: Delete temp file after sending to avoid disk leak
     temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
     pdf.output(temp.name)
     temp.close()
@@ -280,14 +350,12 @@ def admin_login():
         p = request.form.get("password", "")
         info = users.get(u)
 
-        # FIX: Support both hashed passwords (new) and plaintext (legacy migration)
         if info:
             stored = info.get("password", "")
             ok = False
             if stored.startswith("pbkdf2:") or stored.startswith("scrypt:"):
                 ok = check_password_hash(stored, p)
             else:
-                # Legacy plaintext — verify then upgrade
                 ok = (stored == p)
                 if ok:
                     info["password"] = generate_password_hash(p)
@@ -295,8 +363,8 @@ def admin_login():
 
             if ok and info.get("role") == "admin":
                 session.clear()
-                session["role"] = "admin"
-                session["user"] = u
+                session["role"]  = "admin"
+                session["user"]  = u
                 return redirect("/panel")
 
         return render_template("login_admin.html", error=True)
@@ -309,21 +377,55 @@ def admin_panel():
     if redir:
         return redir
     try:
-        users = load_users()
+        users   = load_users()
         trusted = {u: info for u, info in users.items() if info.get("role") == "trusted"}
-        alerts = get_all_alerts()
+        alerts  = get_all_alerts()
+        clients = get_all_clients()
+
         stats = {
-            "total": len(alerts),
-            "today": sum(1 for a in alerts if a.get("ts", "").startswith(today_str())),
-            "trusted": len(trusted),
-            "with_location": sum(1 for a in alerts if a.get("lat")),
+            "total":            len(alerts),
+            "today":            sum(1 for a in alerts if a.get("ts", "").startswith(today_str())),
+            "trusted":          len(trusted),
+            "with_location":    sum(1 for a in alerts if a.get("lat")),
             "without_location": sum(1 for a in alerts if not a.get("lat")),
+            "clients":          len(clients),
         }
-        return render_template("panel_admin.html", trusted=trusted, alerts=alerts, stats=stats)
+
+        return render_template("panel_admin.html",
+                               trusted=trusted,
+                               alerts=alerts,
+                               stats=stats,
+                               clients=clients)
     except Exception as e:
         print(f"❌ admin_panel error: {e}")
         session.clear()
         return redirect("/panel/login")
+
+@app.post("/panel/add_client")
+def admin_add_client():
+    """Cria um novo cliente — salvo dentro do users.json para persistir no Render."""
+    redir = require_role("admin")
+    if redir:
+        return redir
+
+    client_name = request.form.get("client_name", "").strip()
+    if not client_name:
+        return redirect("/panel?err=Preencha+o+nome+do+cliente")
+
+    client_id = generate_client_id()
+
+    # FIX: Salva cliente dentro do users.json com role="client"
+    users = load_users()
+    users[f"__client__{client_id}"] = {
+        "role":       "client",
+        "name":       client_name,
+        "client_id":  client_id,
+        "created_at": now_br_str(),
+        "password":   ""
+    }
+    save_users(users)
+
+    return redirect(f"/panel?msg=Cliente+criada:+{client_name}&client_id={client_id}")
 
 @app.post("/panel/add_trusted")
 def admin_add_trusted():
@@ -331,9 +433,10 @@ def admin_add_trusted():
     if redir:
         return redir
 
-    name = request.form.get("trusted_name", "").strip()
-    username = request.form.get("trusted_user", "").strip().lower()
-    password = request.form.get("trusted_password", "")
+    name      = request.form.get("trusted_name", "").strip()
+    username  = request.form.get("trusted_user", "").strip().lower()
+    password  = request.form.get("trusted_password", "")
+    client_id = request.form.get("client_id", "").strip()
 
     if not name or not username or not password:
         return redirect("/panel?err=Preencha+todos+os+campos")
@@ -344,10 +447,18 @@ def admin_add_trusted():
     if username in users:
         return redirect("/panel?err=Usuario+ja+existe")
 
+    # Carrega nome do cliente direto do users.json
+    client_name = client_id
+    client_entry = users.get(f"__client__{client_id}", {})
+    if client_entry:
+        client_name = client_entry.get("name", client_id)
+
     users[username] = {
-        "password": generate_password_hash(password),
-        "role": "trusted",
-        "name": name
+        "password":    generate_password_hash(password),
+        "role":        "trusted",
+        "name":        name,
+        "client_id":   client_id or None,
+        "client_name": client_name
     }
     save_users(users)
     return redirect(f"/panel?msg=Pessoa+cadastrada:+{name}")
@@ -367,6 +478,33 @@ def admin_delete_trusted():
         return redirect("/panel?msg=Pessoa+removida")
 
     return redirect("/panel?err=Erro+ao+remover")
+
+@app.post("/panel/delete_client")
+def admin_delete_client():
+    """Remove um cliente e todos os seus trusted."""
+    redir = require_role("admin")
+    if redir:
+        return redir
+
+    client_id = request.form.get("client_id", "").strip()
+    if not client_id:
+        return redirect("/panel?err=Cliente+não+encontrado")
+
+    # Remove trusted do cliente
+    users = load_users()
+    to_remove = [u for u, info in users.items()
+                 if info.get("client_id") == client_id and info.get("role") == "trusted"]
+    for u in to_remove:
+        users.pop(u)
+    save_users(users)
+
+    # Remove entrada __client__ do users.json
+    client_key = f"__client__{client_id}"
+    if client_key in users:
+        users.pop(client_key)
+    save_users(users)
+
+    return redirect("/panel?msg=Cliente+removido")
 
 @app.get("/logout_admin")
 def logout_admin():
@@ -398,8 +536,10 @@ def trusted_login():
 
             if ok:
                 session.clear()
-                session["role"] = "trusted"
-                session["trusted"] = u
+                session["role"]        = "trusted"
+                session["trusted"]     = u
+                session["client_id"]   = info.get("client_id")
+                session["client_name"] = info.get("client_name", "")
                 return redirect("/trusted/panel")
 
         return render_template("login_trusted.html", error=True)
@@ -417,9 +557,15 @@ def trusted_panel():
         if not u:
             session.clear()
             return redirect("/trusted/login")
+
+        client_id    = session.get("client_id")
         display_name = users.get(u, {}).get("name") or u
-        alerts = get_all_alerts()[-10:]
-        return render_template("panel_trusted.html", display_name=display_name, alerts=alerts)
+        # Apenas alertas do cliente desta pessoa de confiança
+        alerts = get_alerts_for_client(client_id)[-10:]
+
+        return render_template("panel_trusted.html",
+                               display_name=display_name,
+                               alerts=alerts)
     except Exception as e:
         print(f"❌ trusted_panel error: {e}")
         session.clear()
@@ -430,47 +576,72 @@ def logout_trusted():
     session.clear()
     return redirect("/trusted/login")
 
-# ==========================================
-# START
-# ==========================================
+@app.route("/trusted/change_password", methods=["GET", "POST"])
+def trusted_change_password():
+    redir = require_role("trusted")
+    if redir:
+        return redir
 
+    if request.method == "POST":
+        users  = load_users()
+        u      = session.get("trusted")
+        old_pw = request.form.get("old_password", "")
+        new_pw = request.form.get("new_password", "")
+        confirm= request.form.get("confirm_password", "")
+
+        if new_pw != confirm:
+            return render_template("trusted_change_password.html", err="As senhas não coincidem.")
+        if len(new_pw) < 4:
+            return render_template("trusted_change_password.html", err="Senha muito curta.")
+
+        info   = users.get(u, {})
+        stored = info.get("password", "")
+        ok     = check_password_hash(stored, old_pw) if stored.startswith("pbkdf2:") or stored.startswith("scrypt:") else (stored == old_pw)
+
+        if not ok:
+            return render_template("trusted_change_password.html", err="Senha atual incorreta.")
+
+        users[u]["password"] = generate_password_hash(new_pw)
+        save_users(users)
+        return render_template("trusted_change_password.html", msg="Senha alterada com sucesso!")
+
+    return render_template("trusted_change_password.html")
+
+@app.route("/trusted/recover", methods=["GET", "POST"])
+def trusted_recover():
+    if request.method == "POST":
+        users = load_users()
+        u     = request.form.get("usuario", "").strip().lower()
+        nova  = request.form.get("nova_senha", "")
+
+        if len(nova) < 4:
+            return render_template("trusted_recover.html", err="Senha muito curta.")
+        if u not in users or users[u].get("role") != "trusted":
+            return render_template("trusted_recover.html", err="Usuário não encontrado.")
+
+        users[u]["password"] = generate_password_hash(nova)
+        save_users(users)
+        return render_template("trusted_recover.html", msg="Senha redefinida! Faça login.")
+
+    return render_template("trusted_recover.html")
 
 # ==========================================
-# DEBUG — TEMPORARY (remove after fixing login)
-# ==========================================
-
-@app.get("/debug/users")
-def debug_users():
-    """Shows registered users WITHOUT passwords — for troubleshooting only."""
-    users = load_users()
-    safe = {}
-    for u, info in users.items():
-        safe[u] = {
-            "name": info.get("name"),
-            "role": info.get("role"),
-            "password_type": "hashed" if str(info.get("password","")).startswith("pbkdf2:") or str(info.get("password","")).startswith("scrypt:") else "plaintext"
-        }
-    return jsonify(safe)
-
-
-# ==========================================
-# AURORA IA — Proxy para API Anthropic
+# AURORA IA — Proxy Anthropic
 # ==========================================
 
 @app.post("/api/aurora-ia")
 def aurora_ia_chat():
-    """Proxy the AI request server-side to avoid CORS issues in browser."""
     import urllib.request
     import json as _json
 
-    data = request.get_json(silent=True) or {}
+    data     = request.get_json(silent=True) or {}
     messages = data.get("messages", [])
     if not messages:
         return jsonify({"error": "No messages"}), 400
 
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
-        return jsonify({"reply": "Aurora IA não configurada. Defina a variável ANTHROPIC_API_KEY no servidor."}), 200
+        return jsonify({"reply": "Aurora IA não configurada. Defina ANTHROPIC_API_KEY no servidor."}), 200
 
     SYSTEM = (
         "Você é a Aurora IA, assistente virtual especializada em apoio a mulheres "
@@ -482,18 +653,18 @@ def aurora_ia_chat():
     )
 
     payload = _json.dumps({
-        "model": "claude-haiku-4-5-20251001",
+        "model":      "claude-haiku-4-5-20251001",
         "max_tokens": 800,
-        "system": SYSTEM,
-        "messages": messages[-20:]
+        "system":     SYSTEM,
+        "messages":   messages[-20:]
     }).encode("utf-8")
 
     req = urllib.request.Request(
         "https://api.anthropic.com/v1/messages",
         data=payload,
         headers={
-            "Content-Type": "application/json",
-            "x-api-key": api_key,
+            "Content-Type":      "application/json",
+            "x-api-key":         api_key,
             "anthropic-version": "2023-06-01"
         },
         method="POST"
@@ -502,92 +673,13 @@ def aurora_ia_chat():
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             result = _json.loads(resp.read().decode("utf-8"))
-            reply = result["content"][0]["text"]
-            return jsonify({"reply": reply})
+            return jsonify({"reply": result["content"][0]["text"]})
     except Exception as e:
         print(f"❌ Aurora IA error: {e}")
         return jsonify({"reply": "Sem conexão no momento. Ligue 180 ou 190 se precisar de ajuda urgente. 💜"}), 200
 
-
-
 # ==========================================
-# TRUSTED — CHANGE PASSWORD & RECOVER
-# ==========================================
-
-@app.route("/trusted/change_password", methods=["GET", "POST"])
-def trusted_change_password():
-    redir = require_role("trusted")
-    if redir:
-        return redir
-
-    if request.method == "POST":
-        users = load_users()
-        u = session.get("trusted")
-        old_pw = request.form.get("old_password", "")
-        new_pw = request.form.get("new_password", "")
-        confirm = request.form.get("confirm_password", "")
-
-        if new_pw != confirm:
-            return render_template("trusted_change_password.html", err="As senhas não coincidem.")
-
-        if len(new_pw) < 4:
-            return render_template("trusted_change_password.html", err="Senha muito curta (mínimo 4 caracteres).")
-
-        info = users.get(u, {})
-        stored = info.get("password", "")
-        ok = False
-        if stored.startswith("pbkdf2:") or stored.startswith("scrypt:"):
-            ok = check_password_hash(stored, old_pw)
-        else:
-            ok = (stored == old_pw)
-
-        if not ok:
-            return render_template("trusted_change_password.html", err="Senha atual incorreta.")
-
-        users[u]["password"] = generate_password_hash(new_pw)
-        save_users(users)
-        return render_template("trusted_change_password.html", msg="Senha alterada com sucesso!")
-
-    return render_template("trusted_change_password.html")
-
-
-@app.route("/trusted/recover", methods=["GET", "POST"])
-def trusted_recover():
-    if request.method == "POST":
-        users = load_users()
-        u = request.form.get("usuario", "").strip().lower()
-        nova = request.form.get("nova_senha", "")
-
-        if len(nova) < 4:
-            return render_template("trusted_recover.html", err="Senha muito curta.")
-
-        if u not in users or users[u].get("role") != "trusted":
-            return render_template("trusted_recover.html", err="Usuário não encontrado.")
-
-        users[u]["password"] = generate_password_hash(nova)
-        save_users(users)
-        return render_template("trusted_recover.html", msg="Senha redefinida! Faça login.")
-
-    return render_template("trusted_recover.html")
-
-
-# ==========================================
-# API — CLEAR ALERTS (admin only)
-# ==========================================
-
-@app.post("/api/clear_alerts")
-def api_clear_alerts():
-    if session.get("role") != "admin":
-        return jsonify({"ok": False, "error": "Não autorizado"}), 403
-    try:
-        ALERTS_FILE.write_text("", encoding="utf-8")
-        STATE_FILE.write_text('{"last_id": 0}', encoding="utf-8")
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
-
-# ==========================================
-# ROTAS ADICIONAIS (pagamentos, central, anual, recibo, confidant)
+# ROTAS ADICIONAIS
 # ==========================================
 
 @app.get("/pagamentos")
@@ -615,21 +707,23 @@ def anual():
 def panel_confidant():
     return render_template("panel_confidant.html")
 
-# ==========================================
-# AURORA IA — Assistente de apoio
-# ==========================================
-
 @app.get("/aurora-ia")
 @app.get("/ia")
 def aurora_ia():
     return render_template("aurora_ia.html")
 
+# /debug/users removido por segurança em produção
+
+# ==========================================
+# START
+# ==========================================
+
 if __name__ == "__main__":
     ensure_files()
     print("=" * 60)
-    print("🌸 AURORA MULHER SEGURA v3.1 — CORRIGIDA")
+    print("🌸 AURORA MULHER SEGURA v3.2 — MULTI-CLIENTE")
     print("=" * 60)
     print("🚀 http://localhost:5000")
-    print("🔐 Admin: admin / admin123 (senha será atualizada ao logar)")
+    print("🔐 Admin: admin / admin123")
     print("=" * 60)
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)

@@ -78,7 +78,7 @@
         }
     </style>
 </head>
-<body>
+<body data-client-id="{{ client_id }}">
     <div class="aurora-bg">
         <div class="center-wrap">
             <div class="aurora-card">
@@ -218,6 +218,7 @@
         function updateMarker(lat, lng, accuracy) {
             initMap(lat, lng);
             document.getElementById('map').classList.add('active');
+            if (map) { setTimeout(() => map.invalidateSize(), 100); }
             
             if (marker) {
                 map.removeLayer(marker);
@@ -240,13 +241,41 @@
             coordsDiv.textContent = `Latitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}`;
             accuracyDiv.textContent = `Precisão: ±${Math.round(accuracy)} metros`;
             mapsLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
+            mapsLink.style.display = 'inline-block';
             
             updateMarker(lat, lng, accuracy);
         }
 
+        let sirenPending = false;
+
+        // Desbloquear áudio na primeira interação do usuário
+        document.addEventListener('click', function() {
+            if (sirenPending) {
+                playSiren();
+                sirenPending = false;
+            }
+        }, { once: false });
+
         async function loadAlerts() {
             try {
-                const response = await fetch('/api/alerts');
+                const clientId = document.body.dataset.clientId || '';
+                const url = clientId ? '/api/alerts?token=' + clientId : '/api/alerts';
+                const response = await fetch(url, {credentials: 'include'});
+
+                // Verifica se resposta é JSON válido (não redirect para login)
+                const contentType = response.headers.get('content-type') || '';
+                if (!response.ok || !contentType.includes('application/json')) {
+                    // Sessão expirou ou erro no servidor
+                    if (response.status === 401 || response.status === 302 || response.redirected) {
+                        console.warn('⚠️ Sessão expirada, recarregando...');
+                        setTimeout(() => location.reload(), 2000);
+                        return;
+                    }
+                    const text = await response.text();
+                    console.warn('Resposta não-JSON:', response.status, text.slice(0, 100));
+                    return;
+                }
+
                 const alerts = await response.json();
                 
                 if (alerts && alerts.length > 0) {
@@ -281,7 +310,19 @@
                             document.getElementById('mapsLink').style.display = 'none';
                         }
                         
-                        playSiren();
+                        // Tenta tocar sirene; se browser bloquear, marca pendente
+                        const audio = document.getElementById('sirenAudio');
+                        audio.play().then(() => {
+                            sirenPlaying = true;
+                            document.getElementById('sirenBtn').classList.add('active');
+                            sirenPending = false;
+                        }).catch(() => {
+                            sirenPending = true;
+                            // Pulsa o botão visualmente mesmo sem som
+                            document.getElementById('sirenBtn').classList.add('active');
+                            document.getElementById('noAlerts').textContent = '🔔 CLIQUE NA TELA PARA ATIVAR O SOM!';
+                            document.getElementById('noAlerts').style.display = 'block';
+                        });
                     }
                 }
             } catch (error) {
@@ -289,10 +330,28 @@
             }
         }
 
-        // Carregar alertas a cada 3 segundos
+        // Carregar alertas a cada 3 segundos com controle de erros
+        let pollingInterval = null;
+        let errorCount = 0;
+
+        async function loadAlertsWithRetry() {
+            try {
+                await loadAlerts();
+                errorCount = 0;
+            } catch(e) {
+                errorCount++;
+                // Se 5 erros seguidos, aumenta intervalo para 10s
+                if (errorCount >= 5 && pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = setInterval(loadAlertsWithRetry, 10000);
+                    console.warn('⚠️ Muitos erros, reduzindo frequência de polling');
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            loadAlerts();
-            setInterval(loadAlerts, 3000);
+            loadAlertsWithRetry();
+            pollingInterval = setInterval(loadAlertsWithRetry, 3000);
         });
     </script>
 </body>

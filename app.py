@@ -117,11 +117,11 @@ def get_all_alerts():
         return []
 
 def get_alerts_for_client(client_id):
-    """Retorna apenas os alertas do cliente específico."""
+    """Retorna alertas do cliente específico + alertas sem client_id (disparados sem login)."""
     all_alerts = get_all_alerts()
     if client_id is None:
         return all_alerts  # admin vê tudo
-    return [a for a in all_alerts if a.get("client_id") == client_id]
+    return [a for a in all_alerts if a.get("client_id") == client_id or a.get("client_id") is None]
 
 def require_role(role):
     if session.get("role") != role:

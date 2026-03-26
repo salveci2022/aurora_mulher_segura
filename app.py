@@ -266,16 +266,31 @@ def send_alert():
 @app.get("/api/alerts")
 def api_alerts():
     """Admin vê tudo. Trusted vê só do seu cliente."""
-    role = session.get("role")
-    token = request.args.get("token", "").strip()
+    role      = session.get("role")
+    token     = request.args.get("token", "").strip()
+    client_id = None
+
     if token:
-        return jsonify(get_alerts_for_client(token))
-    if role == "trusted":
+        # Token passado via URL — funciona mesmo sem sessão ativa
+        client_id = token
+    elif role == "trusted":
         client_id = session.get("client_id")
-        return jsonify(get_alerts_for_client(client_id))
-    if role == "admin":
-        return jsonify(get_all_alerts())
-    return jsonify([])
+    elif role == "admin":
+        alerts = get_all_alerts()
+        resp = jsonify(alerts)
+        resp.headers["Content-Type"] = "application/json"
+        return resp
+
+    if client_id is None:
+        # Sem sessão e sem token: retorna JSON vazio (nunca redireciona)
+        resp = jsonify([])
+        resp.headers["Content-Type"] = "application/json"
+        return resp, 200
+
+    alerts = get_alerts_for_client(client_id)
+    resp = jsonify(alerts)
+    resp.headers["Content-Type"] = "application/json"
+    return resp
 
 @app.get("/api/last_alert")
 def api_last_alert():
@@ -586,7 +601,8 @@ def trusted_panel():
 
         return render_template("panel_trusted.html",
                                display_name=display_name,
-                               alerts=alerts)
+                               alerts=alerts,
+                               client_id=client_id or "")
     except Exception as e:
         print(f"❌ trusted_panel error: {e}")
         session.clear()

@@ -20,9 +20,25 @@ except Exception:
     TZ = None
 
 BASE_DIR = Path(__file__).resolve().parent
-USERS_FILE  = BASE_DIR / "users.json"
-ALERTS_FILE = BASE_DIR / "alerts.log"
-STATE_FILE  = BASE_DIR / "state.json"
+
+# No Render.com, usar /tmp para evitar perda de dados entre deploys
+# (ou melhor ainda, usar pasta persistente se disponível)
+_DATA_DIR = Path(os.environ.get("RENDER_DATA_DIR", str(BASE_DIR)))
+if not _DATA_DIR.exists():
+    _DATA_DIR = Path("/tmp")
+
+USERS_FILE  = _DATA_DIR / "users.json"
+ALERTS_FILE = _DATA_DIR / "alerts.log"
+STATE_FILE  = _DATA_DIR / "state.json"
+
+# Fallback: se _DATA_DIR não for gravável, usa BASE_DIR
+try:
+    ALERTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    ALERTS_FILE.touch(exist_ok=True)
+except Exception:
+    USERS_FILE  = BASE_DIR / "users.json"
+    ALERTS_FILE = BASE_DIR / "alerts.log"
+    STATE_FILE  = BASE_DIR / "state.json"
 
 app = Flask(__name__)
 _default_key = "aurora-local-dev-key-2026-change-in-production"
@@ -251,10 +267,15 @@ def send_alert():
 def api_alerts():
     """Admin vê tudo. Trusted vê só do seu cliente."""
     role = session.get("role")
+    token = request.args.get("token", "").strip()
+    if token:
+        return jsonify(get_alerts_for_client(token))
     if role == "trusted":
         client_id = session.get("client_id")
         return jsonify(get_alerts_for_client(client_id))
-    return jsonify(get_all_alerts())
+    if role == "admin":
+        return jsonify(get_all_alerts())
+    return jsonify([])
 
 @app.get("/api/last_alert")
 def api_last_alert():

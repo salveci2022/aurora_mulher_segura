@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0014">
+    <title>Sem Conexão · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .offline-icon {
+            font-size: 64px;
+            text-align: center;
+            margin: 30px 0 20px;
+        }
+        .retry-btn {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">🌸</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Mulher Segura</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="offline-icon">📴</div>
+
+                    <h1 class="h1">SEM CONEXÃO</h1>
+                    <p class="center muted">Você está offline no momento.</p>
+
+                    <div class="alert center" style="margin-top: 14px;">
+                        ⚠️ O Aurora precisa de internet para enviar alertas às pessoas de confiança.
+                    </div>
+
+                    <div class="info-box" style="margin-top: 14px;">
+                        <p class="small muted">
+                            📞 <strong>Sem internet? Use os números de emergência:</strong><br><br>
+                            🚓 Polícia: <strong>190</strong><br>
+                            🚑 SAMU: <strong>192</strong><br>
+                            👩 Central da Mulher: <strong>180</strong><br>
+                            🔥 Bombeiros: <strong>193</strong>
+                        </p>
+                    </div>
+
+                    <button class="btn btn-primary retry-btn" onclick="window.location.reload()">
+                        🔄 TENTAR NOVAMENTE
+                    </button>
+
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

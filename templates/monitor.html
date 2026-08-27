@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#F43F5E">
+<title>Aurora — Monitorando {{ client_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Sora',sans-serif; background:#FAFAFA; color:#0F172A; }
+
+  /* OVERLAY SOS */
+  .sos-overlay {
+    display:none; position:fixed; inset:0; z-index:999;
+    background:#E11D48; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center; padding:32px;
+    animation:pulseRed .6s ease-in-out infinite alternate;
+  }
+  .sos-overlay.show { display:flex; }
+  @keyframes pulseRed { from{background:#E11D48} to{background:#9F1239} }
+  .sos-icon { font-size:80px; margin-bottom:16px; animation:shake .3s ease infinite; }
+  @keyframes shake { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+  .sos-titulo { font-size:40px; font-weight:900; color:white; margin-bottom:8px; }
+  .sos-sit { font-size:22px; font-weight:700; color:white; margin-bottom:6px; }
+  .sos-nome { font-size:16px; color:rgba(255,255,255,.85); margin-bottom:6px; }
+  .sos-ts { font-size:13px; color:rgba(255,255,255,.7); margin-bottom:28px; }
+  .btn-mapa {
+    display:block; background:white; color:#E11D48;
+    padding:16px 36px; border-radius:50px;
+    font-size:18px; font-weight:800; margin-bottom:14px;
+    text-decoration:none;
+  }
+  .btn-fechar {
+    background:rgba(255,255,255,.2); color:white;
+    border:2px solid rgba(255,255,255,.4);
+    padding:12px 28px; border-radius:50px;
+    font-size:15px; font-weight:600; cursor:pointer;
+  }
+
+  /* HEADER */
+  .header {
+    background:white; border-bottom:1px solid #E2E8F0;
+    padding:14px 20px; display:flex; align-items:center;
+    justify-content:space-between; position:sticky; top:0; z-index:10;
+  }
+  .header-logo { display:flex; align-items:center; gap:10px; }
+  .header-logo img { width:36px; height:36px; border-radius:10px; }
+  .header-title { font-size:17px; font-weight:800; color:#E11D48; }
+
+  /* STATUS */
+  .status {
+    margin:14px 20px; padding:12px 16px; border-radius:12px;
+    font-size:13px; font-weight:600;
+    display:flex; align-items:center; gap:8px;
+  }
+  .status.ok { background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; }
+  .status.wait { background:#FFF7ED; color:#C2410C; border:1px solid #FED7AA; }
+  .status-dot { width:8px; height:8px; border-radius:50%; background:currentColor; animation:blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* CLIENTE */
+  .cliente-card {
+    margin:0 20px 16px; background:#FFF1F2;
+    border:1.5px solid #FFE4E6; border-radius:16px; padding:16px;
+  }
+  .cliente-nome { font-size:18px; font-weight:800; color:#E11D48; margin-bottom:4px; }
+  .cliente-sub { font-size:13px; color:#64748B; }
+
+  /* ALERTAS */
+  .section-label {
+    font-size:11px; font-weight:800; letter-spacing:1px;
+    text-transform:uppercase; color:#94A3B8;
+    padding:0 20px; margin-bottom:10px;
+  }
+  .lista { padding:0 20px 40px; display:flex; flex-direction:column; gap:10px; }
+  .alerta-item {
+    background:white; border:1px solid #E2E8F0;
+    border-left:4px solid #E11D48; border-radius:12px; padding:14px;
+  }
+  .alerta-sit { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .alerta-ts { font-size:12px; color:#94A3B8; margin-bottom:6px; }
+  .alerta-mapa { font-size:13px; color:#0D9488; font-weight:600; text-decoration:none; }
+  .empty { text-align:center; padding:60px 20px; color:#94A3B8; }
+  .empty-icon { font-size:48px; margin-bottom:12px; }
+  .novo-badge {
+    display:none; margin:0 20px 12px;
+    background:#E11D48; color:white;
+    padding:10px 16px; border-radius:10px;
+    font-size:14px; font-weight:700;
+  }
+  .novo-badge.show { display:block; }
+</style>
+</head>
+<body>
+
+<!-- Overlay SOS -->
+<div class="sos-overlay" id="overlay">
+  <div class="sos-icon">🚨</div>
+  <div class="sos-titulo">ALERTA SOS!</div>
+  <div class="sos-sit" id="ovSit"></div>
+  <div class="sos-nome" id="ovNome"></div>
+  <div class="sos-ts" id="ovTs"></div>
+  <a class="btn-mapa" id="ovMapa" href="#" target="_blank">📍 Ver localização no mapa</a>
+  <button class="btn-fechar" onclick="fechar()">✓ Entendi — fechar</button>
+</div>
+
+<!-- Áudio sirene -->
+<audio id="sirene" src="/static/audio/sirene.mp3" loop></audio>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">
+    <img src="/static/img/logo.png" alt="Aurora" onerror="this.style.display='none'">
+    <span class="header-title">Aurora</span>
+  </div>
+  <span style="font-size:12px;color:#94A3B8;">Monitorando</span>
+</div>
+
+<!-- Status -->
+<div class="status wait" id="status">
+  <div class="status-dot"></div>
+  <span id="statusTxt">Iniciando monitoramento...</span>
+</div>
+
+<!-- Cliente -->
+<div class="cliente-card">
+  <div class="cliente-nome">💜 {{ client_name or "Sua protegida" }}</div>
+  <div class="cliente-sub">Sirene tocará automaticamente quando ela acionar o SOS</div>
+</div>
+
+<!-- Badge -->
+<div class="novo-badge" id="novoBadge">🚨 Novo alerta SOS recebido!</div>
+
+<!-- Lista -->
+<div class="section-label">Alertas recentes</div>
+<div class="lista" id="lista">
+  {% if alerts %}
+    {% for a in alerts %}
+    <div class="alerta-item">
+      <div class="alerta-sit">⚠️ {{ a.situation }}</div>
+      <div class="alerta-ts">🕐 {{ a.ts }} · #{{ a.id }}</div>
+      {% if a.lat and a.lng %}
+      <a class="alerta-mapa" href="https://www.google.com/maps?q={{ a.lat }},{{ a.lng }}" target="_blank">📍 Abrir localização →</a>
+      {% else %}
+      <span style="font-size:13px;color:#94A3B8;">📍 GPS não disponível</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="empty" id="empty">
+    <div class="empty-icon">✅</div>
+    <div style="font-weight:700;margin-bottom:4px;">Nenhum alerta ainda</div>
+    <div style="font-size:14px;">A sirene tocará quando ela acionar o SOS</div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+const CLIENT_ID = "{{ client_id }}";
+let ultimoId = {{ alerts[0].id if alerts else 0 }};
+let ativo = true;
+
+// Status OK após 2s
+setTimeout(function() {
+  document.getElementById('status').className = 'status ok';
+  document.getElementById('statusTxt').textContent = '✅ Monitoramento ativo — verificando a cada 3 segundos';
+}, 2000);
+
+// Polling a cada 3 segundos
+async function verificar() {
+  if (!ativo) return;
+  try {
+    const r = await fetch('/api/ultimo_alerta/' + CLIENT_ID);
+    const d = await r.json();
+    if (d.ok && d.alerta && d.alerta.id > ultimoId) {
+      ultimoId = d.alerta.id;
+      receberAlerta(d.alerta);
+    }
+  } catch(e) {
+    document.getElementById('status').className = 'status wait';
+    document.getElementById('statusTxt').textContent = '⚠️ Reconectando...';
+    setTimeout(function() {
+      document.getElementById('status').className = 'status ok';
+      document.getElementById('statusTxt').textContent = '✅ Monitoramento ativo';
+    }, 3000);
+  }
+  setTimeout(verificar, 3000);
+}
+
+function receberAlerta(d) {
+  // Sirene
+  const s = document.getElementById('sirene');
+  s.play().catch(function() {});
+
+  // Vibração
+  if (navigator.vibrate) navigator.vibrate([500,200,500,200,500]);
+
+  // Overlay vermelho
+  document.getElementById('ovSit').textContent = '⚠️ ' + (d.situation || 'Emergência');
+  document.getElementById('ovNome').textContent = '👤 ' + (d.name || 'Usuária Aurora');
+  document.getElementById('ovTs').textContent = '🕐 ' + (d.ts || '');
+  const mapa = document.getElementById('ovMapa');
+  if (d.lat && d.lng) {
+    mapa.href = 'https://www.google.com/maps?q=' + d.lat + ',' + d.lng;
+    mapa.style.display = 'block';
+  } else {
+    mapa.style.display = 'none';
+  }
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('novoBadge').classList.add('show');
+
+  // Adicionar na lista
+  const empty = document.getElementById('empty');
+  if (empty) empty.remove();
+  const lista = document.getElementById('lista');
+  const div = document.createElement('div');
+  div.className = 'alerta-item';
+  div.innerHTML =
+    '<div class="alerta-sit">⚠️ ' + (d.situation||'Emergência') + '</div>' +
+    '<div class="alerta-ts">🕐 ' + (d.ts||'') + ' · #' + (d.id||'') + '</div>' +
+    (d.lat && d.lng
+      ? '<a class="alerta-mapa" href="https://www.google.com/maps?q='+d.lat+','+d.lng+'" target="_blank">📍 Abrir localização →</a>'
+      : '<span style="font-size:13px;color:#94A3B8;">📍 GPS não disponível</span>');
+  lista.insertBefore(div, lista.firstChild);
+
+  // Notificação
+  if (Notification.permission === 'granted') {
+    new Notification('🚨 SOS Aurora', {
+      body: (d.name||'Usuária') + ' — ' + (d.situation||'Emergência'),
+      icon: '/static/img/logo.png', requireInteraction: true
+    });
+  }
+}
+
+function fechar() {
+  document.getElementById('overlay').classList.remove('show');
+  const s = document.getElementById('sirene');
+  s.pause(); s.currentTime = 0;
+}
+
+// Pedir notificação
+if (Notification.permission === 'default') Notification.requestPermission();
+
+// Manter tela acesa
+if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(function(){});
+
+// Iniciar polling
+setTimeout(verificar, 2000);
+</script>
+</body>
+</html>

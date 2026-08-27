@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% block title %}SOS — Aurora Mulher Segura{% endblock %}
+{% block extra_head %}
+<style>
+  body { background: #fff; }
+  .panic-page {
+    min-height: 100dvh;
+    display: flex; flex-direction: column;
+    background: linear-gradient(180deg, #FFF1F2 0%, #FFFFFF 60%);
+  }
+
+  /* Header */
+  .panic-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    padding-top: calc(16px + env(safe-area-inset-top));
+  }
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--text-m); font-size: 14px; font-weight: 500;
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 8px 14px; border-radius: 50px;
+  }
+  .status-chip {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600;
+    color: var(--teal); background: #F0FDF4;
+    border: 1px solid #BBF7D0; border-radius: 50px;
+    padding: 6px 12px;
+  }
+  .status-dot {
+    width: 6px; height: 6px; background: var(--teal);
+    border-radius: 50%; animation: blink 1.5s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* Main content */
+  .panic-content {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; padding: 0 24px 120px;
+  }
+
+  /* Situation chips */
+  .situation-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .8px;
+    text-transform: uppercase; color: var(--text-l);
+    margin-bottom: 10px; margin-top: 32px; align-self: flex-start;
+    width: 100%;
+  }
+  .chips-row {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    width: 100%; margin-bottom: 32px;
+  }
+  .chip {
+    background: white; border: 1.5px solid var(--border);
+    border-radius: 50px; padding: 8px 14px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all .15s;
+    color: var(--text-m);
+  }
+  .chip:hover, .chip.active {
+    background: var(--rose-xl);
+    border-color: var(--rose);
+    color: var(--rose-d);
+    font-weight: 600;
+  }
+
+  /* SOS Button */
+  .sos-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 16px;
+    margin-bottom: 32px;
+  }
+  .sos-ring {
+    position: relative;
+    width: 200px; height: 200px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sos-ring-pulse {
+    position: absolute; inset: -16px;
+    border-radius: 50%;
+    background: rgba(244,63,94,.12);
+    animation: ringPulse 2s ease-out infinite;
+  }
+  .sos-ring-pulse2 {
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    background: rgba(244,63,94,.08);
+    animation: ringPulse 2s .5s ease-out infinite;
+  }
+  @keyframes ringPulse {
+    0% { transform: scale(1); opacity: .8; }
+    100% { transform: scale(1.3); opacity: 0; }
+  }
+  .sos-btn {
+    width: 180px; height: 180px; border-radius: 50%;
+    background: linear-gradient(145deg, #F43F5E, #E11D48);
+    color: white; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+    box-shadow: 0 8px 40px rgba(244,63,94,.5), 0 2px 8px rgba(0,0,0,.15);
+    cursor: pointer; user-select: none;
+    transition: all .15s;
+    border: none;
+    position: relative; z-index: 1;
+  }
+  .sos-btn:active { transform: scale(.95); box-shadow: 0 4px 20px rgba(244,63,94,.4); }
+  .sos-icon { font-size: 40px; line-height: 1; }
+  .sos-text { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .sos-hint { font-size: 11px; opacity: .8; font-weight: 500; }
+
+  /* Sending state */
+  .sos-btn.sending {
+    background: linear-gradient(145deg, #F97316, #EA580C);
+    animation: sending-pulse .6s ease-in-out infinite alternate;
+  }
+  @keyframes sending-pulse {
+    from { box-shadow: 0 8px 40px rgba(249,115,22,.4); }
+    to { box-shadow: 0 8px 60px rgba(249,115,22,.7); }
+  }
+  .sos-btn.sent {
+    background: linear-gradient(145deg, #10B981, #059669);
+    animation: none;
+    box-shadow: 0 8px 40px rgba(16,185,129,.4);
+  }
+
+  /* Location */
+  .location-card {
+    width: 100%;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    padding: 16px;
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .location-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--rose-xl); color: var(--rose-d);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .location-text { flex: 1; }
+  .location-label { font-size: 11px; font-weight: 700; color: var(--text-l); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
+  .location-value { font-size: 13px; color: var(--text-m); font-weight: 500; }
+
+  /* Quick links */
+  .quick-links { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .quick-link {
+    background: white; border: 1.5px solid var(--border);
+    border-radius: var(--r-sm); padding: 14px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 500; color: var(--text-m);
+    transition: all .15s;
+  }
+  .quick-link:hover { border-color: var(--rose); color: var(--rose-d); }
+  .quick-link span { font-size: 20px; }
+
+  /* Success overlay */
+  .success-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(16,185,129,.97);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: white; text-align: center; padding: 40px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s;
+  }
+  .success-overlay.show { opacity: 1; pointer-events: all; }
+  .success-check { font-size: 80px; margin-bottom: 20px; }
+  .success-title { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+  .success-sub { font-size: 16px; opacity: .9; margin-bottom: 32px; line-height: 1.5; }
+  .success-id { background: rgba(255,255,255,.2); padding: 10px 20px; border-radius: 50px; font-weight: 700; margin-bottom: 32px; }
+</style>
+{% endblock %}
+{% block body %}
+<div class="panic-page">
+  <!-- Header -->
+  <div class="panic-header">
+    <a href="/" class="back-btn">← Início</a>
+    <div class="status-chip">
+      <div class="status-dot"></div>
+      Protegida
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="panic-content">
+    <!-- Situation -->
+    <div class="situation-label">O que está acontecendo?</div>
+    <div class="chips-row" id="chipsRow">
+      <div class="chip active" data-value="Assédio">😰 Assédio</div>
+      <div class="chip" data-value="Violência">🚨 Violência</div>
+      <div class="chip" data-value="Perseguição">👁️ Perseguição</div>
+      <div class="chip" data-value="Emergência médica">🏥 Emergência médica</div>
+      <div class="chip" data-value="Local suspeito">⚠️ Local suspeito</div>
+      <div class="chip" data-value="Outro">❓ Outro</div>
+    </div>
+
+    <!-- SOS Button -->
+    <div class="sos-wrap">
+      <div class="sos-ring">
+        <div class="sos-ring-pulse"></div>
+        <div class="sos-ring-pulse2"></div>
+        <button class="sos-btn" id="sosBtn" onclick="enviarSOS()">
+          <div class="sos-icon">🛡️</div>
+          <div class="sos-text">SOS</div>
+          <div class="sos-hint">TOQUE PARA PEDIR AJUDA</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Location -->
+    <div class="location-card">
+      <div class="location-icon">📍</div>
+      <div class="location-text">
+        <div class="location-label">Sua localização GPS</div>
+        <div class="location-value" id="locationText">Obtendo localização...</div>
+      </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="quick-links">
+      <a href="/aurora-ia" class="quick-link">
+        <span>🤖</span> Aurora IA
+      </a>
+      <a href="tel:190" class="quick-link">
+        <span>🚔</span> Ligar 190
+      </a>
+      <a href="tel:180" class="quick-link">
+        <span>📞</span> Ligue 180
+      </a>
+      <button class="quick-link" onclick="abrirConfig()" style="background:var(--bg);border:1.5px solid var(--border);cursor:pointer;">
+        <span>⚙️</span> Meu ID
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Config Modal -->
+<div id="configModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;">
+  <div style="background:white;border-radius:24px 24px 0 0;padding:28px 24px;width:100%;max-width:480px;margin:0 auto;">
+    <div style="font-size:18px;font-weight:800;margin-bottom:8px;">⚙️ Meu ID de Cliente</div>
+    <div style="font-size:13px;color:#64748B;margin-bottom:16px;">Cole o ID que você recebeu ao contratar o Aurora. Necessário para alertar seus contatos de confiança.</div>
+    <input id="inputClientId" placeholder="Ex: 2810c2a893b5a726"
+      style="width:100%;padding:12px 16px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:8px;">
+    <input id="inputNome" placeholder="Seu nome (ex: Maria Helena)"
+      style="width:100%;padding:12px 16px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:15px;font-family:inherit;margin-bottom:16px;">
+    <button onclick="salvarConfig()" style="width:100%;background:#F43F5E;color:white;border:none;padding:14px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+      💾 Salvar
+    </button>
+    <button onclick="fecharConfig()" style="width:100%;background:#F8FAFC;border:1px solid #E2E8F0;padding:12px;border-radius:50px;font-size:14px;cursor:pointer;">
+      Cancelar
+    </button>
+  </div>
+</div>
+
+<!-- Success Overlay -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-check">✅</div>
+  <div class="success-title">Alerta enviado!</div>
+  <div class="success-sub">Seus contatos foram notificados<br>com sua localização.</div>
+  <div class="success-id" id="alertIdBadge">Alerta #--</div>
+  <button class="btn btn-secondary" style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);color:white;max-width:280px;" onclick="fecharSuccess()">
+    Fechar
+  </button>
+</div>
+
+<script>
+  let situacao = 'Assédio';
+  let coords = null;
+
+  // Chips
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      situacao = c.dataset.value;
+    });
+  });
+
+  // GPS
+  function getLocation() {
+    if (!navigator.geolocation) {
+      document.getElementById('locationText').textContent = 'GPS não disponível';
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        coords = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+        const acc = Math.round(pos.coords.accuracy);
+        document.getElementById('locationText').textContent =
+          `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} (±${acc}m)`;
+      },
+      err => {
+        document.getElementById('locationText').textContent = 'Localização não disponível';
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+  getLocation();
+
+  // Client ID
+  const clientId = localStorage.getItem('aurora_client_id') || '';
+
+  // Enviar SOS
+  async function enviarSOS() {
+    const btn = document.getElementById('sosBtn');
+    if (btn.classList.contains('sending')) return;
+
+    btn.classList.add('sending');
+    btn.innerHTML = '<div class="spinner"></div><div class="sos-text" style="font-size:14px;margin-top:6px;">Enviando...</div>';
+
+    try {
+      const res = await fetch('/api/sos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: localStorage.getItem('aurora_name') || 'Usuária Aurora',
+          situation: situacao,
+          client_id: clientId,
+          location: coords
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        btn.classList.remove('sending');
+        btn.classList.add('sent');
+        btn.innerHTML = '<div class="sos-icon">✅</div><div class="sos-text" style="font-size:14px;">ENVIADO</div>';
+        document.getElementById('alertIdBadge').textContent = `Alerta #${data.id}`;
+        document.getElementById('successOverlay').classList.add('show');
+        // Vibrar
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      }
+    } catch(e) {
+      btn.classList.remove('sending');
+      btn.innerHTML = '<div class="sos-icon">🛡️</div><div class="sos-text">SOS</div><div class="sos-hint">TOQUE PARA PEDIR AJUDA</div>';
+      alert('Erro ao enviar. Ligue 190 ou 180 diretamente.');
+    }
+  }
+
+  // Config
+  function abrirConfig() {
+    document.getElementById('inputClientId').value = localStorage.getItem('aurora_client_id') || '';
+    document.getElementById('inputNome').value = localStorage.getItem('aurora_name') || '';
+    document.getElementById('configModal').style.display = 'flex';
+  }
+  function fecharConfig() {
+    document.getElementById('configModal').style.display = 'none';
+  }
+  function salvarConfig() {
+    const cid = document.getElementById('inputClientId').value.trim();
+    const nome = document.getElementById('inputNome').value.trim();
+    if (cid) localStorage.setItem('aurora_client_id', cid);
+    if (nome) localStorage.setItem('aurora_name', nome);
+    fecharConfig();
+    alert('ID salvo! Agora o SOS vai alertar seus contatos de confiança.');
+  }
+
+  // Mostrar config na primeira vez
+  window.addEventListener('load', function() {
+    if (!localStorage.getItem('aurora_client_id')) {
+      setTimeout(abrirConfig, 1000);
+    }
+  });
+
+  function fecharSuccess() {
+    document.getElementById('successOverlay').classList.remove('show');
+    const btn = document.getElementById('sosBtn');
+    btn.classList.remove('sent');
+    btn.innerHTML = '<div class="sos-icon">🛡️</div><div class="sos-text">SOS</div><div class="sos-hint">TOQUE PARA PEDIR AJUDA</div>';
+  }
+</script>
+{% endblock %}

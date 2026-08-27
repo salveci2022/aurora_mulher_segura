@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin:14px 0; }
+        .stat-card { background:rgba(40,0,60,0.35); border:1px solid rgba(255,98,212,0.22); border-radius:14px; padding:14px; text-align:center; }
+        .stat-value { font-size:32px; font-weight:900; color:var(--hot); margin-bottom:4px; }
+        .stat-label { font-size:12px; color:var(--muted); }
+        .card { background:rgba(40,0,60,0.35); border:1px solid rgba(255,98,212,0.22); border-radius:14px; padding:14px; margin:14px 0; }
+        .card h3 { margin:0 0 14px 0; color:var(--hot); font-size:16px; }
+        .alert-item { background:rgba(10,0,20,0.45); border:1px solid rgba(255,98,212,0.22); border-radius:12px; padding:10px; margin:8px 0; }
+        .trusted-item { background:rgba(10,0,20,0.45); border:1px solid rgba(255,98,212,0.22); border-radius:12px; padding:10px; margin:6px 0; }
+        .btn-danger { background:rgba(244,67,54,0.2); border:1px solid rgba(244,67,54,0.4); color:#f44336; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; }
+        .btn-danger:hover { background:rgba(244,67,54,0.3); }
+        .btn-warning { background:rgba(255,152,0,0.2); border:1px solid rgba(255,152,0,0.4); color:#ff9800; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; }
+        .btn-warning:hover { background:rgba(255,152,0,0.3); }
+        .client-card { background:rgba(10,0,20,0.55); border:1px solid rgba(255,98,212,0.28); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+        .client-id-badge { display:inline-block; background:rgba(164,92,255,0.2); border:1px solid rgba(164,92,255,0.4); border-radius:6px; padding:2px 8px; font-size:10px; color:#ce93d8; font-family:monospace; margin-left:8px; }
+        .copy-btn { background:rgba(164,92,255,0.2); border:1px solid rgba(164,92,255,0.4); border-radius:8px; padding:4px 10px; color:#ce93d8; font-size:11px; cursor:pointer; }
+        .select-input { width:100%; border-radius:14px; padding:11px 12px; border:1px solid rgba(255,98,212,0.30); outline:none; background:rgba(10,0,20,0.55); color:var(--text); font-size:14px; margin-bottom:8px; }
+        .reset-form { display:none; background:rgba(255,152,0,0.08); border:1px solid rgba(255,152,0,0.3); border-radius:10px; padding:10px; margin-top:8px; }
+        .reset-form.open { display:block; }
+        .msg-ok { background:rgba(76,175,80,0.15); border:1px solid rgba(76,175,80,0.4); border-radius:10px; padding:10px; margin:10px 0; color:#81c784; font-size:13px; text-align:center; }
+        .msg-err { background:rgba(244,67,54,0.15); border:1px solid rgba(244,67,54,0.4); border-radius:10px; padding:10px; margin:10px 0; color:#ef9a9a; font-size:13px; text-align:center; }
+        .section-sep { border:none; border-top:1px solid rgba(255,98,212,0.18); margin:14px 0; }
+    </style>
+</head>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap" style="max-width:900px;">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">⚙️</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Painel Admin</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/logout" class="pill">🚪 Sair</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">⚙️ PAINEL ADMINISTRATIVO</h1>
+                    <p class="center muted">Gerenciamento do sistema</p>
+
+                    {% if request.args.get('msg') %}
+                    <div class="msg-ok">✅ {{ request.args.get('msg').replace('+', ' ') }}</div>
+                    {% endif %}
+                    {% if request.args.get('err') %}
+                    <div class="msg-err">❌ {{ request.args.get('err').replace('+', ' ') }}</div>
+                    {% endif %}
+
+                    <!-- ESTATÍSTICAS -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.total }}</div>
+                            <div class="stat-label">Total de Alertas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.today }}</div>
+                            <div class="stat-label">Alertas Hoje</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.with_location }}</div>
+                            <div class="stat-label">Com Localização</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.trusted }}</div>
+                            <div class="stat-label">Pessoas de Confiança</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">{{ stats.clients }}</div>
+                            <div class="stat-label">Clientes</div>
+                        </div>
+                    </div>
+
+                    <!-- CLIENTES -->
+                    <div class="card">
+                        <h3>👩 Clientes Cadastradas</h3>
+                        {% if clients %}
+                            {% for cid, cdata in clients.items() %}
+                            <div class="client-card">
+                                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                                    <div>
+                                        <strong style="color:var(--hot);">{{ cdata.name }}</strong>
+                                        <span class="client-id-badge">{{ cid }}</span>
+                                    </div>
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                        <span class="copy-btn" style="opacity:.5;cursor:not-allowed;" title="Ainda não implementado">📦 Kit</span>
+                                        <button class="copy-btn" onclick="copiar('{{ cid }}')">📋 ID</button>
+                                        <button class="btn-danger" style="padding:4px 10px;font-size:11px;"
+                                            onclick="excluirCliente('{{ cid }}', '{{ cdata.name }}')">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="small muted" style="margin-top:6px;">
+                                    👥 Usuários: {{ cdata.users | join(', ') or 'Nenhum' }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="center muted small">Nenhuma cliente cadastrada ainda.</p>
+                        {% endif %}
+
+                        <hr class="section-sep">
+                        <form id="form-add-client">
+                            <label class="label">➕ Nova Cliente</label>
+                            <input type="text" name="client_name" class="input" placeholder="Nome da cliente (ex: Maria Silva)" required>
+                            <button type="submit" class="btn btn-primary">👩 CRIAR CLIENTE</button>
+                        </form>
+                        <div id="msg-add-client"></div>
+
+                        {% if request.args.get('client_id') %}
+                        <div class="alert alert-ok" style="margin-top:14px;">
+                            ✅ ID da nova cliente: <strong>{{ request.args.get('client_id') }}</strong>
+                            <br><small>Use este ID ao cadastrar a pessoa de confiança abaixo.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- CADASTRAR PESSOA DE CONFIANÇA -->
+                    <div class="card">
+                        <h3>➕ Cadastrar Pessoa de Confiança</h3>
+                        <form id="form-add-trusted">
+                            <label class="label">Cliente (selecione a quem pertence)</label>
+                            <select name="client_id" class="select-input" required>
+                                <option value="">-- Selecione a cliente --</option>
+                                {% for cid, cdata in clients.items() %}
+                                <option value="{{ cid }}">{{ cdata.name }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <label class="label">Nome da pessoa de confiança</label>
+                            <input type="text" name="trusted_name" class="input" placeholder="Ex: Ana (irmã)" required>
+
+                            <label class="label">Usuário (para login)</label>
+                            <input type="text" name="trusted_user" class="input" placeholder="Ex: ana_silva" required pattern="[a-zA-Z0-9_\-]+" title="Apenas letras, números, _ e -">
+
+                            <label class="label">Senha (mín. 8 caracteres)</label>
+                            <input type="password" name="trusted_password" class="input" placeholder="Mínimo 8 caracteres" required minlength="8">
+
+                            <button type="submit" class="btn btn-primary" style="margin-top:14px;">
+                                💾 CADASTRAR
+                            </button>
+                        </form>
+                        <div id="msg-add-trusted"></div>
+                    </div>
+
+                    <!-- LISTA DE PESSOAS DE CONFIANÇA -->
+                    <div class="card">
+                        <h3>👥 Pessoas de Confiança</h3>
+                        {% if trusted %}
+                            {% for username, data in trusted.items() %}
+                            <div class="trusted-item">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+                                    <div>
+                                        <div style="font-weight:900;color:var(--text);">{{ data.name }}</div>
+                                        <div class="small muted">@{{ username }}{% if data.client_name %} • {{ data.client_name }}{% endif %}</div>
+                                    </div>
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                        <button class="btn-warning" onclick="toggleReset('reset-{{ username }}')">🔑 Senha</button>
+                                        <button class="btn-danger" onclick="excluirConfianca('{{ username }}', '{{ data.name }}')">🗑️ Remover</button>
+                                    </div>
+                                </div>
+                                <!-- Formulário de reset de senha (admin) -->
+                                <div id="reset-{{ username }}" class="reset-form">
+                                    <div class="small" style="color:#ff9800;margin-bottom:8px;">🔑 Redefinir senha de @{{ username }}</div>
+                                    <form class="form-reset-senha" data-username="{{ username }}">
+                                        <input type="password" name="new_password" class="input" placeholder="Nova senha (mín. 8 caracteres)" required minlength="8" style="margin-bottom:6px;">
+                                        <button type="submit" class="btn-warning" style="width:100%;padding:8px;">💾 Salvar nova senha</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="center muted">Nenhuma pessoa de confiança cadastrada</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- ALTERAR SENHA ADMIN -->
+                    <div class="card">
+                        <h3>🔐 Alterar Senha do Admin</h3>
+                        <p class="small muted">⚠️ Ainda não implementado nesta versão.</p>
+                    </div>
+
+                    <!-- ÚLTIMOS ALERTAS -->
+                    <div class="card">
+                        <h3>🚨 Últimos Alertas</h3>
+                        {% if alerts %}
+                            {% for alerta in alerts[-5:]|reverse %}
+                            <div class="alert-item">
+                                <div style="font-weight:900;color:var(--hot);">
+                                    ID {{ alerta.id }} • {{ alerta.ts }}
+                                </div>
+                                <div class="small muted">
+                                    {{ alerta.name }} • ⚠️ {{ alerta.situation }}
+                                </div>
+                                {% if alerta.lat and alerta.lng %}
+                                <div class="small" style="color:#4caf50;margin-top:4px;">
+                                    📍 {{ alerta.lat }}, {{ alerta.lng }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="center muted">Nenhum alerta registrado</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="list" style="margin-top:14px;">
+                        <a href="/historico" class="link">📄 Ver Histórico Completo</a>
+                        <span class="link" style="opacity:.5;cursor:not-allowed;" title="Ainda não implementado">📊 Baixar Relatório PDF</span>
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const CSRF_TOKEN = "{{ csrf_token() }}";
+
+        function copiar(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                alert('✅ ID copiado: ' + texto);
+            }).catch(() => {
+                prompt('Copie o ID:', texto);
+            });
+        }
+        function toggleReset(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('open');
+        }
+
+        async function chamarApi(url, body) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN },
+                body: JSON.stringify(body),
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) throw new Error(data.error || 'Erro na requisição');
+            return data;
+        }
+
+        document.getElementById('form-add-client').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = e.target.client_name.value.trim();
+            try {
+                await chamarApi('/api/admin/add_client', { name: nome });
+                location.reload();
+            } catch (err) {
+                document.getElementById('msg-add-client').innerHTML =
+                    `<div class="msg-err">❌ ${err.message}</div>`;
+            }
+        });
+
+        document.getElementById('form-add-trusted').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const f = e.target;
+            try {
+                await chamarApi('/api/admin/add_trusted', {
+                    client_id: f.client_id.value,
+                    name: f.trusted_name.value.trim(),
+                    username: f.trusted_user.value.trim(),
+                    password: f.trusted_password.value,
+                    role: 'trusted',
+                });
+                location.reload();
+            } catch (err) {
+                document.getElementById('msg-add-trusted').innerHTML =
+                    `<div class="msg-err">❌ ${err.message}</div>`;
+            }
+        });
+
+        function excluirCliente(cid, nome) {
+            if (!confirm(`Remover cliente ${nome} e todos os seus usuários?`)) return;
+            chamarApi('/api/admin/delete_client', { client_id: cid })
+                .then(() => location.reload())
+                .catch(err => alert('❌ ' + err.message));
+        }
+
+        function excluirConfianca(username, nome) {
+            if (!confirm(`Deseja remover ${nome}?`)) return;
+            chamarApi('/api/admin/delete_trusted', { username })
+                .then(() => location.reload())
+                .catch(err => alert('❌ ' + err.message));
+        }
+
+        document.querySelectorAll('.form-reset-senha').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = form.dataset.username;
+                const nova = form.new_password.value;
+                try {
+                    await chamarApi('/api/admin/reset_trusted_password', { username, nova_senha: nova });
+                    alert('✅ Senha redefinida com sucesso.');
+                    form.reset();
+                } catch (err) {
+                    alert('❌ ' + err.message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

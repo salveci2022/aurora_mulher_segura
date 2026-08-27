@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Aurora IA — Fale com a Aurora{% endblock %}
+{% block extra_head %}
+<style>
+  body { background: #fff; }
+  .ia-page { min-height: 100dvh; display: flex; flex-direction: column; background: white; }
+  .ia-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top));
+    border-bottom: 1px solid var(--border);
+    background: white; position: sticky; top: 0; z-index: 10;
+  }
+  .back-btn { display:flex;align-items:center;gap:6px;color:var(--text-m);font-size:14px;font-weight:500;background:var(--bg);border:1px solid var(--border);padding:8px 14px;border-radius:50px; }
+  .ia-avatar { width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#F43F5E,#8B5CF6);display:flex;align-items:center;justify-content:center;font-size:18px; }
+  .ia-info { flex:1; }
+  .ia-name { font-size:15px;font-weight:700; }
+  .ia-status { font-size:12px;color:var(--teal);font-weight:500; }
+
+  .chat-body { flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;padding-bottom:100px; }
+
+  .msg { max-width:85%; display:flex;flex-direction:column;gap:4px; }
+  .msg.user { align-self:flex-end;align-items:flex-end; }
+  .msg.ai { align-self:flex-start; }
+  .bubble {
+    padding:12px 16px;border-radius:18px;font-size:15px;line-height:1.5;
+  }
+  .msg.user .bubble { background:var(--rose);color:white;border-bottom-right-radius:4px; }
+  .msg.ai .bubble { background:var(--bg);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px; }
+  .msg-time { font-size:11px;color:var(--text-l); }
+
+  .typing { display:flex;gap:4px;align-items:center;padding:14px 16px; }
+  .typing-dot { width:6px;height:6px;background:var(--text-l);border-radius:50%;animation:typingBounce .8s ease-in-out infinite; }
+  .typing-dot:nth-child(2){animation-delay:.15s}
+  .typing-dot:nth-child(3){animation-delay:.3s}
+  @keyframes typingBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+  .chat-footer {
+    position:fixed;bottom:0;left:0;right:0;
+    background:white;border-top:1px solid var(--border);
+    padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));
+    display:flex;gap:10px;align-items:flex-end;
+  }
+  .chat-input {
+    flex:1;resize:none;border:1.5px solid var(--border);border-radius:24px;
+    padding:12px 16px;font-family:var(--font);font-size:15px;
+    outline:none;max-height:120px;background:var(--bg);
+    transition:border-color .2s;
+  }
+  .chat-input:focus{border-color:var(--rose);}
+  .send-btn {
+    width:44px;height:44px;border-radius:50%;background:var(--rose);
+    color:white;display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;font-size:18px;transition:background .2s;
+  }
+  .send-btn:hover{background:var(--rose-d);}
+  .send-btn:disabled{background:var(--text-l);cursor:not-allowed;}
+
+  .emergency-bar {
+    background:#FFF1F2;border-bottom:1px solid #FECDD3;
+    padding:10px 20px;display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--rose-d);font-weight:500;
+  }
+</style>
+{% endblock %}
+{% block body %}
+<div class="ia-page">
+  <!-- Header -->
+  <div class="ia-header">
+    <a href="/panic" class="back-btn">←</a>
+    <div class="ia-avatar">🤖</div>
+    <div class="ia-info">
+      <div class="ia-name">Aurora IA</div>
+      <div class="ia-status">● Online 24h</div>
+    </div>
+  </div>
+
+  <!-- Emergency bar -->
+  <div class="emergency-bar">
+    🚨 Em perigo imediato? <a href="tel:190" style="font-weight:700;text-decoration:underline;">Ligue 190</a> ou <a href="tel:180" style="font-weight:700;text-decoration:underline;">180</a>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-body" id="chatBody">
+    <div class="msg ai">
+      <div class="bubble">
+        Olá 💜 Sou a Aurora IA, estou aqui para te ouvir e ajudar.<br><br>
+        Pode falar comigo com tranquilidade. O que você está sentindo agora?
+      </div>
+      <div class="msg-time">Agora</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="chat-footer">
+    <textarea class="chat-input" id="inputMsg" placeholder="Digite sua mensagem..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviar();}"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="enviar()">➤</button>
+  </div>
+</div>
+
+<script>
+  const messages = [];
+
+  async function enviar() {
+    const input = document.getElementById('inputMsg');
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Add user message
+    input.value = ''; input.style.height = 'auto';
+    messages.push({ role: 'user', content: text });
+    addBubble('user', text);
+
+    // Typing indicator
+    const typingId = addTyping();
+    document.getElementById('sendBtn').disabled = true;
+
+    try {
+      const res = await fetch('/api/aurora-ia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages })
+      });
+      const data = await res.json();
+      removeTyping(typingId);
+      messages.push({ role: 'assistant', content: data.reply });
+      addBubble('ai', data.reply);
+    } catch(e) {
+      removeTyping(typingId);
+      addBubble('ai', 'Desculpe, houve um erro. Se precisar de ajuda urgente, ligue 180 ou 190.');
+    }
+    document.getElementById('sendBtn').disabled = false;
+  }
+
+  function addBubble(role, text) {
+    const chat = document.getElementById('chatBody');
+    const now = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    div.innerHTML = `<div class="bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${now}</div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function addTyping() {
+    const chat = document.getElementById('chatBody');
+    const id = 'typing_' + Date.now();
+    const div = document.createElement('div');
+    div.className = 'msg ai'; div.id = id;
+    div.innerHTML = `<div class="bubble typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(id) {
+    document.getElementById(id)?.remove();
+  }
+
+  // Auto-resize textarea
+  document.getElementById('inputMsg').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+</script>
+{% endblock %}

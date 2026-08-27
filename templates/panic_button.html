@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <title>Aurora - Botão de Pânico</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .location-consent {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid rgba(76, 175, 80, 0.4);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 14px 0;
+        }
+        .location-consent label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text);
+        }
+        .location-consent input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #4caf50;
+        }
+        .location-consent strong {
+            color: #4caf50;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .location-consent small {
+            color: var(--muted);
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+        }
+        .gps-status {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            display: none;
+        }
+        .gps-status.active { display: block; }
+        .gps-status.good { background: rgba(76, 175, 80, 0.15); border-color: rgba(76, 175, 80, 0.4); }
+        .gps-status.poor { background: rgba(244, 67, 54, 0.15); border-color: rgba(244, 67, 54, 0.4); }
+        .sos.sent {
+            background: linear-gradient(145deg, #4caf50, #388e3c) !important;
+            animation: pulse-sent 0.5s ease;
+        }
+        @keyframes pulse-sent {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .quick-exit-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 14px;
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 900;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        /* Config section */
+        .config-toggle {
+            background: rgba(40, 0, 60, 0.5);
+            border: 1px solid rgba(255, 98, 212, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 10px 0;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .config-toggle:hover { border-color: rgba(255, 79, 200, 0.5); }
+        #configSection {
+            display: none;
+            background: rgba(10, 0, 20, 0.5);
+            border: 1px solid rgba(255, 152, 0, 0.35);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 6px;
+        }
+        #configSection.open { display: block; }
+        #clientIdDisplay {
+            font-size: 12px;
+            margin: 6px 0 0;
+            font-weight: 600;
+        }
+        .config-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .btn-save-id {
+            flex: 1;
+            background: rgba(76, 175, 80, 0.25);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            color: #81c784;
+            padding: 9px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-clear-id {
+            background: rgba(244, 67, 54, 0.15);
+            border: 1px solid rgba(244, 67, 54, 0.35);
+            color: #ef9a9a;
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-weight: 900;
+            font-size: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <a href="/saida-rapida" class="quick-exit-btn" title="Saída rápida de emergência">⚡ SAÍDA RÁPIDA</a>
+    
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">⚠️</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Botão de Pânico</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/" class="pill">← Voltar</a>
+                        <a href="/ajuda" class="pill">Ajuda</a>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <h1 class="h1">⚠️ SITUAÇÃO DE RISCO</h1>
+                    <p class="center muted">Selecione o tipo de emergência</p>
+                    
+                    <div class="chips">
+                        <div class="chip active" data-value="Assédio">🚫 Assédio</div>
+                        <div class="chip" data-value="Violência">👊 Violência</div>
+                        <div class="chip" data-value="Perseguição">👀 Perseguição</div>
+                        <div class="chip" data-value="Emergência médica">🏥 Emergência médica</div>
+                        <div class="chip" data-value="Local suspeito">⚠️ Local suspeito</div>
+                        <div class="chip" data-value="Outro">❓ Outro</div>
+                    </div>
+                    
+                    <label class="label">Seu nome (opcional)</label>
+                    <input type="text" id="name" class="input" placeholder="Digite seu nome">
+                    
+                    <label class="label">Mensagem opcional</label>
+                    <textarea id="message" class="textarea" placeholder="Descreva rapidamente o que está acontecendo..."></textarea>
+                    
+                    <div class="location-consent">
+                        <label>
+                            <input type="checkbox" id="shareLocation">
+                            <div>
+                                <strong>📍 COMPARTILHAR MINHA LOCALIZAÇÃO</strong>
+                                Autorizo o envio da minha localização GPS em tempo real para minhas pessoas de confiança.
+                                <small>• Sua localização só será enviada se você autorizar<br>
+                                • Precisão de 3-50 metros dependendo do GPS<br>
+                                • Você pode ativar/desativar quando quiser</small>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div id="gpsStatus" class="gps-status">
+                        📍 <span id="gpsText">Aguardando...</span>
+                    </div>
+                    
+                    <div class="alert center" id="status">
+                        🌸 Sistema pronto
+                    </div>
+                    
+                    <div class="sos-wrap">
+                        <div class="sos" id="sosBtn">
+                            <div>
+                                <div class="sos-text">SOS</div>
+                                <div class="sos-sub">SEGURE POR 1 SEGUNDO</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ID DO CLIENTE -->
+                    <div class="config-toggle" id="toggleConfigBtn">
+                        <span>⚙️ Configurar ID de Recebimento</span>
+                        <span style="color:var(--muted);font-size:10px;">▼</span>
+                    </div>
+                    <div id="configSection">
+                        <p class="small muted" style="margin-bottom:8px;">
+                            O ID é fornecido pelo administrador do Aurora. Sem ele, suas pessoas de confiança <strong>não receberão</strong> seus alertas.
+                        </p>
+                        <label class="label" style="margin-top:0;">ID do Cliente</label>
+                        <input type="text" id="clientIdInput" class="input" placeholder="Cole aqui o ID fornecido pelo admin" style="font-family:monospace;font-size:13px;">
+                        <div class="config-btn-row">
+                            <button id="saveClientIdBtn" class="btn-save-id">💾 Salvar ID</button>
+                            <button id="clearClientIdBtn" class="btn-clear-id">🗑️ Limpar</button>
+                        </div>
+                    </div>
+                    <div id="clientIdDisplay" style="font-size:12px;margin:4px 0 10px;font-weight:600;"></div>
+                    
+                    <div class="list" style="margin-top: 14px;">
+                        <a href="/plano_seguranca" class="link">📋 Meu Plano de Segurança</a>
+                        <a href="/ajuda" class="link">📞 Números de Emergência</a>
+                        <a href="/aurora-ia" class="link">🤖 Aurora IA — Preciso conversar</a>
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/panic.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0014">
+    <title>Admin · Aurora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="manifest" href="/static/manifest.json">
+</head>
+<body>
+    <div class="aurora-bg">
+        <div class="center-wrap">
+            <div class="aurora-card">
+                <div class="topbar">
+                    <div class="brand">
+                        <div class="brand-dot">⚙️</div>
+                        <div>
+                            <div class="brand-title">AURORA</div>
+                            <div class="brand-sub">Admin</div>
+                        </div>
+                    </div>
+                    <div class="top-actions">
+                        <a href="/panic" class="pill">🚨 SOS</a>
+                        <a href="/" class="pill">← Voltar</a>
+                    </div>
+                </div>
+                <div class="content">
+                    <h1 class="h1">⚙️ LOGIN ADMIN</h1>
+                    <p class="center muted">Acesso administrativo</p>
+                    {% if erro %}
+                    <div class="alert alert-danger center">❌ {{ erro }}</div>
+                    {% endif %}
+                    {% if request.args.get('msg') %}
+                    <div class="alert alert-ok center">✅ {{ request.args.get('msg').replace('+', ' ') }}</div>
+                    {% endif %}
+                    {% if request.args.get('err') %}
+                    <div class="alert alert-danger center">❌ {{ request.args.get('err').replace('+', ' ') }}</div>
+                    {% endif %}
+                    <form method="POST" action="/login_admin">
+                        
+                        <label class="label">Usuário</label>
+                        <input type="text" name="username" class="input" placeholder="Digite seu usuário" required autocomplete="username">
+                        <label class="label">Senha</label>
+                        <input type="password" name="password" class="input" placeholder="Digite sua senha" required autocomplete="current-password">
+                        <button type="submit" class="btn btn-primary">ENTRAR</button>
+                    </form>
+                    <div class="info-box">
+                        <p class="small muted">ℹ️ <strong>Painel Admin:</strong><br>• Gerencie pessoas de confiança<br>• Relatório completo de alertas<br>• Configurações do sistema</p>
+                    </div>
+                    <div class="list" style="margin-top:14px;">
+                        <a href="/ajuda" class="link">📞 Central de Ajuda</a>
+                        <a href="/" class="link">← Voltar ao início</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
